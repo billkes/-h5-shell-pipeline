@@ -796,14 +796,27 @@ def verify_h5_bundle_soft(
         warnings.extend(_verify_forbidden_boot_timeout(vault_dir, root))
         warnings.extend(_verify_shell_ready_signal(vault_dir, root))
         warnings.extend(_verify_bridge_plaza(vault_dir, root))
+        try:
+            from batch.h5_plaza_dev_gate import (
+                find_plaza_obvious_entrance,
+                verify_no_plaza_dev_entrance,
+            )
+
+            warnings.extend(verify_no_plaza_dev_entrance(vault_dir, root))
+            warnings.extend(find_plaza_obvious_entrance(vault_dir, root))
+        except ImportError:
+            pass
         from batch.h5_deflavor_audit import verify_h5_deflavor_baseline
 
         for item in verify_h5_deflavor_baseline(root):
             warnings.append(f"H5 Gate Deflavor：{item}")
-        from batch.welcome_canon import verify_h5_welcome_canon
+        try:
+            from batch.welcome_canon import verify_h5_welcome_canon
 
-        for item in verify_h5_welcome_canon(root):
-            warnings.append(f"H5 Gate Welcome Canon：{item}")
+            for item in verify_h5_welcome_canon(root):
+                warnings.append(f"H5 Gate Welcome Canon：{item}")
+        except ImportError:
+            pass
     warnings.extend(_verify_flutter_startup_shell(workspace, root))
 
     return warnings

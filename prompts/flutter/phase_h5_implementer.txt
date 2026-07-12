@@ -20,7 +20,7 @@ ${H5_SHELL_BLOCK}
 2. **DO NOT** add `h5SiteRoot` to Flutter `pubspec.yaml` assets — site is deployed online / served on LAN for dev.
 3. **Follow h5VaultPattern** from 本包登记信息.json.
 4. **All visible UI in H5**: Splash → Welcome gate → business SPA routes per PM deck.
-5. **Bridge Plaza (MANDATORY)**: route `#/plaza` per 《H5壳广场页规范.md》; hidden entry = Settings long-press version label 3s; semi-hardcoded buttons per `bridgeCapabilities`.
+5. **Bridge Plaza (MANDATORY)**: route `#/plaza` per 《H5壳广场页规范.md》; production entry = Settings long-press version label 3s; semi-hardcoded buttons per `bridgeCapabilities`. For dev convenience, add an **obvious** temporary entrance (e.g., visible Settings button or FAB) wrapped in `H5_PLAZA_DEV_ENTRANCE_START` / `H5_PLAZA_DEV_ENTRANCE_END` markers so the pipeline can strip it before deployment.
 6. **Legal / Privacy / Terms**: kit from `data/static/h5_legal_kit/` + `sync_h5_legal_bundled.py`.
 7. IAP store UI in H5; call Bridge `purchase` only.
 8. Media: relative paths + Bridge `mediaServe` for shell-bundled rasters — **no base64** large images.
@@ -47,6 +47,7 @@ ${H5_SHELL_BLOCK}
 - External legal URLs as primary display
 - `<input type="file">`, system `<select>`, `alert/confirm`
 - Exposing plaza in Tab bar or home hub
+- Leaving an obvious plaza entrance in production code without `H5_PLAZA_DEV_ENTRANCE_*` markers
 
 [Output]
 Complete deployable H5 site at `h5SiteRoot`; browser-runnable; plaza route present. One sentence summary of screens implemented.

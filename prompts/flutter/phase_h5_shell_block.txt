@@ -7,12 +7,12 @@
 - **All visible UI in remote H5:** Splash, Welcome gate, legal modal/page, business SPA, IAP UI, hidden Bridge plaza — deployable site under `h5SiteRoot` (default `h5_site/`).
 - **Native shells (swift/oc):** NO Flutter project required; shell = pure iOS WKWebView + Bridge. Bridge 七维来自 **h5-native-shell-deck**（非 Flutter deck）。
 - **Flutter shell:** Flutter is **container + Bridge + bundled raster assets only** (single fullscreen WebView host).
-- **h5EntryUrl:** PM registers `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd` in 本包登记信息.json. Prod pattern: `https://test.darin.beauty/{appSlug}/` (app name all lowercase).
+- **h5EntryUrl:** PM registers `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd` in 本包登记信息.json. Prod pattern: `https://<H5_PROD_HOST>/{appSlug}/` (app name all lowercase).
 - **NO** Flutter Splash/Welcome/Legal widgets; **NO** 3 native Tabs / Feed / native tool screens.
 - **NO** business H5 under Flutter `pubspec.yaml` assets — site is deployed separately.
 - **Legal:** MD → `sync_h5_legal_bundled.py` → `{prefix}_legal_bundled.js` in h5 site; UI → kit + `H5壳Legal弹层规范.md`.
 - Read 《H5壳业务流程文字版.md》 per enabled Bridge capability.
-- Read 《H5壳广场页规范.md》 — hidden `#/plaza` + Settings long-press version 3s.
+- Read 《H5壳广场页规范.md》 — hidden `#/plaza` + Settings long-press version 3s; dev-only obvious entrance must be wrapped in `H5_PLAZA_DEV_ENTRANCE_START` / `H5_PLAZA_DEV_ENTRANCE_END` markers for deployment stripping.
 - Read 《H5去风味规范.md》 — H5 ships polish baseline; AppBar `position:fixed` in H5.
 - 功能文档.md MUST include **「4.2 Native Offset」** (≥3 Bridge/native capabilities).
 
