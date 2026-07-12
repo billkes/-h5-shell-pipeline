@@ -1,0 +1,30 @@
+{
+  "version": "1",
+  "description": "h5_shell Bridge 卡池兼容性。抽 webviewEngine 后过滤其余维；mediaServe 部分卡仅允许 inappwebview。",
+  "engineExcludes": {
+    "webview_flutter": {
+      "bridgeCallStyle": [
+        "flutter_inappwebview.callHandler(Promise)"
+      ],
+      "bridgeInjectTiming": [
+        "initialUserScripts (inappwebview)"
+      ],
+      "mediaServe": [
+        "InAppLocalhostServer",
+        "shouldInterceptRequest+appassets://"
+      ]
+    },
+    "flutter_inappwebview": {
+      "bridgeCallStyle": [
+        "JavascriptChannel.postMessage(JSON)"
+      ]
+    }
+  },
+  "cardRequiresEngine": {
+    "InAppLocalhostServer": "flutter_inappwebview",
+    "shouldInterceptRequest+appassets://": "flutter_inappwebview",
+    "initialUserScripts (inappwebview)": "flutter_inappwebview",
+    "flutter_inappwebview.callHandler(Promise)": "flutter_inappwebview",
+    "JavascriptChannel.postMessage(JSON)": "webview_flutter"
+  }
+}

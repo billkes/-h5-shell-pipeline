@@ -1,0 +1,82 @@
+{
+  "deckName": "h5-native-shell-deck",
+  "version": "1",
+  "description": "Swift/OC H5 shell Bridge 差异化七维。webviewEngine 由 pack_type 锁定 wkwebview_swift / wkwebview_oc；其余维受 h5-native-shell-compat-matrix.json 约束。",
+  "dimensions": {
+    "webviewEngine": {
+      "label": "Native WebView 底座",
+      "pickOrder": 1,
+      "cards": [
+        "wkwebview_swift",
+        "wkwebview_oc"
+      ]
+    },
+    "bridgeCallStyle": {
+      "label": "H5→Native 调用风格",
+      "pickOrder": 2,
+      "cards": [
+        "WKScriptMessageHandler.postMessage(JSON)",
+        "window.webkit.messageHandlers.{prefix}.postMessage(JSON)",
+        "WKUserContentController named handler + JSON body",
+        "custom URL scheme intercept (app-bridge://)",
+        "postMessage + CustomEvent bridgeReady"
+      ]
+    },
+    "bridgeCallbackStyle": {
+      "label": "Native→H5 回调风格",
+      "pickOrder": 3,
+      "cards": [
+        "evaluateJavaScript(callbackId(data))",
+        "WKWebView.evaluateJavaScript completionHandler",
+        "callAsyncJavaScript Promise resolve (iOS 14+)",
+        "injected JS dispatchEvent(NativeReply)",
+        "callbackId Map + evaluateJavaScript",
+        "URL scheme callback (app-callback://)"
+      ]
+    },
+    "bridgeEnvelope": {
+      "label": "消息封装格式",
+      "pickOrder": 4,
+      "cards": [
+        "{action,data} minimal",
+        "RPC {jsonrpc,method,params,id}",
+        "versioned envelope {v,action,payload,callbackId}",
+        "method+args split fields",
+        "URL query flattened"
+      ]
+    },
+    "mediaServe": {
+      "label": "媒体回显方案",
+      "pickOrder": 5,
+      "cards": [
+        "loadFileURL bundle resource",
+        "WKURLSchemeHandler local vault",
+        "custom scheme handler (app-asset://)",
+        "readFile Bridge base64 inline",
+        "NSURL fileURLWithPath vault relative"
+      ]
+    },
+    "bridgeErrorCode": {
+      "label": "错误码风格",
+      "pickOrder": 6,
+      "cards": [
+        "numeric codes (0/-1/-2)",
+        "string enum (PERMISSION_DENIED)",
+        "HTTP-like (400/403/500)",
+        "gRPC-style (INVALID_ARGUMENT)",
+        "short prefix+number (E101)"
+      ]
+    },
+    "bridgeInjectTiming": {
+      "label": "Bridge 注入时机",
+      "pickOrder": 7,
+      "cards": [
+        "WKUserScript atDocumentStart",
+        "WKUserScript atDocumentEnd",
+        "didFinish navigation inject polyfill",
+        "configuration.userContentController before first load",
+        "bundled bridge.js in main bundle preload"
+      ]
+    }
+  }
+}

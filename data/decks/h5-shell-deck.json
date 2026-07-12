@@ -1,0 +1,83 @@
+{
+  "deckName": "h5-shell-deck",
+  "version": "1",
+  "description": "Flutter H5 shell Bridge 差异化七维（h5_shell / h5_flutter_shell）。webviewEngine 须先抽；其余维受 h5-shell-compat-matrix.json 约束。Swift/OC 见 h5-native-shell-deck.json。",
+  "dimensions": {
+    "webviewEngine": {
+      "label": "WebView 底座",
+      "pickOrder": 1,
+      "cards": [
+        "webview_flutter",
+        "flutter_inappwebview"
+      ]
+    },
+    "bridgeCallStyle": {
+      "label": "H5→Flutter 调用风格",
+      "pickOrder": 2,
+      "cards": [
+        "JavascriptChannel.postMessage(JSON)",
+        "flutter_inappwebview.callHandler(Promise)",
+        "URL scheme intercept (app://action)",
+        "global bridge object (window.NativeBridge.xxx)",
+        "postMessage + custom event",
+        "URL hash change listener",
+        "cookie change listener"
+      ]
+    },
+    "bridgeCallbackStyle": {
+      "label": "Flutter→H5 回调风格",
+      "pickOrder": 3,
+      "cards": [
+        "runJavaScript(window.callbacks[id](data))",
+        "evaluateJavascript(Promise resolve/reject)",
+        "global event bus (CustomEvent)",
+        "URL scheme callback (app-callback://)",
+        "postMessage direct reply",
+        "callbackId + Map table"
+      ]
+    },
+    "bridgeEnvelope": {
+      "label": "消息封装格式",
+      "pickOrder": 4,
+      "cards": [
+        "{action,data} minimal",
+        "RPC {jsonrpc,method,params,id}",
+        "versioned envelope {v,action,payload,callbackId}",
+        "method+args split fields",
+        "URL query flattened"
+      ]
+    },
+    "mediaServe": {
+      "label": "媒体回显方案",
+      "pickOrder": 5,
+      "cards": [
+        "InAppLocalhostServer",
+        "shouldInterceptRequest+appassets://",
+        "shelf+shelf_static HTTP",
+        "HttpServer.bind(loopback) hand-rolled"
+      ]
+    },
+    "bridgeErrorCode": {
+      "label": "错误码风格",
+      "pickOrder": 6,
+      "cards": [
+        "numeric codes (0/-1/-2)",
+        "string enum (PERMISSION_DENIED)",
+        "HTTP-like (400/403/500)",
+        "gRPC-style (INVALID_ARGUMENT)",
+        "short prefix+number (E101)"
+      ]
+    },
+    "bridgeInjectTiming": {
+      "label": "Bridge 注入时机",
+      "pickOrder": 7,
+      "cards": [
+        "onPageStarted inject polyfill",
+        "onPageFinished inject",
+        "controller init addJavaScriptHandler",
+        "assets bundled bridge.js first paint",
+        "initialUserScripts (inappwebview)"
+      ]
+    }
+  }
+}

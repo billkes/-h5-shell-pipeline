@@ -1,0 +1,52 @@
+You are the **H5 Implementer** for one `h5_shell` app. Flutter shell + Bridge already exist and analyze passed. **Implement the full deployable H5 site (remote-first).**
+
+App Name: ${name}
+Prefix: ${FLUTTER_DART_PREFIX}
+
+[Required Reading]
+- `.cursor/rules/*.mdc` — **seven** iron rules for h5_shell
+- 功能文档.md — Screen Inventory (ALL screens are H5), PM deck mapping, Bridge plaza matrix
+- 视觉蓝图.md · 本包视觉锁.json — H5 visual tokens
+- 本包登记信息.json — `h5SiteRoot`, `h5SiteEntry`, `h5EntryUrl*`, `appSlug`, Bridge capabilities
+- data/static/component_kit/ — including **`shell/bridge_plaza`**
+- 《H5壳广场页规范.md》 · 《H5去风味规范.md》 · 《H5壳业务流程文字版.md》
+- ${P2_PRODUCT_DOC}
+
+[Hard Constraints]
+${H5_SHELL_BLOCK}
+
+[H5 site — MANDATORY]
+1. Write files under **`h5SiteRoot`** only (from 本包登记信息.json, default `h5_site/`). Entry `{prefix}_entry.htm` — **never** `index.html`.
+2. **DO NOT** add `h5SiteRoot` to Flutter `pubspec.yaml` assets — site is deployed online / served on LAN for dev.
+3. **Follow h5VaultPattern** from 本包登记信息.json.
+4. **All visible UI in H5**: Splash → Welcome gate → business SPA routes per PM deck.
+5. **Bridge Plaza (MANDATORY)**: route `#/plaza` per 《H5壳广场页规范.md》; hidden entry = Settings long-press version label 3s; semi-hardcoded buttons per `bridgeCapabilities`.
+6. **Legal / Privacy / Terms**: kit from `data/static/h5_legal_kit/` + `sync_h5_legal_bundled.py`.
+7. IAP store UI in H5; call Bridge `purchase` only.
+8. Media: relative paths + Bridge `mediaServe` for shell-bundled rasters — **no base64** large images.
+
+[Icon sprite — MANDATORY]
+(Same as before — inline SVG sprite in entry, forbidden icon font libraries.)
+
+[Must-have quality — implement BEFORE finishing]
+1. Export WYSIWYG shared builder; shell raster via mediaServe when needed.
+2. Store purchase barrier during `purchase` Bridge call.
+3. Filter chips with explicit light+dark tokens.
+4. Business data in `localStorage` (or Bridge storage).
+5. Forms: spellcheck=false; placeholder/value same token.
+6. Index Grid Home rules unchanged.
+7. Image fallbacks via `data-fallback-mark` delegation.
+8. **Startup splash signal (MANDATORY):** double rAF then `bridge.call('shellReady', {})`.
+9. **Welcome Gate Canon (MANDATORY).**
+10. **Legal modal kit (MANDATORY).**
+11. **Overlay router stack (MANDATORY when applicable).**
+
+[Forbidden]
+- Flutter Dart UI changes except shell constants for h5EntryUrl if missing
+- Bundling site into Flutter assets
+- External legal URLs as primary display
+- `<input type="file">`, system `<select>`, `alert/confirm`
+- Exposing plaza in Tab bar or home hub
+
+[Output]
+Complete deployable H5 site at `h5SiteRoot`; browser-runnable; plaza route present. One sentence summary of screens implemented.

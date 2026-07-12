@@ -1,0 +1,16 @@
+// Reference: merge into ios/Runner/AppDelegate.swift didFinishLaunchingWithOptions
+
+import Flutter
+import UIKit
+
+@main
+@objc class AppDelegate: FlutterAppDelegate {
+  override func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+  ) -> Bool {
+    GeneratedPluginRegistrant.register(with: self)
+    window?.backgroundColor = .clear
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+}

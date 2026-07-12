@@ -1,0 +1,57 @@
+[H5 Shell Pack — MANDATORY overrides]
+
+- **Pack type / runtime:** read `应用类型` from task.csv:
+  - `h5_shell` / `h5_flutter_shell` → **shellRuntime: flutter** (Flutter WebView 壳)
+  - `h5_swift_shell` → **shellRuntime: swift** (Swift WKWebView 壳)
+  - `h5_oc_shell` → **shellRuntime: oc** (Objective-C WKWebView 壳)
+- **All visible UI in remote H5:** Splash, Welcome gate, legal modal/page, business SPA, IAP UI, hidden Bridge plaza — deployable site under `h5SiteRoot` (default `h5_site/`).
+- **Native shells (swift/oc):** NO Flutter project required; shell = pure iOS WKWebView + Bridge. Bridge 七维来自 **h5-native-shell-deck**（非 Flutter deck）。
+- **Flutter shell:** Flutter is **container + Bridge + bundled raster assets only** (single fullscreen WebView host).
+- **h5EntryUrl:** PM registers `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd` in 本包登记信息.json. Prod pattern: `https://test.darin.beauty/{appSlug}/` (app name all lowercase).
+- **NO** Flutter Splash/Welcome/Legal widgets; **NO** 3 native Tabs / Feed / native tool screens.
+- **NO** business H5 under Flutter `pubspec.yaml` assets — site is deployed separately.
+- **Legal:** MD → `sync_h5_legal_bundled.py` → `{prefix}_legal_bundled.js` in h5 site; UI → kit + `H5壳Legal弹层规范.md`.
+- Read 《H5壳业务流程文字版.md》 per enabled Bridge capability.
+- Read 《H5壳广场页规范.md》 — hidden `#/plaza` + Settings long-press version 3s.
+- Read 《H5去风味规范.md》 — H5 ships polish baseline; AppBar `position:fixed` in H5.
+- 功能文档.md MUST include **「4.2 Native Offset」** (≥3 Bridge/native capabilities).
+
+[Online-first — h5_shell]
+- Shell loads **remote URL** (`h5EntryUrl`). Offline is **not** a product requirement.
+- H5 business MAY use network APIs; no-network → shell Retry fallback only.
+- **Raster assets** (export frames, panel PNGs for mediaServe) stay in **Flutter pubspec** asset roots.
+
+[Flutter shell — startup splash (Programmer)]
+- Read 《H5壳启动闪屏规范.md》. LaunchScreen = **1125×2436 placeholder PNG** (`launchPlaceholderAsset`); real launch art is out of scope.
+- Cold start MUST NOT flash black between LaunchScreen and H5 splash.
+- Programmer delivers: `{Prefix}FlutterViewController`, LaunchVeil (same placeholder image), VaultBoot warm-in-initState, Bridge `shellReady`, WebKit channel-before-load, **`loadRequest(h5EntryUrl)`** (NOT loadFlutterAsset).
+
+[H5 site — startup (Implementer)]
+- Write deployable site under `h5SiteRoot`; entry `{prefix}_entry.htm` — never `index.html`.
+- entry.htm: inline `{prefix}Native` wrapper; `boot()` immediate — NO `setTimeout(boot,…)`.
+- splash route `afterMount`: double `requestAnimationFrame` then `bridge.call('shellReady',{})`.
+- Implement `#/plaza` per 《H5壳广场页规范.md》 + kit `shell/bridge_plaza`.
+
+[PM deliverables]
+- **功能文档.md:** Screen Inventory = **all H5 routes** (Splash, Welcome, legal overlay, business, **Plaza hidden**). Flutter inventory = WebView host + error fallback + launch placeholder only.
+- **本包登记信息.json:** `shellRuntime`, `packType`, `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd`, `h5SiteRoot`, `h5SiteEntry`, `launchPlaceholderAsset`, `h5VaultPattern`, `h5VaultLayout`, `bridgeDeckSelections`, `bridgeCapabilities`, `kitDeckSelections` (11 kit dims from CSV).
+- **bridgeDeckSelections** MUST copy all 7 Bridge CSV columns verbatim; **shellRuntime** MUST match pack type (flutter/swift/oc).
+- **产包计划.md:** P2-Shell → P2-H5 (site) → **manual deploy gate** (upload site, switch h5EntryUrl to prod).
+
+[PM — 资源计划.md overrides for h5_shell]
+- **Flutter image slots:** App Icon + **shell raster** (export frames, mediaServe PNGs under declared `assetRoots`). **Do NOT** list business UI rasters in H5 site — those reference shell assets via Bridge/mediaServe when needed.
+- **H5 Site Image Slots:** list site-local SVG/icons only; large rasters prefer shell assetRoots + mediaServe.
+- **H5 Site Kit Files:** when `h5VaultPattern=h5_modular_full` + `h5ScreenPattern=functional-render`, list per-screen JS under `{prefix}_panels/`.
+- **H5 icon sprite list:** 8–20 `{prefix}-mark-*` symbol IDs consistent with the chosen iconography.
+
+[PM — h5VaultPattern registration]
+- 本包登记信息.json MUST include: `shellRuntime`, `packType`, `h5VaultPattern`, `h5VaultLayout`, `h5SiteRoot`, `h5SiteEntry`, `appSlug`, `h5EntryUrl*`, `kitDeckSelections` (11 cols).
+- Flutter CSV 架构模式 = **Dart/Swift/OC shell only**. H5 site structure = **h5VaultPattern**.
+
+[PM — Flutter/Swift/OC 状态/架构 vs H5 业务]
+- CSV `状态管理` / `架构模式` **仅约束壳 runtime**。
+- H5 业务以 **`h5StateModel` / `h5RouterPattern` / `h5ScreenPattern`** 为准。
+- 功能文档.md 须含 **§H5 Architecture** 文件映射。
+
+[PM — 视觉蓝图 Iconography override]
+- For `h5_shell`: icon source = **inline SVG sprite** in h5 site. **Not** Flutter `Icons.*` for business UI.
