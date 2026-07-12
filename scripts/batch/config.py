@@ -57,6 +57,7 @@ _YAML_ENV_MAP: dict[tuple[str, ...], str] = {
     ("iflow", "idle_timeout_sec"): "IFLOW_IDLE_TIMEOUT_SEC",
     ("iflow", "max_retries"): "IFLOW_MAX_RETRIES",
     ("iflow", "retry_delay_sec"): "IFLOW_RETRY_DELAY_SEC",
+    ("xcode", "bundle_id"): "XCODE_BUNDLE_ID",
     ("build", "pub_get_max_retries"): "PUB_GET_MAX_RETRIES",
     ("build", "max_build_fix_rounds"): "MAX_BUILD_FIX_ROUNDS",
     ("build", "max_test_fix_rounds"): "MAX_TEST_FIX_ROUNDS",
@@ -68,6 +69,7 @@ _YAML_ENV_MAP: dict[tuple[str, ...], str] = {
     ("build", "flutter_test_paths"): "FLUTTER_TEST_PATHS",
     ("build", "build_log_tail_lines"): "BUILD_LOG_TAIL_LINES",
     ("defaults", "pack_type"): "BATCH_PACK_TYPE",
+    ("defaults", "task_csv"): "BATCH_TASK_CSV",
     ("defaults", "free_tier"): "FREE_TIER_DEFAULT",
     ("defaults", "free_publish"): "FREE_PUBLISH_DEFAULT",
     ("defaults", "tool_lang"): "TOOL_LANG",
@@ -82,11 +84,6 @@ _YAML_ENV_MAP: dict[tuple[str, ...], str] = {
     ("api_keys", "logo_api"): "LOGO_API",
     ("api_keys", "openai_api_key"): "OPENAI_API_KEY",
     ("api_keys", "dashscope_api_key"): "DASHSCOPE_API_KEY",
-    ("xcode", "bundle_id_prefix"): "BUNDLE_ID_PREFIX",
-    ("xcode", "bundle_id"): "XCODE_BUNDLE_ID",
-    ("xcode", "development_team"): "XCODE_DEVELOPMENT_TEAM",
-    ("xcode", "provisioning_profile"): "XCODE_PROVISIONING_PROFILE",
-    ("xcode", "iap_bundle_prefix"): "IAP_BUNDLE_PREFIX",
     ("git", "remote_pattern"): "GIT_REMOTE_PATTERN",
     ("git", "default_branch"): "GIT_DEFAULT_BRANCH",
     ("evolution", "cooldown_days"): "COOLDOWN_DAYS",
@@ -110,6 +107,12 @@ def _load_env_file(path: Path) -> None:
         val = val.strip().strip('"').strip("'")
         if key and key not in os.environ:
             os.environ[key] = val
+
+
+def _optional_path(value: str) -> Path | None:
+    """Return a Path for non-empty, non-whitespace strings; otherwise None."""
+    value = value.strip()
+    return Path(value) if value else None
 
 
 def _parse_comma_list(value: str) -> list[str]:
@@ -218,14 +221,10 @@ class BatchConfig:
     task_csv_by_name: dict[str, object] = field(default_factory=dict)
     unsplash_access_key: str = ""
     pexels_api_key: str = ""
-    iap_bundle_prefix: str = ""
-    bundle_id_prefix: str = ""
-    xcode_bundle_id: str = ""
-    xcode_development_team: str = ""
-    xcode_provisioning_profile: str = ""
     free_tier_default: int = 3
     free_publish_default: int = 2
     uupm_skill_dir: str = ""
+    xcode_bundle_id: str = "test.duckegg.ios"
 
     @property
     def config_dir(self) -> Path:
@@ -399,17 +398,9 @@ class BatchConfig:
             phase1_cache=os.environ.get("PHASE1_CACHE", "1") == "1",
             skip_images=os.environ.get("SKIP_IMAGES", "0") == "1",
             batch_pack_type=pack_type,
+            task_csv_path=_optional_path(os.environ.get("BATCH_TASK_CSV", "")),
             unsplash_access_key=os.environ.get("UNSPLASH_ACCESS_KEY", ""),
             pexels_api_key=os.environ.get("PEXELS_API_KEY", ""),
-            iap_bundle_prefix=os.environ.get("IAP_BUNDLE_PREFIX", ""),
-            bundle_id_prefix=os.environ.get("BUNDLE_ID_PREFIX", ""),
-            xcode_bundle_id=os.environ.get("XCODE_BUNDLE_ID", ""),
-            xcode_development_team=os.environ.get(
-                "XCODE_DEVELOPMENT_TEAM", ""
-            ),
-            xcode_provisioning_profile=os.environ.get(
-                "XCODE_PROVISIONING_PROFILE", ""
-            ),
             free_tier_default=max(
                 1, int(os.environ.get("FREE_TIER_DEFAULT", "3"))
             ),
@@ -417,6 +408,7 @@ class BatchConfig:
                 1, int(os.environ.get("FREE_PUBLISH_DEFAULT", "2"))
             ),
             uupm_skill_dir=os.environ.get("UUPM_SKILL_DIR", ""),
+            xcode_bundle_id=os.environ.get("XCODE_BUNDLE_ID", "test.duckegg.ios"),
         )
         for key, val in overrides.items():
             if hasattr(cfg, key):

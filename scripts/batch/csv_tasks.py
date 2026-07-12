@@ -46,7 +46,6 @@ from batch.task_schema import (
     parse_task_csv_meta,
 )
 from batch.theme_fields import format_theme_angle, parse_legacy_theme_angle, theme_task_description
-from batch.xcode_delivery import parse_privacy_file_index
 
 REQUIRED_COLUMNS = LEGACY_COLUMNS
 
@@ -132,8 +131,6 @@ PROGRAMMING_STYLES: tuple[str, ...] = (
     "日本人",
     "中国人",
 )
-
-_PRIVACY_STYLE_RE = re.compile(r"风格\s*(\d+)", re.IGNORECASE)
 
 @dataclass(frozen=True)
 class CsvTaskRow:
@@ -239,19 +236,9 @@ def normalize_programming_style(raw: str) -> str:
     return value if value in PROGRAMMING_STYLES else ""
 
 
-def normalize_pack_type(raw: str, default: str = "tool_flutter") -> str:
+def normalize_pack_type(raw: str, default: str = "h5_shell") -> str:
     value = (raw or "").strip()
     return value if value in VALID_TYPES else default
-
-
-def parse_privacy_style_number(raw: str) -> int | None:
-    match = _PRIVACY_STYLE_RE.search((raw or "").strip())
-    if not match:
-        return None
-    num = int(match.group(1))
-    if 1 <= num <= 3:
-        return num
-    return None
 
 
 def repo_dir_name_from_git_url(git_url: str) -> str:
@@ -396,17 +383,6 @@ def _validate_row_fields(
 
     if not normalize_programming_style(row.programming_style):
         raise ValueError(f"{line_hint} 编程风格无效")
-
-    if not allow_pending_manual_fields:
-        if parse_privacy_style_number(row.privacy_style) is None:
-            raise ValueError(f"{line_hint} 协议风格无效")
-        if parse_privacy_file_index(row.privacy_file) is None:
-            raise ValueError(f"{line_hint} 隐私文件无效")
-    else:
-        if row.privacy_style and parse_privacy_style_number(row.privacy_style) is None:
-            raise ValueError(f"{line_hint} 协议风格无效")
-        if row.privacy_file and parse_privacy_file_index(row.privacy_file) is None:
-            raise ValueError(f"{line_hint} 隐私文件无效")
 
     if strict_extended:
         ext_missing: list[str] = []

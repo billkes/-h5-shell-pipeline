@@ -89,7 +89,21 @@ PM 在 `功能文档.md` 勾选本包启用子集；未启用能力 **不得** �
 | `bridgeErrorCode` | 错误对象形态 |
 | `bridgeInjectTiming` | `bridge.js` 或 handler 注册时机 |
 
-详细逐步流程见《H5壳业务流程文字版.md》。
+### Swift 壳锁定值
+
+`pack_type == h5_swift_shell` 时，七维由 `pack_type.py` 锁定，**不随 CSV 抽卡变化**：
+
+| 维度 | 锁定值 |
+|------|--------|
+| `webviewEngine` | `wkwebview_swift` |
+| `bridgeCallStyle` | `WKScriptMessageHandler.postMessage(JSON)`（默认）或 `iframe URL scheme` 拦截 |
+| `bridgeCallbackStyle` | `evaluateJavaScript(callbackId(data))` |
+| `bridgeEnvelope` | 与 H5 约定一致（minimal 或版本化） |
+| `mediaServe` | `WKURLSchemeHandler local vault`（自定义 scheme，如 `prepoo-asset://`） |
+| `bridgeErrorCode` | 与 H5 约定一致（string enum 或 gRPC 风格） |
+| `bridgeInjectTiming` | `WKUserScript atDocumentStart` |
+
+详细实现见《H5壳Swift实现规范.md》；逐步流程见《H5壳业务流程文字版.md》。
 
 ---
 

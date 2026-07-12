@@ -1,0 +1,6 @@
+---
+description: h5-shell-pipeline 批次防火墙 — CSV 去重与必填字段
+alwaysApply: false
+---
+
+请读取并严格执行 `docs/rules/主题防火墙说明.md` 中的全部规范。

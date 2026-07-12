@@ -21,7 +21,7 @@ ${H5_SHELL_BLOCK}
 
 [Swift shell scope — MANDATORY]
 1. Create/repair a minimal iOS Swift app shell with `WKWebView` as the single host.
-2. Cold start **`loadRequest`s `h5EntryUrl`** from 本包登记信息.json (e.g. `https://test.darin.beauty/{appSlug}/` or LAN dev URL).
+2. Cold start **`loadRequest`s `h5EntryUrl`** from 本包登记信息.json (e.g. `https://<H5_PROD_HOST>/{appSlug}/` or LAN dev URL).
 3. Implement a single Bridge surface with `WKScriptMessageHandler` and JSON envelope handling.
 4. Required actions: `shellReady`, `readFile`, `writeFile`, `pickImage`, `saveImage`, `purchase`, `restorePurchases`, `mediaServe`, `openLegal`.
 5. `shellReady` marks first H5 paint; native removes launch veil only after shellReady + one frame-equivalent dispatch.

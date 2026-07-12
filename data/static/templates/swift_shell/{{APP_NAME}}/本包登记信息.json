@@ -1,0 +1,34 @@
+{
+  "appName": "{{APP_NAME}}",
+  "appSlug": "{{APP_SLUG}}",
+  "bundleId": "{{BUNDLE_ID}}",
+  "teamId": "{{TEAM_ID}}",
+  "packType": "h5_swift_shell",
+  "shellRuntime": "swift",
+  "h5EntryUrl": "https://{{H5_HOST}}/{{APP_SLUG}}/{{APP_NAME_LOWER}}_entry.htm",
+  "assetScheme": "{{ASSET_SCHEME}}",
+  "bridgeDeckSelections": {
+    "webviewEngine": "wkwebview_swift",
+    "bridgeCallStyle": "WKScriptMessageHandler.postMessage(JSON)",
+    "bridgeCallbackStyle": "evaluateJavaScript(callbackId(data))",
+    "bridgeEnvelope": "{action,data} minimal",
+    "mediaServe": "WKURLSchemeHandler local vault",
+    "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+    "bridgeInjectTiming": "WKUserScript atDocumentStart"
+  },
+  "bridgeCapabilities": [
+    "shellReady",
+    "getPermissionStatus",
+    "requestPermission",
+    "pickImage",
+    "takePhoto",
+    "startRecording",
+    "stopRecording",
+    "getProducts",
+    "purchase",
+    "mediaServe",
+    "ensureSeedAssets",
+    "sendFeedback",
+    "shareText"
+  ]
+}

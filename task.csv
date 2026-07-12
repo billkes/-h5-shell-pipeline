@@ -1,0 +1,4 @@
+# h5-shell-pipeline task ledger — single source of truth for the current run
+# batchId: TEST-0714
+应用主名称,全称,状态管理,架构模式,命名混淆规则,协议风格,隐私文件,仓库地址,首个商品Code,编程风格,应用类型,主题编号,中文主题,赛道分类,目标人群,核心场景,本地功能,productFlow,webviewEngine,bridgeCallStyle,bridgeCallbackStyle,bridgeEnvelope,mediaServe,bridgeErrorCode,bridgeInjectTiming
+Buildioo,Buildioo App,GETX,MVC,双随机首段策略,standard,privacy.html,https://github.com/example/buildioo.git,BUIL-001,Dart,h5_app,T001,Construction Tools,Productivity,General Users,Photo Editing,Camera,WKURLSchemeHandler,wkwebview_swift,WKScriptMessageHandler.postMessage(JSON),evaluateJavaScript(callbackId(data)),"{action,data} minimal",local vault,string enum (PERMISSION_DENIED),WKUserScript atDocumentStart

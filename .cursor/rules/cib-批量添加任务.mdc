@@ -1,0 +1,6 @@
+---
+description: 用户要求往 task.csv 加 N 行时 — 用 task-init/task-add，禁止手编 CSV
+alwaysApply: false
+---
+
+请读取并严格执行 `docs/rules/批量添加任务规则.md` 中的全部规范。

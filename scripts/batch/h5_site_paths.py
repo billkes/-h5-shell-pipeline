@@ -2,15 +2,23 @@
 
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 from typing import Any
 
 DEFAULT_H5_SITE_ROOT = "h5_site/"
-H5_PROD_HOST = "test.darin.beauty"
-H5_PROD_BASE = f"https://{H5_PROD_HOST}"
 DEFAULT_H5_ENTRY_URL_DEV = "http://127.0.0.1:8080/"
 LAUNCH_PLACEHOLDER_SIZE = "1125x2436"
+
+
+def _h5_prod_host() -> str:
+    return os.environ.get("H5_PROD_HOST", "").strip()
+
+
+def _h5_prod_base() -> str:
+    host = _h5_prod_host()
+    return f"https://{host}" if host else ""
 
 
 def app_slug_from_name(app_name: str) -> str:
@@ -20,7 +28,11 @@ def app_slug_from_name(app_name: str) -> str:
 
 def h5_prod_entry_url(app_slug: str) -> str:
     slug = (app_slug or "app").strip().lower()
-    return f"{H5_PROD_BASE}/{slug}/"
+    host = _h5_prod_host()
+    base = _h5_prod_base()
+    if host:
+        return f"{base}/{slug}/"
+    return f"https://<H5_PROD_HOST>/{slug}/"
 
 
 def resolve_h5_remote_config(

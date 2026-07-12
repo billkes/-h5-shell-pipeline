@@ -10,12 +10,13 @@
 |----|------|
 | **H5** | 商店页 UI、商品展示、点击购买、全屏 Loading 遮罩、余额展示、免费额度计数（localStorage/IndexedDB） |
 | **Flutter Bridge** | `queryProductDetails`、`buyConsumable`、`purchaseStream`、`completePurchase`、幂等去重、加币后回调 H5 |
+| **Swift Bridge** | `getProducts`、`purchase`、StoreKit 2 事务监听、幂等去重、回调 H5 |
 
 ---
 
 ## 2. Bridge：`purchase`
 
-### H5 → Flutter（示例）
+### H5 → 壳（示例）
 
 按本包 `bridgeCallStyle` / `bridgeEnvelope` 实现，语义等价于：
 
@@ -37,7 +38,17 @@
 
 幂等、 `completePurchase` 全分支、`LinkedHashSet` 去重等 — **完全复用**《工具包Flutter产品要求.md》§5.1 / §5.6，在 Flutter Bridge 模块实现，H5 不直接碰 StoreKit。
 
-### Flutter → H5 回调（示例）
+### Swift 执行（StoreKit 2）
+
+1. H5 调用 `getProducts({ productIds })` → Swift `Product.products(for: productIds)` 查询 → 回价格表。
+2. H5 点击购买 → 显示全屏不可穿透 Loading → Swift `product.purchase()`。
+3. 成功：验证交易状态、本地 `fulfilledTransactions` 去重 → 回调 H5 `purchaseSuccess` + 新余额。
+4. 用户取消：关 Loading，**不弹** Purchase failed。
+5. 真失败：关 Loading，英文 Alert + 可重试。
+
+> 当前 Prepoo / Mockoo 均**未做服务端 receipt 验证**，仅本地去重。若业务需要服务端验单，须额外实现。
+
+### 壳 → H5 回调（示例）
 
 ```json
 {

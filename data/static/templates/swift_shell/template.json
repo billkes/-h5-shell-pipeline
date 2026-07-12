@@ -1,0 +1,55 @@
+{
+  "name": "swift_shell",
+  "displayName": "H5 Swift Shell 厂包夹板",
+  "description": "锁定的 h5_swift_shell 技术站基础模板，包含完整可构建 Swift 实现。场包时 apply.py 替换占位符后直接生成可进入 Xcode 的壳工程。H5 业务包按需覆盖 h5/ 目录。",
+  "packType": "h5_swift_shell",
+  "runtime": "swift",
+  "lockedBridge": {
+    "webviewEngine": "wkwebview_swift",
+    "bridgeCallStyle": "WKScriptMessageHandler.postMessage(JSON)",
+    "bridgeCallbackStyle": "evaluateJavaScript(callbackId(data))",
+    "bridgeEnvelope": "{action,data} minimal",
+    "mediaServe": "WKURLSchemeHandler local vault",
+    "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+    "bridgeInjectTiming": "WKUserScript atDocumentStart"
+  },
+  "placeholders": {
+    "{{APP_NAME}}": "App 显示名（PascalCase，如 Prepoo）",
+    "{{APP_NAME_LOWER}}": "App 小写标识（如 prepoo）",
+    "{{PREFIX}}": "壳代码混淆前缀（如 erbpv）",
+    "{{APP_SLUG}}": "H5 远程路径 slug（如 prepoo）",
+    "{{H5_HOST}}": "H5 生产域名（如 test.darin.beauty）",
+    "{{BUNDLE_ID}}": "iOS Bundle Identifier",
+    "{{TEAM_ID}}": "Apple Development Team ID",
+    "{{ASSET_SCHEME}}": "本地资源自定义 Scheme（如 prepoo-asset）"
+  },
+  "requiredCapabilities": [
+    "shellReady",
+    "pickImage",
+    "takePhoto",
+    "startRecording",
+    "stopRecording",
+    "getPermissionStatus",
+    "requestPermission",
+    "getProducts",
+    "purchase",
+    "mediaServe",
+    "ensureSeedAssets",
+    "sendFeedback",
+    "shareText"
+  ],
+  "copyRoot": "{{APP_NAME}}",
+  "entryFiles": {
+    "htmlEntry": "ios/{{APP_NAME}}/{{APP_NAME}}.html",
+    "infoPlist": "ios/{{APP_NAME}}/Info.plist",
+    "registration": "本包登记信息.json"
+  },
+  "generatedByProgrammer": [
+    "ios/{{APP_NAME}}/{{APP_NAME}}App.swift",
+    "ios/{{APP_NAME}}/**/*.swift"
+  ],
+  "styleExamples": [
+    "examples/standard/",
+    "examples/german_persona/"
+  ]
+}

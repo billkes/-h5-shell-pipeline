@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import os
 import sys
 import unittest
 from pathlib import Path
+
+os.environ["H5_PROD_HOST"] = "test.darin.beauty"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(PROJECT_ROOT / "scripts"))

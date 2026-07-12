@@ -1,0 +1,6 @@
+---
+description: h5-shell-pipeline 项目目录结构规范 — 新增文件必须放入对应子文件夹
+alwaysApply: true
+---
+
+请读取并严格执行 `docs/rules/项目结构规则.md` 中的全部规范。

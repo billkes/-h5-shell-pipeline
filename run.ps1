@@ -1,5 +1,5 @@
-# cursor-ios-batch：Flutter / iOS 批量生产交互式入口（Windows PowerShell 版）
-# 用法：.\run.ps1 [参数]
+# h5-shell-pipeline：H5 Shell 批量生产入口（Windows PowerShell 版）
+# 用法：.\run.ps1 [python -m batch 参数]
 
 Set-Location -Path $PSScriptRoot
 
@@ -35,12 +35,27 @@ if (-not (Test-Path ".venv")) {
     Write-Host "  ✅ 依赖安装成功"
 
     Write-Host ""
-    Write-Host "  [3/3] 环境就绪（ui-ux-pro-max 由 skill.design 运行时加载）..."
-    Write-Host "  ✅ 跳过 uupm 本地快照同步"
-    Write-Host ""
     Write-Host "  环境初始化完成！"
     Write-Host ""
     Start-Sleep -Seconds 1
+}
+
+if ($args.Count -eq 0) {
+    Write-Host ""
+    Write-Host "h5-shell-pipeline task CLI"
+    Write-Host ""
+    Write-Host "常用命令："
+    Write-Host "  .\run.ps1 task-init --batch-id <id> --rows <n>"
+    Write-Host "  .\run.ps1 task-add --rows <n>"
+    Write-Host "  .\run.ps1 task-validate"
+    Write-Host "  .\run.ps1 task-list"
+    Write-Host "  .\run.ps1 task-show <应用主名称>"
+    Write-Host "  .\run.ps1 task-ready"
+    Write-Host "  .\run.ps1 build-all --h5-host <host> --team-id <id>"
+    Write-Host "  .\run.ps1 build <应用主名称>"
+    Write-Host ""
+    & $VenvPython -m batch --help
+    exit 0
 }
 
 & $VenvPython -m batch @args

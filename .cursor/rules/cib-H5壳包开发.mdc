@@ -1,0 +1,6 @@
+---
+description: h5-shell-pipeline H5 壳包开发约束（Flutter / Swift / OC）
+alwaysApply: false
+---
+
+请读取并严格执行 `docs/rules/H5壳包开发规则.md` 中的全部规范。

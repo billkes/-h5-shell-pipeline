@@ -1,124 +1,22 @@
 {
   "apps": {
-    "Pawioo": {
-      "batchId": "87-0703-0705",
-      "hash": "831682b5f34f9bd7",
-      "bridge": {
-        "webviewEngine": "webview_flutter",
-        "bridgeCallStyle": "postMessage + custom event",
-        "bridgeCallbackStyle": "global event bus (CustomEvent)",
-        "bridgeEnvelope": "URL query flattened",
-        "mediaServe": "shelf+shelf_static HTTP",
-        "bridgeErrorCode": "short prefix+number (E101)",
-        "bridgeInjectTiming": "onPageFinished inject"
-      }
-    },
-    "Naiioo": {
-      "batchId": "87-0703-0705",
-      "hash": "26c527ef90c1bb21",
-      "bridge": {
-        "webviewEngine": "webview_flutter",
-        "bridgeCallStyle": "JavascriptChannel.postMessage(JSON)",
-        "bridgeCallbackStyle": "evaluateJavascript(Promise resolve/reject)",
-        "bridgeEnvelope": "method+args split fields",
-        "mediaServe": "HttpServer.bind(loopback) hand-rolled",
-        "bridgeErrorCode": "gRPC-style (INVALID_ARGUMENT)",
-        "bridgeInjectTiming": "onPageFinished inject"
-      }
-    },
-    "Stoioo": {
-      "batchId": "87-0703-0705",
-      "hash": "0924b7fb4a0dce8a",
-      "bridge": {
-        "webviewEngine": "webview_flutter",
-        "bridgeCallStyle": "URL scheme intercept (app://action)",
-        "bridgeCallbackStyle": "runJavaScript(window.callbacks[id](data))",
-        "bridgeEnvelope": "method+args split fields",
-        "mediaServe": "shelf+shelf_static HTTP",
-        "bridgeErrorCode": "short prefix+number (E101)",
-        "bridgeInjectTiming": "onPageStarted inject polyfill"
-      }
-    },
-    "Hathoo": {
-      "batchId": "87-0703-0705",
-      "hash": "4a8cc4c972014d50",
-      "bridge": {
-        "webviewEngine": "flutter_inappwebview",
-        "bridgeCallStyle": "cookie change listener",
-        "bridgeCallbackStyle": "URL scheme callback (app-callback://)",
-        "bridgeEnvelope": "URL query flattened",
-        "mediaServe": "shelf+shelf_static HTTP",
-        "bridgeErrorCode": "numeric codes (0/-1/-2)",
-        "bridgeInjectTiming": "initialUserScripts (inappwebview)"
-      }
-    },
-    "Quiloo": {
-      "batchId": "87-0703-0705",
-      "hash": "681d415dea6c54d6",
-      "bridge": {
-        "webviewEngine": "webview_flutter",
-        "bridgeCallStyle": "global bridge object (window.NativeBridge.xxx)",
-        "bridgeCallbackStyle": "URL scheme callback (app-callback://)",
-        "bridgeEnvelope": "{action,data} minimal",
-        "mediaServe": "shelf+shelf_static HTTP",
-        "bridgeErrorCode": "HTTP-like (400/403/500)",
-        "bridgeInjectTiming": "onPageStarted inject polyfill"
-      }
-    },
-    "Mockoo": {
-      "batchId": "87-0703-0705",
-      "hash": "16740f258af19abd",
+    "Buildioo": {
+      "batchId": "TEST-0714",
+      "hash": "9c9a8c5eb5a00556",
       "shellRuntime": "swift",
       "packType": "h5_swift_shell",
       "bridge": {
         "webviewEngine": "wkwebview_swift",
-        "bridgeCallStyle": "custom URL scheme intercept (app-bridge://)",
-        "bridgeCallbackStyle": "callbackId Map + evaluateJavaScript",
+        "bridgeCallStyle": "WKScriptMessageHandler.postMessage(JSON)",
+        "bridgeCallbackStyle": "evaluateJavaScript(callbackId(data))",
         "bridgeEnvelope": "{action,data} minimal",
-        "mediaServe": "loadFileURL bundle resource",
-        "bridgeErrorCode": "gRPC-style (INVALID_ARGUMENT)",
-        "bridgeInjectTiming": "bundled bridge.js in main bundle preload"
-      }
-    },
-    "Temioo": {
-      "batchId": "87-0703-0705",
-      "hash": "0aeb189f7dc0ca83",
-      "shellRuntime": "oc",
-      "packType": "h5_oc_shell",
-      "bridge": {
-        "webviewEngine": "wkwebview_oc",
-        "bridgeCallStyle": "custom URL scheme intercept (app-bridge://)",
-        "bridgeCallbackStyle": "URL scheme callback (app-callback://)",
-        "bridgeEnvelope": "versioned envelope {v,action,payload,callbackId}",
-        "mediaServe": "custom scheme handler (app-asset://)",
-        "bridgeErrorCode": "HTTP-like (400/403/500)",
-        "bridgeInjectTiming": "WKUserScript atDocumentEnd"
-      }
-    },
-    "Teavoo": {
-      "batchId": "87-0703-0705",
-      "hash": "dbb15eebf4f6accb",
-      "shellRuntime": "oc",
-      "packType": "h5_oc_shell",
-      "bridge": {
-        "webviewEngine": "wkwebview_oc",
-        "bridgeCallStyle": "custom URL scheme intercept (app-bridge://)",
-        "bridgeCallbackStyle": "callbackId Map + evaluateJavaScript",
-        "bridgeEnvelope": "URL query flattened",
-        "mediaServe": "NSURL fileURLWithPath vault relative",
-        "bridgeErrorCode": "HTTP-like (400/403/500)",
-        "bridgeInjectTiming": "bundled bridge.js in main bundle preload"
+        "mediaServe": "WKURLSchemeHandler local vault",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentStart"
       }
     }
   },
   "hashes": {
-    "831682b5f34f9bd7": "Pawioo",
-    "26c527ef90c1bb21": "Naiioo",
-    "0924b7fb4a0dce8a": "Stoioo",
-    "4a8cc4c972014d50": "Hathoo",
-    "681d415dea6c54d6": "Quiloo",
-    "16740f258af19abd": "Mockoo",
-    "0aeb189f7dc0ca83": "Temioo",
-    "dbb15eebf4f6accb": "Teavoo"
+    "9c9a8c5eb5a00556": "Buildioo"
   }
 }

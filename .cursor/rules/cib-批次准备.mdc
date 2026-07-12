@@ -1,0 +1,6 @@
+---
+description: h5-shell-pipeline 批次准备 — task.csv 填充与校验流程
+alwaysApply: false
+---
+
+请读取并严格执行 `docs/rules/批次准备规则.md` 中的全部规范。

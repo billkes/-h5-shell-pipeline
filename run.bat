@@ -1,5 +1,5 @@
 @echo off
-REM cursor-ios-batch: Flutter / iOS batch production entry (Windows)
+REM h5-shell-pipeline: H5 Shell batch production entry (Windows)
 REM Usage: double-click, or run .\run.bat in CMD
 
 cd /d "%~dp0"
@@ -32,14 +32,34 @@ if not exist ".venv" (
     )
     echo   OK dependencies installed
     echo.
-    echo   [3/3] Environment ready (ui-ux-pro-max loaded at runtime)
-    echo   OK skipped uupm local snapshot sync
-    echo.
     echo   Environment initialization complete!
     echo.
     timeout /t 1 /nobreak >nul
 )
 
-set "PYTHONPATH=%CD%\scripts%PYTHONPATH%"
+if defined PYTHONPATH (
+    set "PYTHONPATH=%CD%\scripts;%PYTHONPATH%"
+) else (
+    set "PYTHONPATH=%CD%\scripts"
+)
+
+if "%~1"=="" (
+    echo.
+    echo h5-shell-pipeline task CLI
+    echo.
+    echo Common commands:
+    echo   .\run.bat task-init --batch-id ^<id^> --rows ^<n^>
+    echo   .\run.bat task-add --rows ^<n^>
+    echo   .\run.bat task-validate
+    echo   .\run.bat task-list
+    echo   .\run.bat task-show ^<app-name^>
+    echo   .\run.bat task-ready
+    echo   .\run.bat build-all --h5-host ^<host^> --team-id ^<id^>
+    echo   .\run.bat build ^<app-name^>
+    echo.
+    "%VENV_PYTHON%" -m batch --help
+    exit /b 0
+)
+
 "%VENV_PYTHON%" -m batch %*
 if errorlevel 1 pause
