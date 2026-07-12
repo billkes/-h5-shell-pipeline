@@ -1,6 +1,6 @@
 @echo off
 REM h5-shell-pipeline: H5 Shell batch production entry (Windows)
-REM Usage: double-click, or run .\run.bat in CMD
+REM Usage: double-click for interactive menu, or run .\run.bat <command> [args]
 
 cd /d "%~dp0"
 
@@ -43,23 +43,10 @@ if defined PYTHONPATH (
     set "PYTHONPATH=%CD%\scripts"
 )
 
-if "%~1"=="" (
-    echo.
-    echo h5-shell-pipeline task CLI
-    echo.
-    echo Common commands:
-    echo   .\run.bat task-init --batch-id ^<id^> --rows ^<n^>
-    echo   .\run.bat task-add --rows ^<n^>
-    echo   .\run.bat task-validate
-    echo   .\run.bat task-list
-    echo   .\run.bat task-show ^<app-name^>
-    echo   .\run.bat task-ready
-    echo   .\run.bat build-all --h5-host ^<host^> --team-id ^<id^>
-    echo   .\run.bat build ^<app-name^>
-    echo.
-    "%VENV_PYTHON%" -m batch --help
-    exit /b 0
-)
-
+REM No args ¡ú interactive menu (handled by Python)
+REM With args ¡ú direct command execution
 "%VENV_PYTHON%" -m batch %*
-if errorlevel 1 pause
+if errorlevel 1 (
+    if "%~1"=="" pause
+)
+if "%~1"=="" pause

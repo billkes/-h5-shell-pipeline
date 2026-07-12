@@ -394,6 +394,7 @@ def _validate_row_fields(
             (COL_AUDIENCE, row.audience),
             (COL_CORE_SCENE, row.core_scene),
             (COL_LOCAL_FEATURE, row.local_feature),
+            (COL_PRODUCT_FLOW, row.product_flow),
         ):
             if not val:
                 ext_missing.append(col)
@@ -661,3 +662,36 @@ def init_empty_task_csv(path: Path, *, batch_id: str, row_count: int) -> None:
     meta = parse_task_csv_meta(header)
     rows = [{c: "" for c in STANDARD_COLUMNS} for _ in range(max(0, row_count))]
     write_task_csv_rows(path, meta, rows)
+
+
+def fill_product_flow_to_csv(csv_path: Path) -> list[str]:
+    """Fill empty ``productFlow`` cells with template-generated values.
+
+    Iterates over task.csv rows; for each row whose ``productFlow`` is empty
+    but has at least one theme field (``audience`` / ``core_scene`` /
+    ``local_feature``), generates a productFlow string via
+    ``theme_fields.generate_product_flow`` and writes it back.
+
+    Returns the list of app names that were filled.
+    """
+    from batch.theme_fields import generate_product_flow
+
+    meta, rows_raw, fieldnames = load_task_csv_raw(csv_path)
+    filled: list[str] = []
+    for raw in rows_raw:
+        name = (raw.get(COL_NAME) or "").strip()
+        if not name:
+            continue
+        if (raw.get(COL_PRODUCT_FLOW) or "").strip():
+            continue
+        audience = (raw.get(COL_AUDIENCE) or "").strip()
+        scene = (raw.get(COL_CORE_SCENE) or "").strip()
+        feature = (raw.get(COL_LOCAL_FEATURE) or "").strip()
+        if not (audience or scene or feature):
+            continue
+        row = _row_from_raw(raw, name)
+        raw[COL_PRODUCT_FLOW] = generate_product_flow(row)
+        filled.append(name)
+    if filled:
+        write_task_csv_rows(csv_path, meta, rows_raw, fieldnames=fieldnames)
+    return filled

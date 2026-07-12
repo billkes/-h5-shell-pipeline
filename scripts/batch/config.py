@@ -268,7 +268,7 @@ class BatchConfig:
 
     @property
     def prompts_dir(self) -> Path:
-        return self.project_dir / "prompts" / "flutter"
+        return self.project_dir / "prompts" / "h5_shell"
 
     @property
     def scripts_dir(self) -> Path:

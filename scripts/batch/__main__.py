@@ -130,12 +130,33 @@ def cmd_task_ready(args: argparse.Namespace) -> int:
     path = _csv_path(args)
     ctx = _build_context(args)
     ensure_h5_bridge_drawn(ctx)
+    # Auto-fill productFlow for rows that have theme fields but empty productFlow
+    from batch.csv_tasks import fill_product_flow_to_csv
+
+    fill_product_flow_to_csv(path)
     try:
         rows = load_csv_tasks(path, strict_extended=True, project_dir=PROJECT_ROOT)
     except Exception as exc:
         print(f"❌ {path} 未就绪: {exc}")
         return 1
     print(f"✅ {path} 已就绪（{len(rows)} 个任务）")
+    return 0
+
+
+def cmd_task_fill_flow(args: argparse.Namespace) -> int:
+    """Fill empty productFlow cells with template-generated values."""
+    path = _csv_path(args)
+    from batch.csv_tasks import fill_product_flow_to_csv
+
+    try:
+        filled = fill_product_flow_to_csv(path)
+    except Exception as exc:
+        print(f"❌ 填充失败: {exc}")
+        return 1
+    if filled:
+        print(f"✅ 已填充 productFlow: {', '.join(filled)}")
+    else:
+        print("✅ 所有行已有 productFlow，无需填充")
     return 0
 
 
@@ -217,6 +238,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_ready = sub.add_parser("task-ready", help="产包前严格校验")
     p_ready.set_defaults(func=cmd_task_ready)
 
+    # task fill-flow
+    p_fill_flow = sub.add_parser("task-fill-flow", help="自动填充 productFlow")
+    p_fill_flow.set_defaults(func=cmd_task_fill_flow)
+
     # build all
     p_build_all = sub.add_parser("build-all", help="构建全部任务")
     p_build_all.add_argument("--batch-id", help="批次 ID（默认从 task.csv 读取）")
@@ -236,6 +261,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # 无参数 → 交互式菜单
+    if argv is None and len(sys.argv) <= 1:
+        from batch.interactive_menu import interactive_main
+
+        return interactive_main()
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)

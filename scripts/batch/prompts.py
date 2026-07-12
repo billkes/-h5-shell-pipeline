@@ -1,4 +1,4 @@
-"""Load prompt templates from ``prompts/flutter/``.
+"""Load prompt templates from ``prompts/h5_shell/``.
 
 Pipeline V3 (default):
 
@@ -61,7 +61,7 @@ _PM_UI_PLAN_BRAIN_FOCUS = """   - `01_tech_common/A-Crush项目总览.md`
 
 
 class PromptBuilder:
-    """Load prompt templates from ``prompts/flutter/``."""
+    """Load prompt templates from ``prompts/h5_shell/``."""
 
     def __init__(self, cfg: BatchConfig) -> None:
         self.cfg = cfg
