@@ -10,7 +10,7 @@
 - **h5EntryUrl:** PM registers `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd` in 本包登记信息.json. Prod pattern: `https://<H5_PROD_HOST>/{appSlug}/` (app name all lowercase).
 - **NO** Flutter Splash/Welcome/Legal widgets; **NO** 3 native Tabs / Feed / native tool screens.
 - **NO** business H5 under Flutter `pubspec.yaml` assets — site is deployed separately.
-- **Legal:** MD → `sync_h5_legal_bundled.py` → `{prefix}_legal_bundled.js` in h5 site; UI → kit + `H5壳Legal弹层规范.md`.
+- **Legal:** MD → `sync_h5_legal_bundled.py` → `h5/src/legal/{prefix}_legal_bundled.ts`; UI → kit + `H5壳Legal弹层规范.md`.
 - Read 《H5壳业务流程文字版.md》 per enabled Bridge capability.
 - Read 《H5壳广场页规范.md》 — hidden `#/plaza` + Settings long-press version 3s; dev-only obvious entrance must be wrapped in `H5_PLAZA_DEV_ENTRANCE_START` / `H5_PLAZA_DEV_ENTRANCE_END` markers for deployment stripping.
 - Read 《H5去风味规范.md》 — H5 ships polish baseline; AppBar `position:fixed` in H5.
@@ -33,16 +33,16 @@
 - Programmer delivers: `{Prefix}FlutterViewController`, LaunchVeil (same placeholder image), VaultBoot warm-in-initState, Bridge `shellReady`, WebKit channel-before-load, **`loadRequest(h5EntryUrl)`** (NOT loadFlutterAsset).
 
 [H5 site — startup (Implementer)]
-- Write deployable site under `h5SiteRoot`; entry `{prefix}_entry.htm` — never `index.html`.
-- entry.htm: inline `{prefix}Native` wrapper; `boot()` immediate — NO `setTimeout(boot,…)`.
-- splash route `afterMount`: double `requestAnimationFrame` then `bridge.call('shellReady',{})`.
+- Implement Vue views under `h5/src/views/`; router hash mode per kit draw.
+- Vite dev: `cd h5 && npm run dev` (port 5174). Deploy: pipeline `dev.h5.build` → `h5_site/{prefix}_entry.htm`.
+- `boot()` / splash: double `requestAnimationFrame` then `bridge.call('shellReady',{})`.
 - Implement `#/plaza` per 《H5壳广场页规范.md》 + kit `shell/bridge_plaza`.
 
 [PM deliverables]
 - **功能文档.md:** Full depth per 《H5壳功能文档深度标准.md》 (tier in context.json) + Screen Inventory (all H5 routes). Flutter inventory = WebView host + error fallback + launch placeholder only.
 - **本包登记信息.json:** `shellRuntime`, `packType`, `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd`, `h5SiteRoot`, `h5SiteEntry`, `launchPlaceholderAsset`, `h5VaultPattern`, `h5VaultLayout`, `bridgeDeckSelections`, `bridgeCapabilities`, `kitDeckSelections` (11 kit dims from CSV).
 - **bridgeDeckSelections** MUST copy all 7 Bridge CSV columns verbatim; **shellRuntime** MUST match pack type (flutter/swift/oc).
-- **产包计划.md:** P2-Shell → P2-H5 (site) → **manual deploy gate** (upload site, switch h5EntryUrl to prod).
+- **产包计划.md:** P2-Shell → P2-H5 (`h5/` Vite source) → **dev.h5.build** → **manual deploy gate** (upload h5_site, switch h5EntryUrl to prod).
 
 [PM — 资源计划.md overrides for h5_shell]
 - **Flutter image slots:** App Icon + **shell raster** (export frames, mediaServe PNGs under declared `assetRoots`). **Do NOT** list business UI rasters in H5 site — those reference shell assets via Bridge/mediaServe when needed.

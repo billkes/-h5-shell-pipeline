@@ -287,7 +287,7 @@ class PromptBuilder:
             "- Part 1 done if 功能文档.md, 视觉蓝图.md, 产包计划.md exist and are substantial\n"
             "- Part 2 done if native/Flutter shell + lib/ match 产包计划\n"
             + (
-                "- Part 3 done if H5 vault / legal / overlay assets exist\n"
+                "- Part 3 done if `h5/src/` views + router exist (Vite source; deploy via dev.h5.build)\n"
                 if h5_shell
                 else ""
             )
@@ -583,7 +583,7 @@ class PromptBuilder:
                     resume=resume, include_intro=False, **kwargs  # type: ignore[arg-type]
                 )
             )
-            sections.append("\n\n---\n\n# Part 3 — H5 vault / legal\n\n")
+            sections.append("\n\n---\n\n# Part 3 — H5 Vite source / legal\n\n")
             sections.append(
                 self._build_agent_h5_body(
                     resume=resume, include_intro=False, **kwargs  # type: ignore[arg-type]

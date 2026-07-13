@@ -29,9 +29,24 @@
         "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
         "bridgeInjectTiming": "WKUserScript atDocumentStart"
       }
+    },
+    "Temioo": {
+      "batchId": "TEST-0714",
+      "hash": "937f2c0fc749c3f9",
+      "shellRuntime": "oc",
+      "packType": "h5_oc_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_oc",
+        "bridgeCallStyle": "window.webkit.messageHandlers.{prefix}.postMessage(JSON)",
+        "bridgeCallbackStyle": "URL scheme callback (app-callback://)",
+        "bridgeEnvelope": "URL query flattened",
+        "mediaServe": "WKURLSchemeHandler local vault",
+        "bridgeErrorCode": "numeric codes (0/-1/-2)",
+        "bridgeInjectTiming": "WKUserScript atDocumentStart"
+      }
     }
   },
   "hashes": {
-    "9c9a8c5eb5a00556": "Prompio"
+    "937f2c0fc749c3f9": "Temioo"
   }
 }

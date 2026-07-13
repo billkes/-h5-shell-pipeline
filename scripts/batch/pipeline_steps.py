@@ -28,6 +28,7 @@ PREPARE = PREPARE_CONTEXT
 DESIGN_SYSTEM = SKILL_DESIGN
 
 PLAN_GATE = "plan.gate"
+DEV_H5_BUILD = "dev.h5.build"
 DEV_H5_GATE = "dev.h5.gate"
 GIT_PLAN = "git.plan"
 PUBGET = "dev.pubget"
@@ -57,6 +58,7 @@ V3_STEPS: tuple[str, ...] = (
     LOCK_DIMENSIONS,
     BUILD_AGENT,
     PLAN_GATE,
+    DEV_H5_BUILD,
     DEV_H5_GATE,
     GIT_PLAN,
     PUBGET,
@@ -85,6 +87,7 @@ STEP_LABELS: dict[str, str] = {
     AGENT_SHELL: "Agent · H5 原生壳（legacy）",
     AGENT_H5: "Agent · H5 vault / legal（legacy）",
     PLAN_GATE: "产出校验 + 主题登记",
+    DEV_H5_BUILD: "Vite 编译 · h5 → h5_site 单文件",
     DEV_H5_GATE: "H5 bundle + UX 门禁",
     GIT_PLAN: "Git 提交（计划产物）",
     PUBGET: "flutter pub get",
@@ -103,6 +106,7 @@ STEP_TO_PHASE: dict[str, str] = {
     LOCK_DIMENSIONS: PM_UI_PLAN_PHASE,
     BUILD_AGENT: PM_UI_PLAN_PHASE,
     PLAN_GATE: PM_UI_PLAN_PHASE,
+    DEV_H5_BUILD: PM_UI_PLAN_PHASE,
     DEV_H5_GATE: PM_UI_PLAN_PHASE,
     GIT_PLAN: PM_UI_PLAN_PHASE,
     PUBGET: PROGRAMMER_PHASE,
@@ -122,6 +126,7 @@ PHASE_STEPS: dict[str, tuple[str, ...]] = {
         LOCK_DIMENSIONS,
         BUILD_AGENT,
         PLAN_GATE,
+        DEV_H5_BUILD,
         DEV_H5_GATE,
         GIT_PLAN,
     ),
@@ -138,7 +143,7 @@ def steps_for_run(*, pack_type: str) -> tuple[str, ...]:
     """Return ordered step ids for this app + config."""
     steps: list[str] = []
     for step in V3_STEPS:
-        if step == DEV_H5_GATE and not is_h5_shell(pack_type):
+        if step in (DEV_H5_BUILD, DEV_H5_GATE) and not is_h5_shell(pack_type):
             continue
         if step in (PUBGET, ANALYZE) and not is_flutter_runtime(pack_type):
             continue
@@ -202,6 +207,7 @@ def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
         "dev.pubget": PUBGET,
         "dev.analyze": ANALYZE,
         "native.check": NATIVE_CHECK,
+        "dev.h5.build": DEV_H5_BUILD,
         "dev.h5.gate": DEV_H5_GATE,
     }
     if text in legacy_map:

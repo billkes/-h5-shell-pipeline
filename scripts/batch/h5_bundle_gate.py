@@ -739,9 +739,25 @@ def verify_h5_bundle_soft(
                         )
                     )
             if pattern == "h5_monolith" and len(file_names) > 1:
-                warnings.append(
-                    f"H5 Gate：h5VaultPattern=h5_monolith 但 vault 含 {len(file_names)} 个文件"
-                )
+                from batch.h5_vite_scaffold import scaffold_exists
+
+                if scaffold_exists(root):
+                    extras = sorted(file_names - {entry_file.name})
+                    warnings.append(
+                        f"H5 Gate：Vite 包 deploy dir 应仅有 {entry_file.name}；"
+                        f"发现多余文件 {extras} — 运行 dev.h5.build 清理并重新编译"
+                    )
+                else:
+                    warnings.append(
+                        f"H5 Gate：h5VaultPattern=h5_monolith 但 vault 含 {len(file_names)} 个文件"
+                    )
+            if pattern == "h5_monolith" and dir_names:
+                from batch.h5_vite_scaffold import scaffold_exists
+
+                if scaffold_exists(root):
+                    warnings.append(
+                        f"H5 Gate：Vite deploy dir 不应含子目录 {sorted(dir_names)} — 运行 dev.h5.build"
+                    )
         for child in vault_dir.rglob("*"):
             if not child.is_file():
                 continue

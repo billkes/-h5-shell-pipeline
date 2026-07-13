@@ -373,6 +373,19 @@ class FlutterPipeline:
         self._prepare_dimensions(ctx)
         if not self._prepare_programmer_workspace(ctx):
             return False
+        if is_h5_shell(ctx.pack_type):
+            from batch.h5_vite_scaffold import ensure_h5_vite_scaffold
+            from batch.workspace import dart_prefix
+
+            prefix = dart_prefix(ctx.workspace)
+            path = ensure_h5_vite_scaffold(
+                ctx.workspace,
+                app_name=ctx.name,
+                prefix=prefix,
+                pack_type=ctx.pack_type,
+            )
+            if path is not None:
+                get_run_log().detail(f"h5_vite scaffold → {path.relative_to(ctx.workspace)}")
         write_layout_manifest(ctx.workspace, ctx.dart_name)
         row = self._csv_row_for(ctx)
         if row is not None:

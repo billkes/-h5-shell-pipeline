@@ -1032,6 +1032,132 @@
           "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Prompio-Swift/Prompio"
         }
       ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-39",
+      "startedAt": "2026-07-13 15:39:14",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Temioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Temioo",
+          "packType": "h5_oc_shell",
+          "container": "Temioo-OC",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Temioo-OC/Temioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-43",
+      "startedAt": "2026-07-13 15:43:55",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Temioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Temioo",
+          "packType": "h5_oc_shell",
+          "container": "Temioo-OC",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Temioo-OC/Temioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-44",
+      "startedAt": "2026-07-13 15:44:06",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Temioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Temioo",
+          "packType": "h5_oc_shell",
+          "container": "Temioo-OC",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Temioo-OC/Temioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-45",
+      "startedAt": "2026-07-13 15:45:05",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Temioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Temioo",
+          "packType": "h5_oc_shell",
+          "container": "Temioo-OC",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Temioo-OC/Temioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-58",
+      "startedAt": "2026-07-13 15:58:36",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Temioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Temioo",
+          "packType": "h5_oc_shell",
+          "container": "Temioo-OC",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Temioo-OC/Temioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_16-17",
+      "startedAt": "2026-07-13 16:17:37",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Temioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Temioo",
+          "packType": "h5_oc_shell",
+          "container": "Temioo-OC",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Temioo-OC/Temioo"
+        }
+      ]
     }
   ]
 }

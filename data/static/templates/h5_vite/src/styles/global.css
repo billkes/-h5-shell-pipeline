@@ -1,0 +1,53 @@
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --{{PREFIX}}-primary: #2563eb;
+  --{{PREFIX}}-bg: #0f172a;
+  --{{PREFIX}}-on-surface: #fff;
+  --{{PREFIX}}-on-muted: #94a3b8;
+  --{{PREFIX}}-font-body: system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  touch-action: manipulation;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--{{PREFIX}}-bg);
+  color: var(--{{PREFIX}}-on-surface);
+  font-family: var(--{{PREFIX}}-font-body);
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea {
+  font-size: 16px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+html:not(input):not(textarea),
+body:not(input):not(textarea) {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

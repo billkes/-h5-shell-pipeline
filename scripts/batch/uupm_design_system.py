@@ -406,9 +406,9 @@ def run_skill_design(
         )
 
     if is_h5_shell(pack_type):
-        from batch.skill_stack_brief import write_h5_vanilla_brief
+        from batch.skill_stack_brief import write_h5_vite_brief
 
-        write_h5_vanilla_brief(workspace, row.name)
+        write_h5_vite_brief(workspace, row.name)
 
     meta = {
         "source": "ui-ux-pro-max-skill",
@@ -460,7 +460,7 @@ def run_skill_design(
                 "",
                 f"- MASTER: `{rel.as_posix()}`",
                 f"- Stack: `design-system/{slug}/stack-{stack}.md`",
-                f"- H5 vanilla: `design-system/{slug}/stack-h5-vanilla.md`",
+                f"- H5 vite: `design-system/{slug}/stack-h5-vite.md`",
                 f"- Enrich: `design-system/{slug}/ux-checklist.md` · `icon-brief.md` · `h5-interface-brief.md`",
                 f"- Pages: `{pages_glob}`",
                 f"- Candidates: `design-system/{slug}/candidates.json`",
@@ -468,7 +468,7 @@ def run_skill_design(
                 "",
                 "Cursor skills: `.cursor/skills/ui-ux-pro-max` + `brand` · `design-system` · `design` · `ui-styling`",
                 "",
-                "Agent Plan 读 skill-adapt/design-brief.md + MASTER + pages；Implementer 读 stack-h5-vanilla + ux-checklist。",
+                "Agent Plan 读 skill-adapt/design-brief.md + MASTER + pages；Implementer 读 stack-h5-vite + ux-checklist。",
                 "",
             ]
         ),

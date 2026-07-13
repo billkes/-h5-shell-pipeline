@@ -33,11 +33,29 @@
         "h5RouterPattern": "modal-stack",
         "h5ScreenPattern": "functional-render"
       }
+    },
+    "Temioo": {
+      "batchId": "TEST-0714",
+      "hash": "e82966a06bbb529a",
+      "kit": {
+        "kitAtomSet": "action/field/tag/tile/topbar/dialog",
+        "kitCssMethodology": "Utility-first",
+        "kitAtomGranularity": "atomic-heavy-30",
+        "kitDomShape": "wrapper-div",
+        "kitJsPattern": "module-iife",
+        "kitJsNamespace": "{Prefix}.ui.*",
+        "kitStorageAdapter": "raw-localStorage",
+        "kitMotionApproach": "raf-helper",
+        "h5StateModel": "event-bus-driven",
+        "h5RouterPattern": "hash-router",
+        "h5ScreenPattern": "controller-view"
+      }
     }
   },
   "hashes": {
     "64f2b0221f4fc218": "Buildioo",
-    "87e31afa2f864d6f": "Prompio"
+    "87e31afa2f864d6f": "Prompio",
+    "e82966a06bbb529a": "Temioo"
   },
   "classFingerprints": {}
 }

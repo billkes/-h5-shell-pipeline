@@ -46,10 +46,34 @@
         "web"
       ],
       "pageOverrideCount": 0
+    },
+    "Temioo": {
+      "batchId": "TEST-0714",
+      "fingerprintKey": "f5c43d52e6b0b02a",
+      "visualFingerprint": {
+        "primary": "#ea580c",
+        "accent": "#059669",
+        "background": "#0f172a",
+        "heading": "syncopate",
+        "body": "space mono",
+        "pattern": "bento grid showcase",
+        "style": "voice-first multimodal",
+        "category": "research lab / university department"
+      },
+      "candidateId": "c3",
+      "style": "Voice-First Multimodal",
+      "category": "Research Lab / University Department",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web"
+      ],
+      "pageOverrideCount": 0
     }
   },
   "fingerprints": {
     "fd72cab6adc3eb1b": "Buildioo",
-    "166d818d57938832": "Prompio"
+    "166d818d57938832": "Prompio",
+    "f5c43d52e6b0b02a": "Temioo"
   }
 }

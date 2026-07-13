@@ -190,6 +190,7 @@ def main(argv: list[str] | None = None) -> int:
         elif target == "fill":
             p.add_argument("--batch-id", default="")
             p.add_argument("--force", action="store_true")
+            p.set_defaults(func=cmd_fill)
         elif target == "compose-theme":
             p.add_argument("--row", type=int, required=True)
             p.add_argument("--text", default="")

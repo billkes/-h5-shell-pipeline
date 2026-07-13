@@ -7,7 +7,7 @@ Prefix: ${FLUTTER_DART_PREFIX}
 - `.cursor/rules/*.mdc` — **seven** iron rules for h5_shell
 - 功能文档.md — **BR-xx rules + Primary Workflow steps** (MUST implement all); Screen Inventory; Bridge plaza matrix
 - 视觉蓝图.md · 本包视觉锁.json — H5 visual tokens
-- design-system/*/pages/*.md · stack-h5-vanilla.md · ux-checklist.md
+- design-system/*/pages/*.md · stack-h5-vite.md · ux-checklist.md
 - skill-adapt/design-tokens.css · css-motion-brief.md · icon-sprite-manifest.json
 - 本包登记信息.json — `h5SiteRoot`, `h5SiteEntry`, `h5EntryUrl*`, `appSlug`, Bridge capabilities
 - data/static/component_kit/ — including **`shell/bridge_plaza`**
@@ -22,15 +22,20 @@ ${TOKEN_IMPL_BLOCK}
 ${CSS_MOTION_BLOCK}
 ${ICON_MANIFEST_BLOCK}
 
+[H5 site — FORBIDDEN]
+- **DO NOT** create or edit files under `h5SiteRoot` (`h5_site/`) — deploy output only; pipeline `dev.h5.build` compiles from `h5/`.
+- **DO NOT** write `{prefix}_entry.htm`, `{prefix}_legal_bundled.js`, or `{prefix}_panels/` by hand.
+
 [H5 site — MANDATORY]
-1. Write files under **`h5SiteRoot`** only (from 本包登记信息.json, default `h5_site/`). Entry `{prefix}_entry.htm` — **never** `index.html`.
-2. **DO NOT** add `h5SiteRoot` to Flutter `pubspec.yaml` assets — site is deployed online / served on LAN for dev.
-3. **Follow h5VaultPattern** from 本包登记信息.json.
+1. Write **Vue source** under **`h5SourceRoot`** (`h5/src/` from 本包登记信息.json). **Do NOT** hand-edit `h5_site/{prefix}_entry.htm` — it is Vite build output.
+2. **DO NOT** add `h5SiteRoot` to Flutter `pubspec.yaml` assets — site is deployed online / Vite dev server.
+3. **Follow h5VaultPattern** from 本包登记信息.json (monolith = vite-plugin-singlefile output).
 4. **All visible UI in H5**: Splash → Welcome gate → business SPA routes per PM deck.
 5. **Bridge Plaza (MANDATORY)**: route `#/plaza` per 《H5壳广场页规范.md》; production entry = Settings long-press version label 3s; semi-hardcoded buttons per `bridgeCapabilities`. For dev convenience, add an **obvious** temporary entrance (e.g., visible Settings button or FAB) wrapped in `H5_PLAZA_DEV_ENTRANCE_START` / `H5_PLAZA_DEV_ENTRANCE_END` markers so the pipeline can strip it before deployment.
-6. **Legal / Privacy / Terms**: kit from `data/static/h5_legal_kit/` + `sync_h5_legal_bundled.py`.
+6. **Legal / Privacy / Terms**: kit from `data/static/h5_legal_kit/` + `sync_h5_legal_bundled.py` → `h5/src/legal/{prefix}_legal_bundled.ts`.
 7. IAP store UI in H5; call Bridge `purchase` only.
 8. Media: relative paths + Bridge `mediaServe` for shell-bundled rasters — **no base64** large images.
+9. After implementation, pipeline runs **`dev.h5.build`** (`cd h5 && npm run build:deploy`). Local dev: `npm run dev` on port **5174**.
 
 [Icon sprite — MANDATORY]
 (Same as before — inline SVG sprite in entry, forbidden icon font libraries.)
@@ -58,4 +63,4 @@ ${ICON_MANIFEST_BLOCK}
 - Leaving an obvious plaza entrance in production code without `H5_PLAZA_DEV_ENTRANCE_*` markers
 
 [Output]
-Complete deployable H5 site at `h5SiteRoot`; browser-runnable; plaza route present. One sentence summary of screens implemented.
+Complete Vue source under `h5/src/`; `dev.h5.build` will compile to `h5SiteRoot`. One sentence summary of screens implemented.

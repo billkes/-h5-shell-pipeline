@@ -17,5 +17,8 @@ config/config.yaml
 # 批次产出目录（体积大，勿提交）
 output/
 
+# H5 部署产物（dev.h5.build 生成，勿提交；登记字段仍指向 h5_site/{appSlug}/）
+**/h5_site/
+
 # pick-theme 候选池 sidecar（按主题一次性，不跨批次复用）
 task.csv.name-pools.json

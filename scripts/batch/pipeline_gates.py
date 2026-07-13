@@ -414,6 +414,8 @@ def verify_phase1_pm_outputs(
                     "h5EntryUrl",
                     "h5EntryUrlDev",
                     "h5EntryUrlProd",
+                    "h5SourceRoot",
+                    "h5BuildCommand",
                     "h5SiteRoot",
                     "h5SiteEntry",
                     "h5VaultPattern",

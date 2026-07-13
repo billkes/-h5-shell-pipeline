@@ -23,8 +23,7 @@
 │   ├── Assets.xcassets/
 │   └── register.json
 ├── {{APP_NAME}}.xcodeproj/
-├── h5_site/
-│   └── {{PREFIX}}_entry.htm
+├── h5/                              # H5 源码（Vite；dev.h5.build 产出 h5_site/，不提交）
 └── 本包登记信息.json
 ```
 

@@ -11,6 +11,7 @@ from batch.csv_tasks import CsvTaskRow, normalize_programming_style
 from batch.asset_naming import resolve_asset_layout_from_lock
 from batch.h5_site_paths import (
     DEFAULT_H5_SITE_ROOT,
+    app_slug_from_name,
     build_h5_remote_prompt_block,
     resolve_h5_remote_config,
 )
@@ -116,7 +117,7 @@ H5_VAULT_PATTERN_BY_ASSET_LAYOUT: dict[str, str] = {
 
 _H5_VAULT_PATTERN_DESC: dict[str, str] = {
     "h5_monolith": (
-        "Single `{prefix}_entry.htm` with inline `<style>` + SVG sprite (no sibling CSS)."
+        "Single `index.html` under `h5_site/{appSlug}/` (Vite singlefile deploy output)."
     ),
     "h5_modular_css": (
         "`{prefix}_entry.htm` + `{prefix}_baseline.css` (polish baseline externalized)."
@@ -136,27 +137,35 @@ def resolve_h5_vault_layout(
     *,
     prefix: str = "",
     asset_layout: str | None = None,
+    app_name: str = "",
 ) -> dict[str, Any]:
     """Return h5_shell vault topology from programming persona dim-7."""
     key = persona_key(persona)
     layout_key = asset_layout or ASSET_LAYOUT_BY_PERSONA.get(key, "assets_images_flat")
     pattern = H5_VAULT_PATTERN_BY_ASSET_LAYOUT.get(layout_key, "h5_modular_css")
-    p = (prefix or "app").strip().lower()
-    if not re.fullmatch(r"[a-z]{4,6}", p):
-        p = "app"
-    vault_dir = DEFAULT_H5_SITE_ROOT
-    entry = f"{vault_dir}{p}_entry.htm"
-    files: list[str] = [entry]
-    if pattern in {"h5_modular_css", "h5_modular_svg", "h5_modular_full"}:
-        files.append(f"{vault_dir}{p}_baseline.css")
-    if pattern in {"h5_modular_svg", "h5_modular_full"}:
-        files.append(f"{vault_dir}{p}_marks.svg")
-    if pattern == "h5_modular_full":
-        files.append(f"{vault_dir}{p}_panels/")
+    slug = app_slug_from_name(app_name) if app_name else "app"
+    upload_root = DEFAULT_H5_SITE_ROOT
+    deploy_dir = f"{upload_root.rstrip('/')}/{slug}/"
+    if pattern == "h5_monolith":
+        entry = f"{deploy_dir}index.html"
+        files: list[str] = [entry]
+    else:
+        p = (prefix or "app").strip().lower()
+        if not re.fullmatch(r"[a-z]{4,6}", p):
+            p = "app"
+        entry = f"{upload_root}{p}_entry.htm"
+        files = [entry]
+        if pattern in {"h5_modular_css", "h5_modular_svg", "h5_modular_full"}:
+            files.append(f"{upload_root}{p}_baseline.css")
+        if pattern in {"h5_modular_svg", "h5_modular_full"}:
+            files.append(f"{upload_root}{p}_marks.svg")
+        if pattern == "h5_modular_full":
+            files.append(f"{upload_root}{p}_panels/")
+        deploy_dir = upload_root
     return {
         "h5VaultPattern": pattern,
         "h5VaultLayout": layout_key,
-        "bundleVaultDir": vault_dir,
+        "bundleVaultDir": deploy_dir,
         "bundleEntryPath": entry,
         "h5VaultFiles": files,
         "h5VaultPatternDesc": _H5_VAULT_PATTERN_DESC.get(pattern, pattern),
@@ -176,6 +185,7 @@ def build_h5_vault_layout_prompt_block(
         row.programming_style,
         prefix=prefix,
         asset_layout=str(layout.get("assetLayout") or ""),
+        app_name=app_name,
     )
     remote = resolve_h5_remote_config(app_name or prefix, prefix=prefix)
     h5.update(
@@ -183,12 +193,17 @@ def build_h5_vault_layout_prompt_block(
             k: remote[k]
             for k in (
                 "appSlug",
+                "h5SiteUploadRoot",
                 "h5SiteRoot",
                 "h5SiteEntry",
+                "h5SourceRoot",
+                "h5BuildCommand",
                 "h5EntryUrl",
                 "h5EntryUrlDev",
                 "h5EntryUrlProd",
                 "launchPlaceholderAsset",
+                "bundleVaultDir",
+                "bundleEntryPath",
             )
         }
     )
@@ -203,9 +218,9 @@ def build_h5_vault_layout_prompt_block(
         f"  - h5SiteEntry: `{h5['h5SiteEntry']}`\n"
         "- Required site files:\n"
         f"{files}\n"
-        "- Register `h5VaultPattern`, `h5VaultLayout`, `h5SiteRoot`, `h5SiteEntry`, "
-        "`appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd` in 本包登记信息.json.\n"
-        "- **Forbidden**: single monolith entry when pattern is `h5_modular_*` or `h5_modular_full`.\n"
+        "- Register `h5VaultPattern`, `h5VaultLayout`, `h5SourceRoot`, `h5SiteRoot`, `h5SiteEntry`, "
+        "`h5BuildCommand`, `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd` in 本包登记信息.json.\n"
+        "- **Forbidden**: hand-editing `h5SiteEntry` deploy file — use `h5/` + `dev.h5.build`.\n"
         "- **Forbidden**: declaring `h5SiteRoot` under Flutter `pubspec.yaml` assets.\n"
         f"{remote_block}"
     )

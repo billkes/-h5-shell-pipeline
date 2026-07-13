@@ -38,7 +38,7 @@
 
 ```
 prepare.context → skill.design → skill.enrich → skill.adapt → skill.pages → skill.tokens
-→ lock.dimensions → build.agent → plan.gate → dev.h5.gate → git.plan
+→ lock.dimensions → build.agent → plan.gate → dev.h5.build → dev.h5.gate → git.plan
 → native.check（Swift/OC）
 → git.dev
 ```
@@ -85,4 +85,4 @@ pytest scripts/batch/tests/test_pipeline_smoke.py -q
 
 - 配置优先级：命令行 > 环境变量 > config.yaml > config.env > 默认值
 - 断点续跑：`output/.../App/.build-state.json`
-- 产出目录 `output/` 不提交 Git
+- 产出目录 `output/` 不提交 Git；`h5_site/` 为 Vite 部署产物（`dev.h5.build` 生成），同样不提交

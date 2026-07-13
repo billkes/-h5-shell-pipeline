@@ -21,6 +21,7 @@ from batch.pipeline_gates import verify_pm_ui_plan_outputs, write_plan_gate_repo
 from batch.pipeline_steps import (
     ANALYZE,
     BUILD_AGENT,
+    DEV_H5_BUILD,
     DEV_H5_GATE,
     LOCK_DIMENSIONS,
     PREPARE_CONTEXT,
@@ -518,6 +519,32 @@ class V3StepRunner:
                     print(f"       {line}")
         return True
 
+    def _step_dev_h5_build(self, ctx: AppContext) -> bool:
+        if not is_h5_shell(ctx.pack_type):
+            return True
+        from batch.h5_vite_build import (
+            cleanup_stale_h5_site_sources,
+            run_h5_vite_build,
+        )
+        from batch.sync_h5_legal_bundled import sync_h5_legal_bundled
+
+        ws = ctx.workspace
+        try:
+            sync_h5_legal_bundled(ws, write=True)
+        except (OSError, ValueError) as exc:
+            print(f">>> dev.h5.build: legal sync failed: {exc}")
+            return False
+
+        for rel in cleanup_stale_h5_site_sources(ws):
+            print(f">>> dev.h5.build: removed stale {rel}")
+
+        ok, issues = run_h5_vite_build(ws)
+        if not ok:
+            print(">>> dev.h5.build 未通过:")
+            for item in issues:
+                print(f"       {item}")
+        return ok
+
     def _step_dev_h5_gate(self, ctx: AppContext) -> bool:
         if not is_h5_shell(ctx.pack_type):
             return True
@@ -749,6 +776,7 @@ _STEP_HANDLERS = {
     LOCK_DIMENSIONS: V3StepRunner._step_lock_dimensions,
     BUILD_AGENT: V3StepRunner._step_build_agent,
     PLAN_GATE: V3StepRunner._step_plan_gate,
+    DEV_H5_BUILD: V3StepRunner._step_dev_h5_build,
     DEV_H5_GATE: V3StepRunner._step_dev_h5_gate,
     GIT_PLAN: V3StepRunner._step_git_plan,
     PUBGET: V3StepRunner._step_pubget,

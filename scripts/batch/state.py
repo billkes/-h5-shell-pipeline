@@ -147,8 +147,9 @@ def sync_phases_from_steps(data: dict[str, Any]) -> None:
         return
     pack_type = str(data.get("pack_type") or "contentpack")
     ordered = steps_for_run(pack_type=pack_type)
+    migrated = steps_map_from_data(data)
     for phase, phase_steps in PHASE_STEPS.items():
-        statuses = [str(steps_map.get(s) or "pending") for s in phase_steps if s in ordered]
+        statuses = [str(migrated.get(s) or "pending") for s in phase_steps if s in ordered]
         if statuses:
             data[phase] = _aggregate_phase_status(statuses)
 
@@ -275,6 +276,25 @@ def _aggregate_legacy_agent_steps(steps: dict[str, str]) -> dict[str, str]:
     return out
 
 
+_TERMINAL_STEP = frozenset({"done", "skipped", "failed"})
+
+
+def _promote_to_done(out: dict[str, str], step_id: str) -> None:
+    """Upgrade pending/running (or missing) step to done; keep terminal states."""
+    if out.get(step_id) not in _TERMINAL_STEP:
+        out[step_id] = "done"
+
+
+def _backfill_prep_chain_when_build_done(out: dict[str, str], chain: tuple[str, ...]) -> None:
+    """V3 single-agent: build.agent done implies prep/skill chain ran."""
+    from batch.pipeline_steps import BUILD_AGENT
+
+    if out.get(BUILD_AGENT) != "done":
+        return
+    for step_id in chain:
+        _promote_to_done(out, step_id)
+
+
 def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
     """Map removed step ids onto the single-agent pipeline."""
     from batch.pipeline_steps import (
@@ -305,31 +325,29 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
         SKILL_TOKENS,
         LOCK_DIMENSIONS,
     )
-    if out.get(BUILD_AGENT) == "done":
-        for s in _skill_chain:
-            out[s] = out.get(s) or "done"
+    _backfill_prep_chain_when_build_done(out, _skill_chain)
     # Legacy step ids
     if out.get("prepare") == "done" or out.get("prepare.context") == "done":
-        out[PREPARE_CONTEXT] = out.get(PREPARE_CONTEXT) or "done"
+        _promote_to_done(out, PREPARE_CONTEXT)
     if out.get("design.system") == "done" or out.get("skill.design") == "done":
-        out[SKILL_DESIGN] = out.get(SKILL_DESIGN) or "done"
-        out[PREPARE_CONTEXT] = out.get(PREPARE_CONTEXT) or "done"
+        _promote_to_done(out, SKILL_DESIGN)
+        _promote_to_done(out, PREPARE_CONTEXT)
     if out.get("skill.adapt") == "done":
-        out[SKILL_ADAPT] = out.get(SKILL_ADAPT) or "done"
+        _promote_to_done(out, SKILL_ADAPT)
     if out.get("skill.enrich") == "done":
-        out[SKILL_ENRICH] = out.get(SKILL_ENRICH) or "done"
+        _promote_to_done(out, SKILL_ENRICH)
     if out.get("skill.pages") == "done":
-        out[SKILL_PAGES] = out.get(SKILL_PAGES) or "done"
+        _promote_to_done(out, SKILL_PAGES)
     if out.get("skill.tokens") == "done":
-        out[SKILL_TOKENS] = out.get(SKILL_TOKENS) or "done"
+        _promote_to_done(out, SKILL_TOKENS)
     if out.get("dev.h5.gate") == "done":
-        out[DEV_H5_GATE] = out.get(DEV_H5_GATE) or "done"
+        _promote_to_done(out, DEV_H5_GATE)
     if out.get("lock.dimensions") == "done":
-        out[LOCK_DIMENSIONS] = out.get(LOCK_DIMENSIONS) or "done"
+        _promote_to_done(out, LOCK_DIMENSIONS)
     if out.get("plan.agent") == "done":
-        out[BUILD_AGENT] = out.get(BUILD_AGENT) or "done"
+        _promote_to_done(out, BUILD_AGENT)
     if out.get("dev.agent") == "done" or out.get("dev.h5") == "done":
-        out[BUILD_AGENT] = out.get(BUILD_AGENT) or "done"
+        _promote_to_done(out, BUILD_AGENT)
     legacy_done = (
         out.get("plan.agent") == "done"
         or out.get("dev.agent") == "done"
@@ -338,19 +356,19 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
     if legacy_done and out.get(BUILD_AGENT, "pending") == "pending":
         out[BUILD_AGENT] = "done"
     if out.get("plan.prepare") == "done" or out.get("dev.prepare") == "done":
-        out[PREPARE_CONTEXT] = out.get(PREPARE_CONTEXT) or "done"
+        _promote_to_done(out, PREPARE_CONTEXT)
     if out.get("plan.git") == "done":
-        out[GIT_PLAN] = out.get(GIT_PLAN) or "done"
+        _promote_to_done(out, GIT_PLAN)
     if out.get("dev.pubget") == "done":
-        out[PUBGET] = out.get(PUBGET) or "done"
+        _promote_to_done(out, PUBGET)
     if out.get("dev.analyze") == "done":
-        out[ANALYZE] = out.get(ANALYZE) or "done"
+        _promote_to_done(out, ANALYZE)
     if out.get("native.check") == "done":
-        out[NATIVE_CHECK] = out.get(NATIVE_CHECK) or "done"
+        _promote_to_done(out, NATIVE_CHECK)
     if out.get("dev.fix") == "done":
-        out[ANALYZE] = out.get(ANALYZE) or "done"
+        _promote_to_done(out, ANALYZE)
     if out.get("dev.git") == "done":
-        out[GIT_DEV] = out.get(GIT_DEV) or "done"
+        _promote_to_done(out, GIT_DEV)
     for old in (
         "plan.agent",
         "dev.agent",
@@ -403,6 +421,28 @@ def set_step(
     now = datetime.now()
     steps = steps_map_from_data(data)
     steps[step_id] = value
+    if step_id == "build.agent" and value == "done":
+        from batch.pipeline_steps import (
+            LOCK_DIMENSIONS,
+            PREPARE_CONTEXT,
+            SKILL_ADAPT,
+            SKILL_DESIGN,
+            SKILL_ENRICH,
+            SKILL_PAGES,
+            SKILL_TOKENS,
+        )
+
+        for prep_step in (
+            PREPARE_CONTEXT,
+            SKILL_DESIGN,
+            SKILL_ENRICH,
+            SKILL_ADAPT,
+            SKILL_PAGES,
+            SKILL_TOKENS,
+            LOCK_DIMENSIONS,
+        ):
+            if steps.get(prep_step) not in _TERMINAL_STEP:
+                steps[prep_step] = "done"
     data[STEPS_KEY] = steps
     data["updated_at"] = now.isoformat()
     start_key = f"step_{step_id.replace('.', '_')}_started_at"
@@ -459,8 +499,9 @@ def phase_status_from_data(data: dict[str, Any], phase: str) -> str:
         pack_type = str(data.get("pack_type") or "contentpack")
         ordered = steps_for_run(pack_type=pack_type)
         phase_steps = PHASE_STEPS.get(phase, ())
+        migrated = steps_map_from_data(data)
         statuses = [
-            str(steps_map.get(s) or "pending")
+            str(migrated.get(s) or "pending")
             for s in phase_steps
             if s in ordered
         ]
