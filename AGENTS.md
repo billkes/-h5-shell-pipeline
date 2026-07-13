@@ -37,13 +37,15 @@
 ## Pipeline V3 Steps（H5）
 
 ```
-prepare.context → skill.design → skill.adapt → lock.dimensions
-→ build.agent → plan.gate → git.plan
+prepare.context → skill.design → skill.enrich → skill.adapt → skill.pages → skill.tokens
+→ lock.dimensions → build.agent → plan.gate → dev.h5.gate → git.plan
 → native.check（Swift/OC）
 → git.dev
 ```
 
 Flutter 壳额外：`dev.pubget` → `dev.analyze`
+
+技能仓库产物见 `docs/rules/H5壳包开发规则.md` §技能仓库产物清单；`config.yaml` → `uupm.integrations` 可逐项关闭。
 
 ## 目录结构
 
