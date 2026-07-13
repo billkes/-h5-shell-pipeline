@@ -7,6 +7,7 @@ ${CSV_FULL_NAME_BLOCK}
 
 [Required Reading — this workspace]
 - 《${PRODUCT_REQ_DOC}》 — product contract
+- 《H5壳产品文档格式.md》 — **{全称}.md** 中文产品文档章节模板（Mockoo 样例）
 - skill-adapt/design-brief.md · skill-adapt/ambient-canvas-brief.md · design-system/*/MASTER.md — ui-ux-pro-max (**primary UI source**)
 - design-system/*/pages/*.md · ux-checklist.md · h5-interface-brief.md — skill.enrich + skill.pages
 - data/static/component_kit/README.md · baseline.md · tokens.md
@@ -63,6 +64,21 @@ Sections in order (include all):
 
 ---
 
+## Deliverable 1b) `{全称}.md` (PM — 中文产品文档)
+
+**Format:** MUST follow 《H5壳产品文档格式.md》 exactly (see Mockoo `Mockoo - Steady & Revise.md`).
+
+Sections in order (include all; use `####` for top-level sections, `---` between them):
+1. **H1** — `# {全称}` matching CSV `全称` column exactly
+2. **产品概述 (Product Overview)** — 产品描述两段 + **差异化角度（PM Deck：`primaryUserGoal`）** + **受众与场景** + Privacy/User Agreement 链接
+3. **App Store Listing** — Subtitle, Promotional Text, Description, Keywords (English)
+4. **业务流程总结 (Business Flow Summary)** — Hub + 编号主线 1–8 + 跨模块闭环 ASCII + **差异化价值**
+5. **审核 / 演示路线（点击版）** — 预计时长与 Tab 固定说明；演示数据导入/清空表；分阶段 Step 表；路线 ASCII；固定数据表；覆盖说明；审核 FAQ 表
+
+Content MUST align with `功能文档.md` (same product, flows/tabs/IAP must match).
+
+---
+
 ## Deliverable 2) 视觉蓝图.md (UI — English) — excerpt
 
 **Depth standard:** V2 canon sections with tables — shallow headers **fail Plan gate**.
@@ -98,7 +114,7 @@ Sections in order (include all V2 gates plus H5 ambient):
 - **Component Selection** + **Package Token Overrides**
 - **Dark Mode Adaptation**
 
-(Full deliverable list: 功能文档.md, 视觉蓝图.md, 本包登记信息.json, 本包视觉锁.json, 产包计划.md, 资源计划.md, legal docs — same as H5 shell batch gates.)
+(Full deliverable list: 功能文档.md, `{全称}.md`, 视觉蓝图.md, 本包登记信息.json, 本包视觉锁.json, 产包计划.md, 资源计划.md, legal docs — same as H5 shell batch gates.)
 
 [Self-check — Ambient Canvas]
 - §Ambient Canvas Canon present with scene table ≥4 rows + layer stack + token table?

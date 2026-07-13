@@ -53,7 +53,7 @@ def csv_iap_block(
 
 
 def csv_full_name_block(row: CsvTaskRow | None) -> str:
-    """CSV 全称 for product doc filename."""
+    """CSV 全称 for product doc filename and format."""
     if row is None:
         return ""
     full_name = (row.full_name or "").strip()
@@ -64,6 +64,9 @@ def csv_full_name_block(row: CsvTaskRow | None) -> str:
         f"- 全称(full_name) from CSV: {full_name}\n"
         f"- Product documentation file MUST be named exactly `{full_name}.md` "
         "(not a creative variant).\n"
+        "- Format: read 《H5壳产品文档格式.md》 — sections: 产品概述, App Store Listing, "
+        "业务流程总结, 审核/演示路线 (Mockoo 样例).\n"
+        f"- H1 MUST be: `# {full_name}`\n"
     )
 
 

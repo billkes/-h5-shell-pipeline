@@ -291,6 +291,7 @@ def copy_workspace_docs(
             "H5壳Flutter产品要求.md",
             "H5壳功能文档深度标准.md",
             "H5壳交互拓扑与PlanGate策略.md",
+            "H5壳产品文档格式.md",
             "H5-Bridge协议.md",
             "H5壳业务流程文字版.md",
             "H5去风味规范.md",
