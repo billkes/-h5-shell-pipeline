@@ -1,6 +1,6 @@
 @echo off
-REM h5-shell-pipeline: H5 Shell batch production entry (Windows)
-REM Usage: double-click for interactive menu, or run .\run.bat <command> [args]
+REM h5-shell-pipeline: H5 Shell batch production entry (Windows CMD)
+REM Usage: double-click, or run .\run.bat in CMD
 
 cd /d "%~dp0"
 
@@ -10,43 +10,36 @@ set "VENV_PIP=%CD%\.venv\Scripts\pip.exe"
 if not exist ".venv" (
     echo.
     echo ============================================================
-    echo   First run, initializing environment...
+    echo   ????????????...
     echo ============================================================
     echo.
-    echo   [1/3] Creating virtual environment...
+    echo   [1/3] ??????...
     python -m venv .venv
     if errorlevel 1 (
-        echo   Failed to create venv. Please make sure Python3 is installed.
+        echo   ??????????????? Python3
         pause
         exit /b 1
     )
-    echo   OK venv created
+    echo   OK ????????
 
     echo.
-    echo   [2/3] Installing dependencies...
+    echo   [2/3] ????...
     "%VENV_PIP%" install -r requirements.txt -q
     if errorlevel 1 (
-        echo   Failed to install dependencies
+        echo   ??????
         pause
         exit /b 1
     )
-    echo   OK dependencies installed
+    echo   OK ??????
     echo.
-    echo   Environment initialization complete!
+    echo   [3/3] ?????H5 Shell ??????
+    echo   OK ???? / uupm ??????
+    echo.
+    echo   ????????
     echo.
     timeout /t 1 /nobreak >nul
 )
 
-if defined PYTHONPATH (
-    set "PYTHONPATH=%CD%\scripts;%PYTHONPATH%"
-) else (
-    set "PYTHONPATH=%CD%\scripts"
-)
-
-REM No args ¡ú interactive menu (handled by Python)
-REM With args ¡ú direct command execution
+set "PYTHONPATH=%CD%\scripts;%PYTHONPATH%"
 "%VENV_PYTHON%" -m batch %*
-if errorlevel 1 (
-    if "%~1"=="" pause
-)
-if "%~1"=="" pause
+if errorlevel 1 pause

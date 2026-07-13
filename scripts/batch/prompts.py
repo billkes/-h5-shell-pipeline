@@ -1,4 +1,4 @@
-"""Load prompt templates from ``prompts/h5_shell/``.
+"""Load prompt templates from ``prompts/flutter/``.
 
 Pipeline V3 (default):
 
@@ -61,7 +61,7 @@ _PM_UI_PLAN_BRAIN_FOCUS = """   - `01_tech_common/A-Crush项目总览.md`
 
 
 class PromptBuilder:
-    """Load prompt templates from ``prompts/h5_shell/``."""
+    """Load prompt templates from ``prompts/flutter/``."""
 
     def __init__(self, cfg: BatchConfig) -> None:
         self.cfg = cfg
@@ -195,6 +195,11 @@ class PromptBuilder:
         if bridge_deck_block:
             return f"{text}\n\n{bridge_deck_block}"
         return text
+
+    def h5_kit_block(self, *, kit_deck_block: str = "") -> str:
+        text = self._load("phase_h5_kit_block.txt").strip()
+        deck = kit_deck_block or "[H5 Kit Deck — missing task.csv draws]"
+        return text.replace("${H5_KIT_DECK_BLOCK}", deck)
 
     def h5_shell_programmer_phase(
         self,

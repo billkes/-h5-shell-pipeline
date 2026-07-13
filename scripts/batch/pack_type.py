@@ -15,7 +15,9 @@ H5_SHELL_TYPES = frozenset(
         H5_OC_SHELL,
     }
 )
-FLUTTER_RUNTIME_TYPES = frozenset({H5_SHELL, H5_FLUTTER_SHELL})
+FLUTTER_RUNTIME_TYPES = frozenset(
+    {"contentpack", "videostream", "tool_flutter", H5_SHELL, H5_FLUTTER_SHELL}
+)
 NATIVE_IOS_RUNTIME_TYPES = frozenset({H5_SWIFT_SHELL, H5_OC_SHELL})
 
 

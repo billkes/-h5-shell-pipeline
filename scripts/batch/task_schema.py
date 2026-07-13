@@ -52,6 +52,37 @@ H5_SHELL_BRIDGE_PICK_ORDER: tuple[str, ...] = tuple(H5_SHELL_BRIDGE_DIM_TO_CSV.k
 
 H5_SHELL_BRIDGE_COLUMNS: tuple[str, ...] = tuple(H5_SHELL_BRIDGE_DIM_TO_CSV.values())
 
+# ── H5 kit deck (8 dimensions) ────────────────────────────────────────────
+COL_KIT_ATOM_SET = "kitAtomSet"
+COL_KIT_CSS_METHODOLOGY = "kitCssMethodology"
+COL_KIT_ATOM_GRANULARITY = "kitAtomGranularity"
+COL_KIT_DOM_SHAPE = "kitDomShape"
+COL_KIT_JS_PATTERN = "kitJsPattern"
+COL_KIT_JS_NAMESPACE = "kitJsNamespace"
+COL_KIT_STORAGE_ADAPTER = "kitStorageAdapter"
+COL_KIT_MOTION_APPROACH = "kitMotionApproach"
+COL_H5_STATE_MODEL = "h5StateModel"
+COL_H5_ROUTER_PATTERN = "h5RouterPattern"
+COL_H5_SCREEN_PATTERN = "h5ScreenPattern"
+
+H5_KIT_DIM_TO_CSV: dict[str, str] = {
+    "kitAtomSet": COL_KIT_ATOM_SET,
+    "kitCssMethodology": COL_KIT_CSS_METHODOLOGY,
+    "kitAtomGranularity": COL_KIT_ATOM_GRANULARITY,
+    "kitDomShape": COL_KIT_DOM_SHAPE,
+    "kitJsPattern": COL_KIT_JS_PATTERN,
+    "kitJsNamespace": COL_KIT_JS_NAMESPACE,
+    "kitStorageAdapter": COL_KIT_STORAGE_ADAPTER,
+    "kitMotionApproach": COL_KIT_MOTION_APPROACH,
+    "h5StateModel": COL_H5_STATE_MODEL,
+    "h5RouterPattern": COL_H5_ROUTER_PATTERN,
+    "h5ScreenPattern": COL_H5_SCREEN_PATTERN,
+}
+
+H5_KIT_PICK_ORDER: tuple[str, ...] = tuple(H5_KIT_DIM_TO_CSV.keys())
+
+H5_KIT_COLUMNS: tuple[str, ...] = tuple(H5_KIT_DIM_TO_CSV.values())
+
 LEGACY_COLUMNS: tuple[str, ...] = (
     COL_NAME,
     COL_FULL_NAME,
@@ -80,9 +111,9 @@ EXTENDED_COLUMNS: tuple[str, ...] = (
     *THEME_LIBRARY_COLUMNS,
 )
 
-H5_SHELL_EXTENDED_SUFFIX: tuple[str, ...] = H5_SHELL_BRIDGE_COLUMNS
+H5_SHELL_EXTENDED_SUFFIX: tuple[str, ...] = H5_SHELL_BRIDGE_COLUMNS + H5_KIT_COLUMNS
 
-STANDARD_COLUMNS: tuple[str, ...] = LEGACY_COLUMNS + EXTENDED_COLUMNS + H5_SHELL_BRIDGE_COLUMNS
+STANDARD_COLUMNS: tuple[str, ...] = LEGACY_COLUMNS + EXTENDED_COLUMNS + H5_SHELL_EXTENDED_SUFFIX
 
 BATCH_ID_COMMENT_RE = re.compile(r"^\s*#\s*batchId\s*:\s*(\S+)\s*$", re.IGNORECASE)
 

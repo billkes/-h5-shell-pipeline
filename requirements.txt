@@ -1,4 +1,4 @@
-# cursor-ios-batch Python dependencies
+# h5-shell-pipeline Python dependencies
 # Installed automatically by run.sh / run.bat / run.ps1
 
 Pillow>=10.0.0

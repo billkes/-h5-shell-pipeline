@@ -289,6 +289,11 @@ def copy_workspace_docs(
     copy_iap_spec_file(cfg.project_dir / IAP_SOURCE, workspace)
     copy_component_kit_to_workspace(cfg, workspace)
     ensure_cursor_uupm_skill(cfg, workspace)
+    if cfg.iap_bundle_prefix:
+        print(
+            "  >>> 注意: IAP_BUNDLE_PREFIX 已废弃于商品表；"
+            "productId 以 iap-catalog.generated.md 为准"
+        )
 
 
 def ensure_flutter_create(workspace: Path, dart_name: str) -> bool:
@@ -406,3 +411,74 @@ def ensure_pubspec_assets(workspace: Path) -> None:
     for root in roots:
         (fp / root).mkdir(parents=True, exist_ok=True)
 
+
+def fix_xcode_project_settings(
+    ios_root: Path,
+    *,
+    app_name: str = "",
+    bundle_id_prefix: str = "",
+) -> None:
+    """Limit destinations to iPhone and remove SceneDelegate artifacts."""
+    pbx_files = [
+        p
+        for p in ios_root.rglob("project.pbxproj")
+        if "build" not in p.parts and "DerivedData" not in p.parts
+    ]
+    if not pbx_files:
+        return
+    pbx = pbx_files[0]
+    text = pbx.read_text(encoding="utf-8", errors="replace")
+    replacements = {
+        "SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES": (
+            "SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO"
+        ),
+        "SUPPORTS_MACCATALYST = YES": "SUPPORTS_MACCATALYST = NO",
+        "SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES": (
+            "SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO"
+        ),
+        'TARGETED_DEVICE_FAMILY = "1,2"': "TARGETED_DEVICE_FAMILY = 1",
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+
+    if bundle_id_prefix and app_name:
+        slug = re.sub(r"[^a-z0-9]", "", app_name.lower())
+        target = f"{bundle_id_prefix}.{slug}"
+        text = re.sub(
+            r'PRODUCT_BUNDLE_IDENTIFIER = "[^"]*"',
+            f'PRODUCT_BUNDLE_IDENTIFIER = "{target}"',
+            text,
+        )
+        text = re.sub(
+            r"PRODUCT_BUNDLE_IDENTIFIER = [^;]*;",
+            f'PRODUCT_BUNDLE_IDENTIFIER = "{target}";',
+            text,
+        )
+        print(f"  >>> Bundle ID 已设为 {target}")
+
+    pbx.write_text(text, encoding="utf-8")
+
+    for pattern in ("SceneDelegate.swift", "SceneDelegate.m", "SceneDelegate.h"):
+        for path in ios_root.rglob(pattern):
+            if "build" in path.parts:
+                continue
+            path.unlink(missing_ok=True)
+
+    plist_files = [
+        p
+        for p in ios_root.rglob("Info.plist")
+        if "build" not in p.parts and "Pods" not in p.parts
+    ]
+    if plist_files:
+        try:
+            import plistlib
+
+            plist = plist_files[0]
+            with plist.open("rb") as f:
+                data = plistlib.load(f)
+            if "UIApplicationSceneManifest" in data:
+                del data["UIApplicationSceneManifest"]
+                with plist.open("wb") as f:
+                    plistlib.dump(data, f)
+        except (OSError, ValueError, ImportError):
+            pass

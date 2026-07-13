@@ -1,0 +1,210 @@
+"""V3 pipeline granular step definitions — single Build Agent + script gates."""
+
+from __future__ import annotations
+
+from batch.pack_type import is_flutter_runtime, is_h5_shell, is_native_ios_runtime
+from batch.state import PM_UI_PLAN_PHASE, PROGRAMMER_PHASE
+
+# ── Step IDs ──────────────────────────────────────────────────────────
+
+PREPARE_CONTEXT = "prepare.context"
+SKILL_DESIGN = "skill.design"
+SKILL_ADAPT = "skill.adapt"
+LOCK_DIMENSIONS = "lock.dimensions"
+
+BUILD_AGENT = "build.agent"
+
+# Legacy granular agent step ids (migration / CLI aliases only — not in V3_STEPS)
+AGENT_PLAN = "agent.plan"
+AGENT_IMPL = "agent.impl"
+AGENT_SHELL = "agent.shell"
+AGENT_H5 = "agent.h5"
+
+# Legacy aliases
+PREPARE = PREPARE_CONTEXT
+DESIGN_SYSTEM = SKILL_DESIGN
+
+PLAN_GATE = "plan.gate"
+GIT_PLAN = "git.plan"
+PUBGET = "dev.pubget"
+ANALYZE = "dev.analyze"
+NATIVE_CHECK = "native.check"
+GIT_DEV = "git.dev"
+
+# Legacy ids (migration / tests only)
+PLAN_PREPARE = PREPARE_CONTEXT
+PLAN_AGENT = "plan.agent"
+PLAN_GIT = GIT_PLAN
+DEV_PREPARE = PREPARE_CONTEXT
+DEV_AGENT = "dev.agent"
+DEV_PUBGET = PUBGET
+DEV_ANALYZE = ANALYZE
+DEV_FIX = "dev.fix"
+DEV_H5 = "dev.h5"
+DEV_GIT = GIT_DEV
+
+V3_STEPS: tuple[str, ...] = (
+    PREPARE_CONTEXT,
+    SKILL_DESIGN,
+    SKILL_ADAPT,
+    LOCK_DIMENSIONS,
+    BUILD_AGENT,
+    PLAN_GATE,
+    GIT_PLAN,
+    PUBGET,
+    ANALYZE,
+    NATIVE_CHECK,
+    GIT_DEV,
+)
+
+AGENT_STEPS: tuple[str, ...] = (BUILD_AGENT,)
+
+_LEGACY_AGENT_STEP_IDS: frozenset[str] = frozenset(
+    {AGENT_PLAN, AGENT_IMPL, AGENT_SHELL, AGENT_H5, PLAN_AGENT, DEV_AGENT, DEV_H5}
+)
+
+STEP_LABELS: dict[str, str] = {
+    PREPARE_CONTEXT: "skill-input · 事实与防撞上下文",
+    SKILL_DESIGN: "ui-ux-pro-max · 设计系统生成",
+    SKILL_ADAPT: "skill-adapt · 候选选型与转换",
+    LOCK_DIMENSIONS: "锁维度 + 工程准备",
+    BUILD_AGENT: "Build Agent · 蓝图 + 实现（单次调用）",
+    AGENT_PLAN: "Agent · 蓝图与计划文档（legacy）",
+    AGENT_IMPL: "Agent · Flutter 实现（legacy）",
+    AGENT_SHELL: "Agent · H5 原生壳（legacy）",
+    AGENT_H5: "Agent · H5 vault / legal（legacy）",
+    PLAN_GATE: "产出校验 + 主题登记",
+    GIT_PLAN: "Git 提交（计划产物）",
+    PUBGET: "flutter pub get",
+    ANALYZE: "flutter analyze",
+    NATIVE_CHECK: "native shell check",
+    GIT_DEV: "Git 提交（代码）",
+}
+
+STEP_TO_PHASE: dict[str, str] = {
+    PREPARE_CONTEXT: PM_UI_PLAN_PHASE,
+    SKILL_DESIGN: PM_UI_PLAN_PHASE,
+    SKILL_ADAPT: PM_UI_PLAN_PHASE,
+    LOCK_DIMENSIONS: PM_UI_PLAN_PHASE,
+    BUILD_AGENT: PM_UI_PLAN_PHASE,
+    PLAN_GATE: PM_UI_PLAN_PHASE,
+    GIT_PLAN: PM_UI_PLAN_PHASE,
+    PUBGET: PROGRAMMER_PHASE,
+    ANALYZE: PROGRAMMER_PHASE,
+    NATIVE_CHECK: PROGRAMMER_PHASE,
+    GIT_DEV: PROGRAMMER_PHASE,
+}
+
+PHASE_STEPS: dict[str, tuple[str, ...]] = {
+    PM_UI_PLAN_PHASE: (
+        PREPARE_CONTEXT,
+        SKILL_DESIGN,
+        SKILL_ADAPT,
+        LOCK_DIMENSIONS,
+        BUILD_AGENT,
+        PLAN_GATE,
+        GIT_PLAN,
+    ),
+    PROGRAMMER_PHASE: (
+        PUBGET,
+        ANALYZE,
+        NATIVE_CHECK,
+        GIT_DEV,
+    ),
+}
+
+
+def steps_for_run(*, pack_type: str) -> tuple[str, ...]:
+    """Return ordered step ids for this app + config."""
+    steps: list[str] = []
+    for step in V3_STEPS:
+        if step in (PUBGET, ANALYZE) and not is_flutter_runtime(pack_type):
+            continue
+        if step == NATIVE_CHECK and not is_native_ios_runtime(pack_type):
+            continue
+        steps.append(step)
+    return tuple(steps)
+
+
+def agent_steps_for_run(*, pack_type: str) -> tuple[str, ...]:
+    ordered = steps_for_run(pack_type=pack_type)
+    return tuple(s for s in ordered if s in AGENT_STEPS)
+
+
+def step_display(step_id: str) -> str:
+    """Single-line label for terminal / logs."""
+    label = STEP_LABELS.get(step_id, step_id)
+    return f"{step_id} · {label}"
+
+
+def step_duration_key(step_id: str) -> str:
+    return f"step_{step_id.replace('.', '_')}_duration_s"
+
+
+def step_index(step_id: str, steps: tuple[str, ...]) -> int:
+    try:
+        return steps.index(step_id) + 1
+    except ValueError:
+        return 0
+
+
+def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
+    """Parse ``7``, ``7-10``, or step id like ``dev.analyze``."""
+    text = raw.strip().lower()
+    if not text:
+        return []
+    if text in ("continue", "c", "续跑", "继续"):
+        return []
+    legacy_map = {
+        "plan.prepare": PREPARE_CONTEXT,
+        "dev.prepare": PREPARE_CONTEXT,
+        "prepare": PREPARE_CONTEXT,
+        "design.system": SKILL_DESIGN,
+        "skill.design": SKILL_DESIGN,
+        "skill.adapt": SKILL_ADAPT,
+        "lock.dimensions": LOCK_DIMENSIONS,
+        "build.agent": BUILD_AGENT,
+        "plan.agent": BUILD_AGENT,
+        "dev.agent": BUILD_AGENT,
+        "agent.plan": BUILD_AGENT,
+        "agent.impl": BUILD_AGENT,
+        "agent.shell": BUILD_AGENT,
+        "agent.h5": BUILD_AGENT,
+        "dev.h5": BUILD_AGENT,
+        "dev.fix": ANALYZE,
+        "plan.git": GIT_PLAN,
+        "dev.git": GIT_DEV,
+        "dev.pubget": PUBGET,
+        "dev.analyze": ANALYZE,
+        "native.check": NATIVE_CHECK,
+    }
+    if text in legacy_map:
+        mapped = legacy_map[text]
+        return [mapped] if mapped in steps else []
+    by_id = {s: i for i, s in enumerate(steps)}
+    if text in by_id:
+        return [text]
+    if text.startswith("rerun "):
+        text = text[6:].strip()
+        if text in legacy_map:
+            text = legacy_map[text]
+        if text in by_id:
+            return [text]
+        if text.isdigit():
+            idx = int(text) - 1
+            if 0 <= idx < len(steps):
+                return [steps[idx]]
+        return []
+    if "-" in text:
+        parts = text.split("-", 1)
+        if all(p.isdigit() for p in parts):
+            start = max(1, int(parts[0]))
+            end = min(len(steps), int(parts[1]))
+            if start <= end:
+                return list(steps[start - 1 : end])
+        return []
+    if text.isdigit():
+        idx = int(text) - 1
+        if 0 <= idx < len(steps):
+            return [steps[idx]]
+    return []

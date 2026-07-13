@@ -19,16 +19,26 @@ H5 Shell 批量生产流水线。支持：
 ## 快速开始
 
 ```bash
-# 1. 初始化空 task.csv
-./run.sh task-init --batch-id 88-0714 --rows 6
+# 交互式菜单（批次准备 + Agent 产包）
+./run.sh
 
-# 2. 编辑 task.csv 填入每包信息
+# 1. 初始化空 task.csv
+./run.sh task init --batch-id 88-0714 --rows 6
+
+# 2. 人工填充 task.csv 后抽 Bridge 七维
+./run.sh task fill
 
 # 3. 校验
-./run.sh task-validate
+./run.sh task validate
+./run.sh task audit
+./run.sh task ready
 
-# 4. 产包前严格校验
-./run.sh task-ready
+# 4. Agent 产包
+./run.sh --name Buildioo
+./run.sh --dry-run --name Buildioo
+
+# 5. 无 Agent 模板构建（仅套 Swift 壳）
+./run.sh build-all
 ```
 
 Windows PowerShell：
@@ -47,14 +57,16 @@ Windows CMD：
 
 | 命令 | 说明 |
 |------|------|
-| `task-init --batch-id <id> --rows <n>` | 创建空 task.csv |
-| `task-add --rows <n>` | 追加空行 |
-| `task-validate` | 基础校验 |
-| `task-list` | 列出任务 |
-| `task-show <应用主名称>` | 查看单条任务 |
-| `task-ready` | 产包前严格校验 |
-| `build-all` | 构建全部任务 |
-| `build <应用主名称>` | 构建单个任务 |
+| `task init --batch-id <id> --rows <n>` | 创建空 task.csv |
+| `task add --count <n>` | 追加空行 |
+| `task fill` | 抽 Bridge 七维 + productFlow |
+| `task validate` | 基础校验 |
+| `task list` | 列出任务 |
+| `task audit` | 批内审计 |
+| `task ready` | 产包前严格校验 |
+| `--name <应用主名称>` | Agent 产包（单包） |
+| `--dry-run` | 仅打印 Step，不调 Agent |
+| `build-all` | 模板构建（无 Agent） |
 
 Build 命令支持 `--h5-host`、`--bundle-id-prefix`、`--team-id`，也支持对应环境变量 `H5_PROD_HOST`、`BUNDLE_ID_PREFIX`、`APPLE_TEAM_ID`。
 

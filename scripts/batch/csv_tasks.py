@@ -33,6 +33,7 @@ from batch.task_schema import (
     COL_TRACK,
     LEGACY_COLUMNS,
     H5_SHELL_BRIDGE_COLUMNS,
+    H5_KIT_COLUMNS,
     COL_WEBVIEW_ENGINE,
     COL_BRIDGE_CALL_STYLE,
     COL_BRIDGE_CALLBACK_STYLE,
@@ -40,12 +41,24 @@ from batch.task_schema import (
     COL_MEDIA_SERVE,
     COL_BRIDGE_ERROR_CODE,
     COL_BRIDGE_INJECT_TIMING,
+    COL_KIT_ATOM_SET,
+    COL_KIT_CSS_METHODOLOGY,
+    COL_KIT_ATOM_GRANULARITY,
+    COL_KIT_DOM_SHAPE,
+    COL_KIT_JS_PATTERN,
+    COL_KIT_JS_NAMESPACE,
+    COL_KIT_STORAGE_ADAPTER,
+    COL_KIT_MOTION_APPROACH,
+    COL_H5_STATE_MODEL,
+    COL_H5_ROUTER_PATTERN,
+    COL_H5_SCREEN_PATTERN,
     STANDARD_COLUMNS,
     TaskCsvMeta,
     format_task_csv_header,
     parse_task_csv_meta,
 )
 from batch.theme_fields import format_theme_angle, parse_legacy_theme_angle, theme_task_description
+from batch.xcode_delivery import parse_privacy_file_index
 
 REQUIRED_COLUMNS = LEGACY_COLUMNS
 
@@ -132,6 +145,8 @@ PROGRAMMING_STYLES: tuple[str, ...] = (
     "中国人",
 )
 
+_PRIVACY_STYLE_RE = re.compile(r"风格\s*(\d+)", re.IGNORECASE)
+
 @dataclass(frozen=True)
 class CsvTaskRow:
     """One row from root ``task.csv`` (flat theme-library schema)."""
@@ -161,6 +176,17 @@ class CsvTaskRow:
     media_serve: str = ""
     bridge_error_code: str = ""
     bridge_inject_timing: str = ""
+    kit_atom_set: str = ""
+    kit_css_methodology: str = ""
+    kit_atom_granularity: str = ""
+    kit_dom_shape: str = ""
+    kit_js_pattern: str = ""
+    kit_js_namespace: str = ""
+    kit_storage_adapter: str = ""
+    kit_motion_approach: str = ""
+    h5_state_model: str = ""
+    h5_router_pattern: str = ""
+    h5_screen_pattern: str = ""
 
     @property
     def theme_angle(self) -> str:
@@ -236,9 +262,19 @@ def normalize_programming_style(raw: str) -> str:
     return value if value in PROGRAMMING_STYLES else ""
 
 
-def normalize_pack_type(raw: str, default: str = "h5_shell") -> str:
+def normalize_pack_type(raw: str, default: str = "tool_flutter") -> str:
     value = (raw or "").strip()
     return value if value in VALID_TYPES else default
+
+
+def parse_privacy_style_number(raw: str) -> int | None:
+    match = _PRIVACY_STYLE_RE.search((raw or "").strip())
+    if not match:
+        return None
+    num = int(match.group(1))
+    if 1 <= num <= 3:
+        return num
+    return None
 
 
 def repo_dir_name_from_git_url(git_url: str) -> str:
@@ -312,6 +348,17 @@ def _row_from_raw(raw: dict[str, str], name: str) -> CsvTaskRow:
         media_serve=_cell(raw, COL_MEDIA_SERVE),
         bridge_error_code=_cell(raw, COL_BRIDGE_ERROR_CODE),
         bridge_inject_timing=_cell(raw, COL_BRIDGE_INJECT_TIMING),
+        kit_atom_set=_cell(raw, COL_KIT_ATOM_SET),
+        kit_css_methodology=_cell(raw, COL_KIT_CSS_METHODOLOGY),
+        kit_atom_granularity=_cell(raw, COL_KIT_ATOM_GRANULARITY),
+        kit_dom_shape=_cell(raw, COL_KIT_DOM_SHAPE),
+        kit_js_pattern=_cell(raw, COL_KIT_JS_PATTERN),
+        kit_js_namespace=_cell(raw, COL_KIT_JS_NAMESPACE),
+        kit_storage_adapter=_cell(raw, COL_KIT_STORAGE_ADAPTER),
+        kit_motion_approach=_cell(raw, COL_KIT_MOTION_APPROACH),
+        h5_state_model=_cell(raw, COL_H5_STATE_MODEL),
+        h5_router_pattern=_cell(raw, COL_H5_ROUTER_PATTERN),
+        h5_screen_pattern=_cell(raw, COL_H5_SCREEN_PATTERN),
     )
 
 
@@ -320,6 +367,23 @@ MANUAL_PREP_COLUMNS: tuple[str, ...] = (
     COL_PRIVACY_FILE,
     COL_GIT_URL,
 )
+
+
+def _h5_kit_attr(col: str) -> str:
+    mapping = {
+        COL_KIT_ATOM_SET: "kit_atom_set",
+        COL_KIT_CSS_METHODOLOGY: "kit_css_methodology",
+        COL_KIT_ATOM_GRANULARITY: "kit_atom_granularity",
+        COL_KIT_DOM_SHAPE: "kit_dom_shape",
+        COL_KIT_JS_PATTERN: "kit_js_pattern",
+        COL_KIT_JS_NAMESPACE: "kit_js_namespace",
+        COL_KIT_STORAGE_ADAPTER: "kit_storage_adapter",
+        COL_KIT_MOTION_APPROACH: "kit_motion_approach",
+        COL_H5_STATE_MODEL: "h5_state_model",
+        COL_H5_ROUTER_PATTERN: "h5_router_pattern",
+        COL_H5_SCREEN_PATTERN: "h5_screen_pattern",
+    }
+    return mapping[col]
 
 
 def _h5_bridge_attr(col: str) -> str:
@@ -384,6 +448,17 @@ def _validate_row_fields(
     if not normalize_programming_style(row.programming_style):
         raise ValueError(f"{line_hint} 编程风格无效")
 
+    if not allow_pending_manual_fields:
+        if parse_privacy_style_number(row.privacy_style) is None:
+            raise ValueError(f"{line_hint} 协议风格无效")
+        if parse_privacy_file_index(row.privacy_file) is None:
+            raise ValueError(f"{line_hint} 隐私文件无效")
+    else:
+        if row.privacy_style and parse_privacy_style_number(row.privacy_style) is None:
+            raise ValueError(f"{line_hint} 协议风格无效")
+        if row.privacy_file and parse_privacy_file_index(row.privacy_file) is None:
+            raise ValueError(f"{line_hint} 隐私文件无效")
+
     if strict_extended:
         ext_missing: list[str] = []
         if not row.pack_type:
@@ -394,7 +469,6 @@ def _validate_row_fields(
             (COL_AUDIENCE, row.audience),
             (COL_CORE_SCENE, row.core_scene),
             (COL_LOCAL_FEATURE, row.local_feature),
-            (COL_PRODUCT_FLOW, row.product_flow),
         ):
             if not val:
                 ext_missing.append(col)
@@ -412,6 +486,19 @@ def _validate_row_fields(
                     if pool and val not in pool:
                         raise ValueError(
                             f"{line_hint} {col}={val!r} 不在 h5-shell-deck 牌池"
+                        )
+            from batch.h5_kit_deck import load_h5_kit_pools
+
+            kit_pools = load_h5_kit_pools(project_dir or Path("."))
+            for col in H5_KIT_COLUMNS:
+                val = getattr(row, _h5_kit_attr(col), "")
+                if not val:
+                    ext_missing.append(col)
+                else:
+                    pool = kit_pools.get(col) or []
+                    if pool and val not in pool:
+                        raise ValueError(
+                            f"{line_hint} {col}={val!r} 不在 h5-kit-deck 牌池"
                         )
         if ext_missing:
             raise ValueError(
@@ -501,6 +588,17 @@ def load_csv_tasks(
                 media_serve=row.media_serve,
                 bridge_error_code=row.bridge_error_code,
                 bridge_inject_timing=row.bridge_inject_timing,
+                kit_atom_set=row.kit_atom_set,
+                kit_css_methodology=row.kit_css_methodology,
+                kit_atom_granularity=row.kit_atom_granularity,
+                kit_dom_shape=row.kit_dom_shape,
+                kit_js_pattern=row.kit_js_pattern,
+                kit_js_namespace=row.kit_js_namespace,
+                kit_storage_adapter=row.kit_storage_adapter,
+                kit_motion_approach=row.kit_motion_approach,
+                h5_state_model=row.h5_state_model,
+                h5_router_pattern=row.h5_router_pattern,
+                h5_screen_pattern=row.h5_screen_pattern,
             )
         )
 
@@ -665,15 +763,7 @@ def init_empty_task_csv(path: Path, *, batch_id: str, row_count: int) -> None:
 
 
 def fill_product_flow_to_csv(csv_path: Path) -> list[str]:
-    """Fill empty ``productFlow`` cells with template-generated values.
-
-    Iterates over task.csv rows; for each row whose ``productFlow`` is empty
-    but has at least one theme field (``audience`` / ``core_scene`` /
-    ``local_feature``), generates a productFlow string via
-    ``theme_fields.generate_product_flow`` and writes it back.
-
-    Returns the list of app names that were filled.
-    """
+    """Fill empty productFlow cells from theme fields."""
     from batch.theme_fields import generate_product_flow
 
     meta, rows_raw, fieldnames = load_task_csv_raw(csv_path)
