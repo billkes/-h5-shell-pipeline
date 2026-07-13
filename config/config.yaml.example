@@ -15,3 +15,8 @@ build:
 
 runtime:
   legacy_pipeline: false
+
+# ui-ux-pro-max 设计系统（skill.design / skill.adapt）
+# 默认自动探测 ../ui-ux-pro-max-skill；也可显式指定：
+uupm:
+  skill_dir: ""

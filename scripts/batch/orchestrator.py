@@ -71,9 +71,11 @@ class BatchOrchestrator:
         return row
 
     def _resolve_workspace(self, output_base: Path, task: QueueTask) -> Path:
-        """``output/{AppName}-Flutter/{AppName}/``"""
+        """``output/{AppName}-shell/{AppName}/`` or ``…-Flutter/…`` by pack_type."""
         row = self._csv_row_for(task)
-        repo_name = repo_container_name(task.name, row.git_url)
+        repo_name = repo_container_name(
+            task.name, row.git_url, pack_type=task.pack_type
+        )
         ws = app_workspace(output_base, repo_name, safe_dir_name(task.name))
         ws.mkdir(parents=True, exist_ok=True)
         return ws

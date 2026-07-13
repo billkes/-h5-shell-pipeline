@@ -291,8 +291,32 @@ def repo_dir_name_from_git_url(git_url: str) -> str:
     return path
 
 
-def repo_container_name(app_name: str, git_url: str = "") -> str:
+def repo_container_name(
+    app_name: str,
+    git_url: str = "",
+    *,
+    pack_type: str = "",
+) -> str:
+    """Output container dir under ``output/`` (e.g. ``Buildioo-shell``).
+
+    H5 shell pipeline convention:
+    - ``h5_swift_shell`` / ``h5_oc_shell`` → ``{AppName}-shell``
+    - ``h5_shell`` / ``h5_flutter_shell`` → ``{AppName}-Flutter``
+
+    ``git_url`` basename is used only when it already ends with ``-shell`` or
+    ``-Flutter``; otherwise pack_type suffix wins (avoids bare repo names).
+    """
+    from batch.pack_type import H5_FLUTTER_SHELL, H5_SHELL, is_native_ios_runtime
+
     from_git = repo_dir_name_from_git_url(git_url)
+    if from_git.endswith("-shell") or from_git.endswith("-Flutter"):
+        return from_git
+
+    pt = (pack_type or "").strip()
+    if is_native_ios_runtime(pt):
+        return f"{app_name}-shell"
+    if pt in (H5_SHELL, H5_FLUTTER_SHELL):
+        return f"{app_name}-Flutter"
     if from_git:
         return from_git
     return f"{app_name}-Flutter"

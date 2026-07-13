@@ -58,6 +58,7 @@ _YAML_ENV_MAP: dict[tuple[str, ...], str] = {
     ("iflow", "max_retries"): "IFLOW_MAX_RETRIES",
     ("iflow", "retry_delay_sec"): "IFLOW_RETRY_DELAY_SEC",
     ("xcode", "bundle_id"): "XCODE_BUNDLE_ID",
+    ("xcode", "iap_bundle_prefix"): "IAP_BUNDLE_PREFIX",
     ("build", "pub_get_max_retries"): "PUB_GET_MAX_RETRIES",
     ("build", "max_build_fix_rounds"): "MAX_BUILD_FIX_ROUNDS",
     ("build", "max_test_fix_rounds"): "MAX_TEST_FIX_ROUNDS",
@@ -225,6 +226,7 @@ class BatchConfig:
     free_publish_default: int = 2
     uupm_skill_dir: str = ""
     xcode_bundle_id: str = "test.duckegg.ios"
+    iap_bundle_prefix: str = ""
 
     @property
     def config_dir(self) -> Path:
@@ -409,6 +411,7 @@ class BatchConfig:
             ),
             uupm_skill_dir=os.environ.get("UUPM_SKILL_DIR", ""),
             xcode_bundle_id=os.environ.get("XCODE_BUNDLE_ID", "test.duckegg.ios"),
+            iap_bundle_prefix=os.environ.get("IAP_BUNDLE_PREFIX", ""),
         )
         for key, val in overrides.items():
             if hasattr(cfg, key):

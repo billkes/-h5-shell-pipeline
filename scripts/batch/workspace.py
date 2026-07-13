@@ -289,7 +289,7 @@ def copy_workspace_docs(
     copy_iap_spec_file(cfg.project_dir / IAP_SOURCE, workspace)
     copy_component_kit_to_workspace(cfg, workspace)
     ensure_cursor_uupm_skill(cfg, workspace)
-    if cfg.iap_bundle_prefix:
+    if getattr(cfg, "iap_bundle_prefix", ""):
         print(
             "  >>> 注意: IAP_BUNDLE_PREFIX 已废弃于商品表；"
             "productId 以 iap-catalog.generated.md 为准"

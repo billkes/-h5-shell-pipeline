@@ -58,3 +58,33 @@ def test_pipeline_steps_oc_shell() -> None:
     steps = steps_for_run(pack_type="h5_oc_shell")
     assert "build.agent" in steps
     assert "native.check" in steps
+
+
+def test_repo_container_name_native_shell() -> None:
+    sys.path.insert(0, str(SCRIPTS))
+    from batch.csv_tasks import repo_container_name
+
+    assert (
+        repo_container_name(
+            "Buildioo",
+            "https://github.com/example/Buildioo.git",
+            pack_type="h5_swift_shell",
+        )
+        == "Buildioo-shell"
+    )
+    assert (
+        repo_container_name(
+            "Hathoo",
+            "",
+            pack_type="h5_oc_shell",
+        )
+        == "Hathoo-shell"
+    )
+    assert (
+        repo_container_name(
+            "Pawioo",
+            "",
+            pack_type="h5_flutter_shell",
+        )
+        == "Pawioo-Flutter"
+    )

@@ -220,7 +220,7 @@ def _execute_batch_run(
         f"本次执行: {len(tasks)} 个项目"
         if len(tasks) != 1
         else f"本次执行: {tasks[0].name}（{tasks[0].pack_type}）",
-        f"输出目录: {output}（平铺 AppName-Flutter/AppName/）",
+        f"输出目录: {output}（{{AppName}}-shell 或 -Flutter / {{AppName}}/）",
         f"报告目录: {log_path.parent}",
     ]
 
