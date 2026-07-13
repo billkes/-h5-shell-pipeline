@@ -225,6 +225,8 @@ class BatchConfig:
     free_tier_default: int = 3
     free_publish_default: int = 2
     uupm_skill_dir: str = ""
+    uupm_integrations: dict[str, object] = field(default_factory=dict)
+    design_gemini_api_key: str = ""
     xcode_bundle_id: str = "test.duckegg.ios"
     iap_bundle_prefix: str = ""
 
@@ -410,12 +412,24 @@ class BatchConfig:
                 1, int(os.environ.get("FREE_PUBLISH_DEFAULT", "2"))
             ),
             uupm_skill_dir=os.environ.get("UUPM_SKILL_DIR", ""),
+            design_gemini_api_key=os.environ.get("DESIGN_GEMINI_API_KEY", ""),
             xcode_bundle_id=os.environ.get("XCODE_BUNDLE_ID", "test.duckegg.ios"),
             iap_bundle_prefix=os.environ.get("IAP_BUNDLE_PREFIX", ""),
         )
         for key, val in overrides.items():
             if hasattr(cfg, key):
                 setattr(cfg, key, val)
+        yaml_data = _load_yaml_config(cfg.config_dir / "config.yaml")
+        uupm = yaml_data.get("uupm") if isinstance(yaml_data, dict) else None
+        if isinstance(uupm, dict):
+            integrations = uupm.get("integrations")
+            if isinstance(integrations, dict):
+                cfg.uupm_integrations = integrations
+            design = yaml_data.get("design") if isinstance(yaml_data, dict) else None
+            if isinstance(design, dict):
+                gemini = str(design.get("gemini_api_key") or "").strip()
+                if gemini and not cfg.design_gemini_api_key:
+                    cfg.design_gemini_api_key = gemini
         return cfg
 
 

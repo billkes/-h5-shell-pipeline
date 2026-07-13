@@ -16,7 +16,19 @@ build:
 runtime:
   legacy_pipeline: false
 
-# ui-ux-pro-max 设计系统（skill.design / skill.adapt）
+# ui-ux-pro-max 设计系统（skill.design / skill.adapt / skill.enrich）
 # 默认自动探测 ../ui-ux-pro-max-skill；也可显式指定：
 uupm:
   skill_dir: ""
+  integrations:
+    enrich_domains: true
+    page_overrides: true
+    token_sync: true
+    icon_brief: true
+    motion_css: true
+    sibling_skills_link: true
+    h5_gate: true
+
+# 可选：Logo/Icon AI 生成（design skill，无 key 时跳过）
+design:
+  gemini_api_key: ""

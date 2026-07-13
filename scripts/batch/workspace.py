@@ -70,6 +70,42 @@ def _cursor_uupm_skill_md(repo_root: Path | None) -> str:
     )
 
 
+def ensure_workspace_skills(cfg: BatchConfig, workspace: Path) -> bool:
+    """Symlink ui-ux-pro-max + sibling skills into ``.cursor/skills/``."""
+    from batch.skill_resolve import integration_enabled, resolve_subskill_dir
+
+    ok = ensure_cursor_uupm_skill(cfg, workspace)
+    if not integration_enabled(cfg, "sibling_skills_link"):
+        return ok
+
+    try:
+        repo_root = None
+        from batch.uupm_design_system import resolve_uupm_skill_repo_root
+
+        repo_root = resolve_uupm_skill_repo_root(cfg)
+    except Exception:
+        repo_root = None
+
+    skills_root = workspace / ".cursor" / "skills"
+    skills_root.mkdir(parents=True, exist_ok=True)
+    for name in ("brand", "design-system", "design", "ui-styling"):
+        src = resolve_subskill_dir(cfg, name)
+        if src is None:
+            continue
+        dest = skills_root / name
+        dest.mkdir(parents=True, exist_ok=True)
+        skill_md = src / "SKILL.md"
+        if skill_md.is_file():
+            _ensure_symlink(dest / "SKILL.md", skill_md)
+        for sub in ("scripts", "references"):
+            sub_src = src / sub
+            if sub_src.is_dir():
+                _ensure_symlink(dest / sub, sub_src)
+    _ = repo_root
+    print(">>> 已链接兄弟 skills → .cursor/skills/{brand,design-system,design,ui-styling}")
+    return ok
+
+
 def ensure_cursor_uupm_skill(cfg: BatchConfig, workspace: Path) -> bool:
     """Symlink central ui-ux-pro-max into ``.cursor/skills/`` for manual Cursor use."""
     try:
@@ -253,6 +289,7 @@ def copy_workspace_docs(
     elif is_h5_shell(pack_type):
         for name in (
             "H5壳Flutter产品要求.md",
+            "H5壳功能文档深度标准.md",
             "H5-Bridge协议.md",
             "H5壳业务流程文字版.md",
             "H5去风味规范.md",
@@ -288,7 +325,7 @@ def copy_workspace_docs(
     )
     copy_iap_spec_file(cfg.project_dir / IAP_SOURCE, workspace)
     copy_component_kit_to_workspace(cfg, workspace)
-    ensure_cursor_uupm_skill(cfg, workspace)
+    ensure_workspace_skills(cfg, workspace)
     if getattr(cfg, "iap_bundle_prefix", ""):
         print(
             "  >>> 注意: IAP_BUNDLE_PREFIX 已废弃于商品表；"
