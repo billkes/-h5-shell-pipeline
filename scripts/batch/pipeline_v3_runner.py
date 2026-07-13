@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import time
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from batch.batch_run_log import get_run_log
@@ -453,7 +454,7 @@ class V3StepRunner:
             except OSError:
                 continue
         joined = "\n".join(joined_parts)
-        for token in (
+        required_tokens = (
             "WKWebView",
             "WKScriptMessageHandler",
             "shellReady",
@@ -464,12 +465,61 @@ class V3StepRunner:
             "purchase",
             "restorePurchases",
             "mediaServe",
-        ):
+        )
+        if runtime == "oc":
+            required_tokens = required_tokens + (
+                "WKURLSchemeHandler",
+                "app-callback",
+            )
+        for token in required_tokens:
             if token not in joined:
                 issues.append(f"native shell 缺少 Bridge/host token: {token}")
         if "SFSafariViewController" in joined:
             issues.append("禁止主流程使用 SFSafariViewController/browser chrome")
+
+        issues.extend(self._optional_xcodebuild(ws, ctx.name, runtime))
         return len(issues) == 0, issues
+
+    def _optional_xcodebuild(self, ws: Path, app_name: str, runtime: str) -> list[str]:
+        """Run xcodebuild on macOS when project exists; skip elsewhere."""
+        import platform
+        import subprocess
+
+        if platform.system() != "Darwin":
+            return []
+        projects = list(ws.glob("*.xcodeproj"))
+        if not projects:
+            return []
+        project = projects[0]
+        cmd = [
+            "xcodebuild",
+            "-project",
+            str(project),
+            "-scheme",
+            app_name,
+            "-sdk",
+            "iphonesimulator",
+            "-destination",
+            "generic/platform=iOS Simulator",
+            "build",
+            "CODE_SIGNING_ALLOWED=NO",
+        ]
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(ws),
+                capture_output=True,
+                text=True,
+                timeout=300,
+            )
+        except FileNotFoundError:
+            return []
+        except subprocess.TimeoutExpired:
+            return [f"xcodebuild 超时（{runtime}）"]
+        if result.returncode != 0:
+            tail = (result.stderr or result.stdout or "").strip().splitlines()[-5:]
+            return [f"xcodebuild 失败: {' | '.join(tail)}"]
+        return []
 
     def _do_dev_analyze(self, ctx: AppContext, fp) -> bool:  # noqa: ANN001
         ws = ctx.workspace

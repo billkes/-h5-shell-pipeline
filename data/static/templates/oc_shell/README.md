@@ -1,45 +1,70 @@
-# OC H5 Shell 目录结构模板
+# OC H5 Shell 厂包夹板（v1）
 
-标准 Objective-C H5 壳目录结构，与 `swift_shell/standard/` 在职责划分上一致，但使用 OC 文件组织。
+基于 **Hathoo-OC** 参考实现抽取，扁平 6 类结构（非模块化 Bridge/ 子目录）。
 
-## 适用条件
+## 适用
 
-- `task.csv` 中 **pack_type** = `h5_oc_shell`
-- `task.csv` 中 **webviewEngine** = `wkwebview_oc`
+- `task.csv` **pack_type** = `h5_oc_shell`
+- **webviewEngine** = `wkwebview_oc`（锁定）
 
 ## 目录结构
 
 ```
-{app_name}/
-└── ios/
-    └── {app_name}/
-        ├── AppDelegate.h
-        ├── AppDelegate.m
-        ├── {app_name}.html
-        ├── Info.plist
-        ├── Assets.xcassets/
-        ├── Bridge/                              # 集中式桥接层
-        │   ├── WebBridgeHandler.h
-        │   ├── WebBridgeHandler.m
-        │   ├── {app_name}WebViewDeflavor.h
-        │   ├── {app_name}WebViewDeflavor.m
-        │   ├── {app_name}ShellConfig.h
-        │   ├── {app_name}ShellConfig.m
-        │   └── PermissionManager.h/m
-        └── Modules/                             # 按职责分模块
-            ├── WebContent/
-            │   ├── WebContentResolver.h
-            │   └── WebContentResolver.m
-            ├── WebShell/
-            │   ├── WebShellViewModel.h
-            │   └── WebShellViewModel.m
-            └── WebView/
-                ├── WebViewController.h
-                └── WebViewController.m
+{{APP_NAME}}/
+├── {{APP_NAME}}/                    # OC 源码（6 类 + main.m）
+│   ├── {{PREFIX_CAP}}AppDelegate.h/m
+│   ├── {{PREFIX_CAP}}HostController.h/m   # WebView + Bridge + Veil
+│   ├── {{PREFIX_CAP}}LaneVault.h/m        # WKURLSchemeHandler
+│   ├── {{PREFIX_CAP}}PulseCredit.h/m      # StoreKit IAP
+│   ├── {{PREFIX_CAP}}WebViewDeflavor.h/m
+│   ├── main.m
+│   ├── Info.plist
+│   ├── Base.lproj/LaunchScreen.storyboard
+│   ├── Assets.xcassets/
+│   └── register.json
+├── {{APP_NAME}}.xcodeproj/
+├── h5_site/
+│   └── {{PREFIX}}_entry.htm
+└── 本包登记信息.json
 ```
 
-## 命名约定
+## Bridge 七维（锁定）
 
-- 目录：语义化小写，如 `Bridge/`、`Modules/WebContent/`
-- OC 文件：每个类一对 `.h` / `.m`
-- 类名：大驼峰，直接表达职责，如 `WebBridgeHandler`
+| 维度 | 值 |
+|------|-----|
+| webviewEngine | `wkwebview_oc` |
+| bridgeCallStyle | `window.webkit.messageHandlers.{prefix}.postMessage(JSON)` |
+| bridgeCallbackStyle | `URL scheme callback (app-callback://)` |
+| bridgeEnvelope | `URL query flattened` |
+| mediaServe | `WKURLSchemeHandler local vault` |
+| bridgeErrorCode | `numeric codes (0/-1/-2)` |
+| bridgeInjectTiming | `WKUserScript atDocumentStart` |
+
+## 应用模板
+
+```bash
+python data/static/templates/oc_shell/apply.py \
+  --src data/static/templates/oc_shell/{{APP_NAME}} \
+  --dst output/MyApp \
+  --app-name MyApp \
+  --prefix myprx \
+  --app-slug myapp \
+  --h5-host test.darin.beauty \
+  --bundle-id test.duckegg.ios \
+  --team-id XXXXX \
+  --asset-scheme myprxasset
+```
+
+或通过流水线：
+
+```bash
+./run.sh build-all   # task.csv pack_type=h5_oc_shell
+```
+
+## macOS 编译
+
+```bash
+cd output/{AppName}
+xcodebuild -project {AppName}.xcodeproj -scheme {AppName} \
+  -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
+```

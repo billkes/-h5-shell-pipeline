@@ -70,8 +70,7 @@ def validate_batch_firewall(
         code = (row.first_product_code or "").strip()
         if not code:
             continue
-        batch_out = output_dir / (batch_id or "")
-        if (batch_out / row.name).is_dir() or (output_dir / f"{row.name}-Flutter").is_dir():
+        if (output_dir / row.name).is_dir() or (output_dir / f"{row.name}-Flutter").is_dir():
             continue
         for issue in validate_product_code(code):
             issues.append(f"「{row.name}」{issue}")

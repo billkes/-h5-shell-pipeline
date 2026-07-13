@@ -1,0 +1,317 @@
+{
+  "identifier": "{{APP_NAME}}IAP",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "6751000001",
+      "localizations": [
+        {
+          "description": "Plaza sandbox test consumable",
+          "displayName": "Test Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "311400",
+      "referenceName": "311400",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "0.95",
+      "familyShareable": false,
+      "internalID": "6751001002",
+      "localizations": [
+        {
+          "description": "95 {{APP_NAME}} coins",
+          "displayName": "95 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha00",
+      "referenceName": "Hatha00",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "6751001003",
+      "localizations": [
+        {
+          "description": "299 {{APP_NAME}} coins",
+          "displayName": "299 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha01",
+      "referenceName": "Hatha01",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "3.90",
+      "familyShareable": false,
+      "internalID": "6751001004",
+      "localizations": [
+        {
+          "description": "390 {{APP_NAME}} coins",
+          "displayName": "390 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha02",
+      "referenceName": "Hatha02",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "6751001005",
+      "localizations": [
+        {
+          "description": "499 {{APP_NAME}} coins",
+          "displayName": "499 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha03",
+      "referenceName": "Hatha03",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "5.99",
+      "familyShareable": false,
+      "internalID": "6751001006",
+      "localizations": [
+        {
+          "description": "599 {{APP_NAME}} coins",
+          "displayName": "599 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha04",
+      "referenceName": "Hatha04",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.95",
+      "familyShareable": false,
+      "internalID": "6751001007",
+      "localizations": [
+        {
+          "description": "1195 {{APP_NAME}} coins",
+          "displayName": "1195 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha05",
+      "referenceName": "Hatha05",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "12.90",
+      "familyShareable": false,
+      "internalID": "6751001008",
+      "localizations": [
+        {
+          "description": "1490 {{APP_NAME}} coins",
+          "displayName": "1490 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha06",
+      "referenceName": "Hatha06",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "19.99",
+      "familyShareable": false,
+      "internalID": "6751001009",
+      "localizations": [
+        {
+          "description": "2495 {{APP_NAME}} coins",
+          "displayName": "2495 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha07",
+      "referenceName": "Hatha07",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "24.99",
+      "familyShareable": false,
+      "internalID": "6751001010",
+      "localizations": [
+        {
+          "description": "3199 {{APP_NAME}} coins",
+          "displayName": "3199 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha08",
+      "referenceName": "Hatha08",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "39.99",
+      "familyShareable": false,
+      "internalID": "6751001011",
+      "localizations": [
+        {
+          "description": "5499 {{APP_NAME}} coins",
+          "displayName": "5499 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha09",
+      "referenceName": "Hatha09",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "49.99",
+      "familyShareable": false,
+      "internalID": "6751001012",
+      "localizations": [
+        {
+          "description": "6995 {{APP_NAME}} coins",
+          "displayName": "6995 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha10",
+      "referenceName": "Hatha10",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "99.99",
+      "familyShareable": false,
+      "internalID": "6751001013",
+      "localizations": [
+        {
+          "description": "14995 {{APP_NAME}} coins",
+          "displayName": "14995 Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha11",
+      "referenceName": "Hatha11",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "6751001014",
+      "localizations": [
+        {
+          "description": "Limited promo \u00b7 190 coins",
+          "displayName": "190 Coins Promo",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha12",
+      "referenceName": "Hatha12",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "6751001015",
+      "localizations": [
+        {
+          "description": "Limited promo \u00b7 490 coins",
+          "displayName": "490 Coins Promo",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha13",
+      "referenceName": "Hatha13",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.95",
+      "familyShareable": false,
+      "internalID": "6751001016",
+      "localizations": [
+        {
+          "description": "Limited promo \u00b7 1190 coins",
+          "displayName": "1190 Coins Promo",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha14",
+      "referenceName": "Hatha14",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "7.99",
+      "familyShareable": false,
+      "internalID": "6751001017",
+      "localizations": [
+        {
+          "description": "Limited promo \u00b7 1890 coins",
+          "displayName": "1890 Coins Promo",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha15",
+      "referenceName": "Hatha15",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "11.95",
+      "familyShareable": false,
+      "internalID": "6751001018",
+      "localizations": [
+        {
+          "description": "Limited promo \u00b7 2690 coins",
+          "displayName": "2690 Coins Promo",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha16",
+      "referenceName": "Hatha16",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "35.99",
+      "familyShareable": false,
+      "internalID": "6751001019",
+      "localizations": [
+        {
+          "description": "Limited promo \u00b7 6990 coins",
+          "displayName": "6990 Coins Promo",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha17",
+      "referenceName": "Hatha17",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "79.99",
+      "familyShareable": false,
+      "internalID": "6751001020",
+      "localizations": [
+        {
+          "description": "Limited promo \u00b7 14990 coins",
+          "displayName": "14990 Coins Promo",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "Hatha18",
+      "referenceName": "Hatha18",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storefront": "USA",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

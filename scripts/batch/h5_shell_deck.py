@@ -50,8 +50,13 @@ LOCKED_NATIVE_IOS_BRIDGE: dict[str, str] = {
 }
 
 LOCKED_NATIVE_OC_BRIDGE: dict[str, str] = {
-    **LOCKED_NATIVE_IOS_BRIDGE,
     COL_WEBVIEW_ENGINE: "wkwebview_oc",
+    COL_BRIDGE_CALL_STYLE: "window.webkit.messageHandlers.{prefix}.postMessage(JSON)",
+    COL_BRIDGE_CALLBACK_STYLE: "URL scheme callback (app-callback://)",
+    COL_BRIDGE_ENVELOPE: "URL query flattened",
+    COL_MEDIA_SERVE: "WKURLSchemeHandler local vault",
+    COL_BRIDGE_ERROR_CODE: "numeric codes (0/-1/-2)",
+    COL_BRIDGE_INJECT_TIMING: "WKUserScript atDocumentStart",
 }
 
 

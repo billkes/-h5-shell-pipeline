@@ -23,11 +23,12 @@ ${H5_SHELL_BLOCK}
 1. Create/repair a minimal iOS Objective-C shell with `WKWebView` as the single host.
 2. Cold start **`loadRequest`s `h5EntryUrl`** from 本包登记信息.json (e.g. `https://<H5_PROD_HOST>/{appSlug}/` or LAN dev URL).
 3. Implement a single Bridge surface with `WKScriptMessageHandler` and JSON envelope handling.
-4. Required actions: `shellReady`, `readFile`, `writeFile`, `pickImage`, `saveImage`, `purchase`, `restorePurchases`, `mediaServe`, `openLegal`.
-5. `shellReady` marks first H5 paint; native removes launch veil only after shellReady + one frame-equivalent dispatch.
-6. Use local bundle loading only; no SafariViewController/browser chrome; no external URL as primary display.
-7. LaunchScreen must be a solid color matching first H5 frame; no business splash image.
-8. Keep all visible Splash / Welcome / business screens in the H5 vault.
+4. Native→H5 callbacks use **URL scheme** `app-callback://` (not evaluateJavaScript).
+5. Required actions: `shellReady`, `readFile`, `writeFile`, `pickImage`, `saveImage`, `purchase`, `restorePurchases`, `mediaServe`, `openLegal`.
+6. `shellReady` marks first H5 paint; native removes launch veil only after shellReady + one frame-equivalent dispatch.
+7. Use local bundle loading only; no SafariViewController/browser chrome; no external URL as primary display.
+8. LaunchScreen must be a solid color matching first H5 frame; no business splash image.
+9. Keep all visible Splash / Welcome / business screens in the H5 vault.
 
 [Forbidden]
 - Objective-C Welcome / legal page / native tab bar / native shop UI

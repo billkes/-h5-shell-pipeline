@@ -38,6 +38,58 @@
         "Buildioo"
       ],
       "runner": "batch-python"
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_10-06",
+      "startedAt": "2026-07-13 10:06:07",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python"
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_10-06",
+      "startedAt": "2026-07-13 10:06:14",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python"
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_10-07",
+      "startedAt": "2026-07-13 10:07:59",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python"
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_10-08",
+      "startedAt": "2026-07-13 10:08:26",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python"
     }
   ]
 }

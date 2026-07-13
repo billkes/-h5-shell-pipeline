@@ -1,7 +1,7 @@
 """End-to-end build pipeline for h5-shell-pipeline.
 
 Reads root ``task.csv`` and produces a buildable workspace under
-``output/{batch_id}/{app_name}/`` for each package.
+``output/{app_name}/`` for each package.
 """
 
 from __future__ import annotations
@@ -166,13 +166,21 @@ def _copy_h5_docs(cfg: BatchConfig, workspace: Path) -> None:
             shutil.copy2(src, workspace / name)
 
 
+def _resolve_h5_dir(workspace: Path) -> Path | None:
+    for name in ("h5_site", "h5"):
+        candidate = workspace / name
+        if candidate.is_dir():
+            return candidate
+    return None
+
+
 def _run_h5_gates(workspace: Path, row: CsvTaskRow) -> tuple[list[str], list[str]]:
     """Run H5 quality gates; return (errors, warnings)."""
     errors: list[str] = []
     warnings: list[str] = []
-    h5_dir = workspace / "h5"
-    if not h5_dir.is_dir():
-        warnings.append("h5/ 目录不存在，跳过 H5 gate")
+    h5_dir = _resolve_h5_dir(workspace)
+    if h5_dir is None:
+        warnings.append("h5_site/ 或 h5/ 不存在，跳过 H5 gate")
         return errors, warnings
 
     try:
@@ -256,6 +264,52 @@ def _apply_swift_shell_template(ctx: BuildContext, row: CsvTaskRow, workspace: P
     print(result.stdout.strip())
 
 
+def _apply_oc_shell_template(ctx: BuildContext, row: CsvTaskRow, workspace: Path) -> None:
+    app_name = row.name
+    app_slug = app_slug_from_name(app_name)
+    prefix = _derive_prefix(row, app_slug)
+    h5_host = ctx.h5_host or os.environ.get("H5_PROD_HOST", "")
+    bundle_id = ctx.cfg.xcode_bundle_id
+    asset_scheme = f"{prefix}asset"
+
+    template_dir = ctx.cfg.project_dir / "data" / "static" / "templates" / "oc_shell" / "{{APP_NAME}}"
+    apply_script = ctx.cfg.project_dir / "data" / "static" / "templates" / "oc_shell" / "apply.py"
+    if not template_dir.is_dir():
+        raise FileNotFoundError(f"OC shell 模板不存在: {template_dir}")
+    if not apply_script.is_file():
+        raise FileNotFoundError(f"OC shell apply 脚本不存在: {apply_script}")
+
+    cmd = [
+        sys.executable,
+        str(apply_script),
+        "--src",
+        str(template_dir),
+        "--dst",
+        str(workspace),
+        "--app-name",
+        app_name,
+        "--prefix",
+        prefix,
+        "--app-slug",
+        app_slug,
+        "--h5-host",
+        h5_host or "<H5_PROD_HOST>",
+        "--bundle-id",
+        bundle_id,
+        "--team-id",
+        ctx.team_id or "",
+        "--asset-scheme",
+        asset_scheme,
+    ]
+    result = subprocess.run(cmd, check=False, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"OC shell apply 失败 (exit {result.returncode}):\n"
+            f"{result.stderr or result.stdout}"
+        )
+    print(result.stdout.strip())
+
+
 def build_one(ctx: BuildContext, row: CsvTaskRow) -> BuildResult:
     app_name = row.name
     pack_type = row.pack_type or ctx.cfg.batch_pack_type
@@ -285,7 +339,10 @@ def build_one(ctx: BuildContext, row: CsvTaskRow) -> BuildResult:
             except Exception as exc:
                 errors.append(f"Swift shell 模板应用失败: {exc}")
         elif h5_shell_runtime(pack_type) == "oc":
-            errors.append("h5_oc_shell 模板尚未实现")
+            try:
+                _apply_oc_shell_template(ctx, row, workspace)
+            except Exception as exc:
+                errors.append(f"OC shell 模板应用失败: {exc}")
         else:
             errors.append(f"未知 native runtime: {pack_type}")
     elif is_h5_shell(pack_type):

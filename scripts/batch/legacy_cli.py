@@ -137,7 +137,7 @@ def _build_context(args: argparse.Namespace) -> BuildContext:
     return BuildContext(
         cfg=cfg,
         batch_id=batch_id,
-        output_root=cfg.output_dir / batch_id,
+        output_root=cfg.output_dir,
         h5_host=getattr(args, "h5_host", "") or os.environ.get("H5_PROD_HOST", ""),
         team_id=getattr(args, "team_id", "") or os.environ.get("APPLE_TEAM_ID", ""),
     )

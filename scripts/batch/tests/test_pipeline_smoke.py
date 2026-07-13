@@ -49,3 +49,12 @@ def test_pipeline_steps_h5_swift() -> None:
     assert "build.agent" in steps
     assert "native.check" in steps
     assert "dev.pubget" not in steps
+
+
+def test_pipeline_steps_oc_shell() -> None:
+    sys.path.insert(0, str(SCRIPTS))
+    from batch.pipeline_steps import steps_for_run
+
+    steps = steps_for_run(pack_type="h5_oc_shell")
+    assert "build.agent" in steps
+    assert "native.check" in steps

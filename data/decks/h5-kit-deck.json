@@ -1,0 +1,120 @@
+{
+  "deckName": "h5-kit-deck",
+  "version": "2",
+  "description": "h5_shell H5 微组件库 + 状态/路由/屏架构十一维。task fill 写入 task.csv；产包只读 CSV。",
+  "dimensions": {
+    "kitAtomSet": {
+      "label": "组件词根集合",
+      "pickOrder": 1,
+      "cards": [
+        "btn/input/chip/card/appbar/modal",
+        "action/field/tag/tile/topbar/dialog",
+        "press/entry/pill/panel/header/overlay",
+        "tap/type/mark/cell/bar/veil"
+      ]
+    },
+    "kitCssMethodology": {
+      "label": "CSS 命名法",
+      "pickOrder": 2,
+      "cards": [
+        "BEM",
+        "SUIT",
+        "Utility-first",
+        "Functional",
+        "OOCSS"
+      ]
+    },
+    "kitAtomGranularity": {
+      "label": "拆分粒度",
+      "pickOrder": 3,
+      "cards": [
+        "atomic-heavy-30",
+        "mid-level-14",
+        "composite-first-7"
+      ]
+    },
+    "kitDomShape": {
+      "label": "Primitive DOM 骨架",
+      "pickOrder": 4,
+      "cards": [
+        "label-span-inner",
+        "text-only",
+        "leading-icon-span",
+        "wrapper-div"
+      ]
+    },
+    "kitJsPattern": {
+      "label": "JS 组织模式",
+      "pickOrder": 5,
+      "cards": [
+        "vanilla-delegation",
+        "tiny-reactive-proxy",
+        "module-iife",
+        "class-based",
+        "functional-pipe"
+      ]
+    },
+    "kitJsNamespace": {
+      "label": "JS 命名空间形状",
+      "pickOrder": 6,
+      "cards": [
+        "{Prefix}.ui.*",
+        "{Prefix}.notify.*",
+        "{prefix}_kit.*",
+        "{Prefix}Kit.trigger.*"
+      ]
+    },
+    "kitStorageAdapter": {
+      "label": "状态存储适配",
+      "pickOrder": 7,
+      "cards": [
+        "raw-localStorage",
+        "wrapper-store",
+        "proxy-auto-persist"
+      ]
+    },
+    "kitMotionApproach": {
+      "label": "Motion / 交互",
+      "pickOrder": 8,
+      "cards": [
+        "css-only-active",
+        "raf-helper",
+        "web-animations-api",
+        "transition-only",
+        "no-motion"
+      ]
+    },
+    "h5StateModel": {
+      "label": "H5 状态模型",
+      "pickOrder": 9,
+      "cards": [
+        "centralized-store",
+        "observable-signals",
+        "event-bus-driven",
+        "per-screen-scope",
+        "imperative-dom"
+      ]
+    },
+    "h5RouterPattern": {
+      "label": "H5 路由模式",
+      "pickOrder": 10,
+      "cards": [
+        "hash-router",
+        "history-api",
+        "single-page-panels",
+        "modal-stack",
+        "native-back-bridge"
+      ]
+    },
+    "h5ScreenPattern": {
+      "label": "H5 屏架构模式",
+      "pickOrder": 11,
+      "cards": [
+        "controller-view",
+        "template-clone",
+        "component-instance",
+        "functional-render"
+      ]
+    }
+  }
+}

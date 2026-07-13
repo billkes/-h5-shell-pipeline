@@ -1,0 +1,53 @@
+{
+  "version": "2",
+  "description": "h5_kit 十一维兼容性。抽卡时按已选维过滤后续卡池。",
+  "requiredPairs": {
+    "kitCssMethodology": {
+      "Utility-first": {
+        "kitAtomGranularity": ["atomic-heavy-30"]
+      }
+    },
+    "kitJsPattern": {
+      "tiny-reactive-proxy": {
+        "kitStorageAdapter": ["proxy-auto-persist"]
+      },
+      "functional-pipe": {
+        "h5ScreenPattern": ["functional-render"]
+      },
+      "class-based": {
+        "h5ScreenPattern": ["component-instance", "controller-view"]
+      }
+    },
+    "kitStorageAdapter": {
+      "raw-localStorage": {
+        "h5StateModel": [
+          "centralized-store",
+          "event-bus-driven",
+          "per-screen-scope",
+          "imperative-dom"
+        ]
+      }
+    },
+    "h5StateModel": {
+      "observable-signals": {
+        "kitStorageAdapter": ["proxy-auto-persist", "wrapper-store"]
+      }
+    },
+    "h5RouterPattern": {
+      "modal-stack": {
+        "h5ScreenPattern": ["component-instance", "template-clone", "functional-render"]
+      },
+      "single-page-panels": {
+        "h5ScreenPattern": ["template-clone", "component-instance", "functional-render"]
+      }
+    }
+  },
+  "domShapeRequiresMark": {
+    "leading-icon-span": {
+      "kitAtomSetMustContain": "mark"
+    }
+  },
+  "atomSetMarkTokens": {
+    "tap/type/mark/cell/bar/veil": "mark"
+  }
+}

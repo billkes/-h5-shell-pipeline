@@ -107,8 +107,8 @@ Build 命令支持 `--h5-host`、`--bundle-id-prefix`、`--team-id`，也支持�
 | 应用类型 | 状态 | 说明 |
 |----------|------|------|
 | `h5_shell` / `h5_flutter_shell` | ⚠️ 未实现 | 需要 Flutter 壳工程模板 |
-| `h5_swift_shell` | ✅ 可用 | 生成完整 Swift 源码 + `project.yml`，macOS 上执行 `xcodegen generate` 得 `.xcodeproj` |
-| `h5_oc_shell` | ⚠️ 未实现 | 需要 OC 壳工程模板 |
+| `h5_swift_shell` | ✅ 可用 | `xcodegen generate` 生成 `.xcodeproj` |
+| `h5_oc_shell` | ✅ 可用 | Hathoo-OC 厂包夹板 + `apply.py` + 手写 `.xcodeproj` |
 
 ## 快速开始（产包）
 
@@ -126,9 +126,9 @@ export H5_PROD_HOST="test.darin.beauty"
 export APPLE_TEAM_ID="YOURTEAMID"
 ./run.sh build-all
 
-# 产出在 output/88-0714/{AppName}/
-# macOS 上进入单个包目录生成 Xcode 工程：
-# cd output/88-0714/{AppName} && xcodegen generate
+# 产出在 output/{AppName}/
+# macOS 上进入单个包目录生成 Xcode 工程（Swift）：
+# cd output/{AppName} && xcodegen generate
 ```
 
 > **测试包名固定**：流水线阶段 `bundleId` 固定为 `test.duckegg.ios`（可通过环境变量 `XCODE_BUNDLE_ID` 或 `config.yaml` 的 `xcode.bundle_id` 修改），不随应用名变化。

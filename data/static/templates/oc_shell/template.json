@@ -1,0 +1,15 @@
+{
+  "name": "oc_shell",
+  "version": "1",
+  "reference": "Hathoo-OC",
+  "description": "Objective-C WKWebView H5 shell — flat 6-class layout",
+  "lockedBridge": {
+    "webviewEngine": "wkwebview_oc",
+    "bridgeCallStyle": "window.webkit.messageHandlers.{prefix}.postMessage(JSON)",
+    "bridgeCallbackStyle": "URL scheme callback (app-callback://)",
+    "bridgeEnvelope": "URL query flattened",
+    "mediaServe": "WKURLSchemeHandler local vault",
+    "bridgeErrorCode": "numeric codes (0/-1/-2)",
+    "bridgeInjectTiming": "WKUserScript atDocumentStart"
+  }
+}

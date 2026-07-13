@@ -5,8 +5,8 @@
 **h5-shell-pipeline** 是独立于 `cursor-ios-batch`（A-Crush）的 H5 壳包批量生产流水线。仅处理：
 
 - `h5_shell` / `h5_flutter_shell`（Flutter 运行时壳）
-- `h5_swift_shell`（Swift 原生壳，首期主力）
-- `h5_oc_shell`（Objective-C 壳）
+- `h5_swift_shell`（Swift 原生壳，xcodegen）
+- `h5_oc_shell`（Objective-C 原生壳，Hathoo-OC 厂包夹板）✅
 
 核心目标：批量生成 **H5 业务 SPA + Native 壳** 组合包，Bridge 七维锁定，符合 App Store 4.3 差异化要求。
 
@@ -52,7 +52,7 @@ h5-shell-pipeline/
 ├── task.csv
 ├── run.sh / run.ps1 / run.bat
 ├── scripts/batch/          # Python 流水线（自有副本，不引用 A-Crush）
-├── output/{batchId}/{App}/
+├── output/{AppName}/       # 产出目录（平铺，无 batch 子层）
 ├── data/decks/             # Bridge 七维牌池
 ├── data/static/templates/  # swift_shell 等厂包夹板
 ├── prompts/h5_shell/       # Agent prompt

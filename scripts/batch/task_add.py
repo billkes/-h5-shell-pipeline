@@ -17,9 +17,15 @@ def run_task_fill_simple(
     batch_id: str = "",
     force: bool = False,
 ) -> None:
-    """Draw Bridge 七维 for empty h5 rows and fill productFlow."""
+    """Draw Bridge 七维 + Kit 八维 + productFlow for h5 shells."""
     _ = force
     path = csv_path.resolve()
     bid = batch_id or cfg.batch_id
     draw_h5_shell_to_csv(path, cfg.project_dir, batch_id=bid)
+    try:
+        from batch.h5_kit_deck import draw_h5_kit_to_csv
+
+        draw_h5_kit_to_csv(path, cfg.project_dir, batch_id=bid, force=force)
+    except (OSError, ValueError, FileNotFoundError):
+        pass
     fill_product_flow_to_csv(path)
