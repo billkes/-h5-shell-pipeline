@@ -55,3 +55,14 @@
 
 [PM — 视觉蓝图 Iconography override]
 - For `h5_shell`: icon source = **inline SVG sprite** in h5 site. **Not** Flutter `Icons.*` for business UI.
+
+[PM — 视觉蓝图 Ambient Canvas Canon — MANDATORY]
+- Read `skill-adapt/ambient-canvas-brief.md` **before** writing 视觉蓝图.md.
+- 视觉蓝图.md MUST include **§Ambient Canvas Canon** immediately after Navigation Pattern:
+  - **Motif binding** — cite `heroVisualMotif`, `key_effects`, `navigationPattern` from designerDeckSelections / MASTER.
+  - **Layer stack table** — Layer | DOM class | z-index | opacity rule | notes (base, mesh, grid, motif-specific SVG/div).
+  - **Scene map table** — Route/screen | `data-{prefix}-scene` value | ambient-a/b/c emphasis | motif variant (≥4 rows: splash, welcome, tab roots, detail/export).
+  - **CSS token table** — `--{prefix}-ambient-a` … `--{prefix}-ambient-scan` with rgba derived from color tokens.
+  - **Card surface rule** — business cards/sheets use semi-opaque surfaces so canvas remains visible (anti flat-SaaS).
+- 本包视觉锁.json MUST include `ambientCanvas` object (copy seed from skill-adapt/impl-ui-input.md; refine scenes to match Screen Inventory).
+- H5 entry.htm MUST ship `div.u-{prefix}-ambient` per brief — reference `data/static/templates/oc_shell/.../{{PREFIX}}_entry.htm`.

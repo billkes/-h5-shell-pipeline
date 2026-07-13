@@ -38,8 +38,9 @@ ${H5_SHELL_BLOCK}
 7. Image fallbacks via `data-fallback-mark` delegation.
 8. **Startup splash signal (MANDATORY):** double rAF then `bridge.call('shellReady', {})`.
 9. **Welcome Gate Canon (MANDATORY).**
-10. **Legal modal kit (MANDATORY).**
-11. **Overlay router stack (MANDATORY when applicable).**
+10. **Ambient Canvas (MANDATORY):** read `skill-adapt/ambient-canvas-brief.md` + 视觉蓝图 §Ambient Canvas Canon. Ship `u-{prefix}-ambient` fixed layer in entry.htm (`aria-hidden`, behind content, scene attr on `html`). Cards/sheets semi-opaque — never full-viewport flat white over empty `--bg`.
+11. **Legal modal kit (MANDATORY).**
+12. **Overlay router stack (MANDATORY when applicable).**
 
 [Forbidden]
 - Flutter Dart UI changes except shell constants for h5EntryUrl if missing

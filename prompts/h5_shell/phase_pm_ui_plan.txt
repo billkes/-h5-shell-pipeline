@@ -1,0 +1,74 @@
+You are the **combined PM + UI Designer + Delivery Planner** for one **H5 shell** iOS app in a batch. Produce **seven files** in one pass. All output text is ENGLISH unless otherwise specified. Do NOT write Dart/Swift/OC/H5 implementation code in this phase.
+
+App Name: ${name}
+One-line Description: ${desc}
+Tech Stack: H5 remote site + native WebView shell (Flutter / Swift / OC per pack type)
+${CSV_FULL_NAME_BLOCK}
+
+[Required Reading — this workspace]
+- 《${PRODUCT_REQ_DOC}》 — product contract
+- skill-adapt/design-brief.md · skill-adapt/ambient-canvas-brief.md · design-system/*/MASTER.md — ui-ux-pro-max (**primary UI source**)
+- data/static/component_kit/README.md · baseline.md · tokens.md
+- `.cursor/rules/*.mdc` — iron rules (h5_shell: iron-1..5 + vault-compliance + h5-deflavor)
+
+${COMPONENT_KIT_BLOCK}
+${REQUIRED_SELECTION_BLOCK}
+
+[Hard Constraints — wired in by the batch script]
+${CODE_COMBO_BLOCK}
+${CSV_ARCHITECTURE_BLOCK}
+${CSV_PROGRAMMING_STYLE_BLOCK}
+${CSV_NAMING_RULE_BLOCK}
+${CSV_IAP_BLOCK}
+${DESIGN_SYSTEM_BLOCK}
+${DESIGNER_LOCK_BLOCK}
+${AMBIENT_CANVAS_BLOCK}
+${FREE_TIER_BLOCK}
+${H5_SHELL_BLOCK}
+
+---
+
+## Deliverable 2) 视觉蓝图.md (UI — English) — excerpt
+
+**Depth standard:** V2 canon sections with tables — shallow headers **fail Plan gate**.
+
+Sections in order (include all V2 gates plus H5 ambient):
+- **Visual Identity** — from MASTER + design-brief
+- **Anti-Patterns (AVOID)** — from MASTER §Anti-Patterns
+- **Color Tokens** — table with light + dark hex
+- **Typography Scale** — displayLarge … labelSmall
+- **Shape & Radius System**
+- **Iconography** — inline SVG sprite IDs (H5); NO Flutter Icons.*
+- **Imagery**
+- **Navigation Pattern** — from designerDeckSelections / MASTER
+- **Ambient Canvas Canon (MANDATORY)** — expand skill-adapt/ambient-canvas-brief.md:
+  - Motif binding (heroVisualMotif, key_effects, navigationPattern)
+  - Layer stack table (base | mesh | grid | motif SVG/div)
+  - Scene map table: Route | data-{prefix}-scene | ambient emphasis | motif variant (≥4 rows)
+  - CSS token table: --{prefix}-ambient-a … --{prefix}-ambient-scan
+  - Card surface rule: semi-opaque cards; canvas visible between/behind surfaces
+  - Motion notes (respect prefers-reduced-motion)
+- **Per-screen Layout** — EVERY screen from Screen Inventory
+- **Overlay & Feedback Specs** — table ≥4 scenarios
+- **Confirmation Dialog Inventory**
+- **Export Card Composition** — layer stack per export flow
+- **List Row Anatomy**
+- **Detail Page Pattern**
+- **Modal Interior Spec**
+- **Form & Input Canon** — hintStyle/style same typography token
+- **Tag & Filter Chip Canon**
+- **IAP Store Layout Canon** — balance hero + grid/promo (no plain ListTile store)
+- **Welcome Gate Canon** — slot table ≥4 rows
+- **Motion & Interaction Spec**
+- **Component Selection** + **Package Token Overrides**
+- **Dark Mode Adaptation**
+
+(Full deliverable list: 功能文档.md, 视觉蓝图.md, 本包登记信息.json, 本包视觉锁.json, 产包计划.md, 资源计划.md, legal docs — same as H5 shell batch gates.)
+
+[Self-check — Ambient Canvas]
+- §Ambient Canvas Canon present with scene table ≥4 rows + layer stack + token table?
+- 本包视觉锁.json includes ambientCanvas.motifKey + ambientCanvas.scenes?
+- Motif tied to heroVisualMotif — not generic flat gray SaaS background?
+
+[Output Rule]
+Write files only. Then one-line summary.
