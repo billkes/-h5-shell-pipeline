@@ -280,10 +280,14 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
     from batch.pipeline_steps import (
         ANALYZE,
         BUILD_AGENT,
+        DEV_H5_GATE,
         LOCK_DIMENSIONS,
         PREPARE_CONTEXT,
         SKILL_ADAPT,
         SKILL_DESIGN,
+        SKILL_ENRICH,
+        SKILL_PAGES,
+        SKILL_TOKENS,
         GIT_DEV,
         GIT_PLAN,
         PLAN_GATE,
@@ -292,7 +296,15 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
     )
 
     out = _aggregate_legacy_agent_steps(dict(steps))
-    _skill_chain = (PREPARE_CONTEXT, SKILL_DESIGN, SKILL_ADAPT, LOCK_DIMENSIONS)
+    _skill_chain = (
+        PREPARE_CONTEXT,
+        SKILL_DESIGN,
+        SKILL_ENRICH,
+        SKILL_ADAPT,
+        SKILL_PAGES,
+        SKILL_TOKENS,
+        LOCK_DIMENSIONS,
+    )
     if out.get(BUILD_AGENT) == "done":
         for s in _skill_chain:
             out[s] = out.get(s) or "done"
@@ -304,6 +316,14 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
         out[PREPARE_CONTEXT] = out.get(PREPARE_CONTEXT) or "done"
     if out.get("skill.adapt") == "done":
         out[SKILL_ADAPT] = out.get(SKILL_ADAPT) or "done"
+    if out.get("skill.enrich") == "done":
+        out[SKILL_ENRICH] = out.get(SKILL_ENRICH) or "done"
+    if out.get("skill.pages") == "done":
+        out[SKILL_PAGES] = out.get(SKILL_PAGES) or "done"
+    if out.get("skill.tokens") == "done":
+        out[SKILL_TOKENS] = out.get(SKILL_TOKENS) or "done"
+    if out.get("dev.h5.gate") == "done":
+        out[DEV_H5_GATE] = out.get(DEV_H5_GATE) or "done"
     if out.get("lock.dimensions") == "done":
         out[LOCK_DIMENSIONS] = out.get(LOCK_DIMENSIONS) or "done"
     if out.get("plan.agent") == "done":

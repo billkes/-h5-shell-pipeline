@@ -21,10 +21,14 @@ from batch.pipeline_gates import verify_pm_ui_plan_outputs
 from batch.pipeline_steps import (
     ANALYZE,
     BUILD_AGENT,
+    DEV_H5_GATE,
     LOCK_DIMENSIONS,
     PREPARE_CONTEXT,
     SKILL_ADAPT,
     SKILL_DESIGN,
+    SKILL_ENRICH,
+    SKILL_PAGES,
+    SKILL_TOKENS,
     GIT_DEV,
     GIT_PLAN,
     NATIVE_CHECK,
@@ -255,6 +259,11 @@ class V3StepRunner:
 
         h5_block = self.p._h5_shell_block_for(ctx)
         from batch.selection_requirements import format_required_selection_block
+        from batch.spec_business_depth import format_business_depth_block
+
+        business_depth_block = (
+            format_business_depth_block(ws) if h5 else ""
+        )
 
         return {
             "tool_flutter": tool,
@@ -275,6 +284,11 @@ class V3StepRunner:
             "design_system_block": self.p._design_system_block(ctx),
             "designer_lock_block": self.p._designer_lock_block(ctx),
             "ambient_canvas_block": self.p._ambient_canvas_block(ctx),
+            "ux_checklist_block": self.p._ux_checklist_block(ctx),
+            "pages_block": self.p._pages_block(ctx),
+            "token_impl_block": self.p._token_impl_block(ctx),
+            "css_motion_block": self.p._css_motion_block(ctx),
+            "icon_manifest_block": self.p._icon_manifest_block(ctx),
             "naming_transform_block": self.p._naming_transform_block(ctx),
             "dimension_boundary_block": dimension_boundary_block(),
             "p2_product_doc": p2_doc,
@@ -286,6 +300,7 @@ class V3StepRunner:
             "required_selection_block": format_required_selection_block(
                 ws, pack_type=ctx.pack_type
             ),
+            "business_depth_block": business_depth_block,
         }
 
     def _step_prepare_context(self, ctx: AppContext) -> bool:
@@ -294,8 +309,17 @@ class V3StepRunner:
     def _step_skill_design(self, ctx: AppContext) -> bool:
         return self.p._run_skill_design(ctx)
 
+    def _step_skill_enrich(self, ctx: AppContext) -> bool:
+        return self.p._run_skill_enrich(ctx)
+
     def _step_skill_adapt(self, ctx: AppContext) -> bool:
         return self.p._run_skill_adapt(ctx)
+
+    def _step_skill_pages(self, ctx: AppContext) -> bool:
+        return self.p._run_skill_pages(ctx)
+
+    def _step_skill_tokens(self, ctx: AppContext) -> bool:
+        return self.p._run_skill_tokens(ctx)
 
     def _step_lock_dimensions(self, ctx: AppContext) -> bool:
         return self.p._run_lock_dimensions(ctx)
@@ -371,6 +395,11 @@ class V3StepRunner:
                 print(f"       {issue}")
             return False
 
+        from batch.skill_brand import brand_check_warnings
+
+        for warn in brand_check_warnings(ws):
+            print(f"       [WARN] {warn}")
+
         reg_file = ws / "本包登记信息.json"
         if not reg_file.is_file():
             alt = ws / "package-register.json"
@@ -385,6 +414,61 @@ class V3StepRunner:
                 batch_id=self.p._batch_id(),
                 upsert=self.p.cfg.force_rerun,
             )
+
+        row = self.p._csv_row_for(ctx)
+        if row is not None and h5:
+            from batch.skill_pages import sync_pages_from_spec
+
+            synced = sync_pages_from_spec(
+                cfg=self.p.cfg,
+                workspace=ws,
+                row=row,
+                pack_type=ctx.pack_type,
+            )
+            if synced:
+                print(">>> skill.pages sync_from_spec:")
+                for line in synced:
+                    print(f"       {line}")
+        return True
+
+    def _step_dev_h5_gate(self, ctx: AppContext) -> bool:
+        if not is_h5_shell(ctx.pack_type):
+            return True
+        from batch.skill_resolve import integration_enabled
+        from batch.h5_bundle_gate import print_h5_bundle_warnings, verify_h5_bundle_soft
+        from batch.h5_deflavor_audit import verify_h5_deflavor_baseline
+        from batch.h5_legal_ui import verify_h5_legal_ui
+        from batch.h5_overlay_stack import verify_h5_overlay_stack
+        from batch.h5_plaza_dev_gate import verify_h5_plaza_dev_gate
+        from batch.skill_ux_gate import verify_skill_ux_gate
+        from batch.sync_h5_legal_bundled import verify_h5_legal_bundled
+        from batch.welcome_canon import verify_h5_welcome_canon
+
+        if not integration_enabled(self.p.cfg, "h5_gate"):
+            return True
+
+        ws = ctx.workspace
+        fp = find_flutter_project(ws) or ws
+        issues: list[str] = []
+        warnings = verify_h5_bundle_soft(ws, fp)
+        print_h5_bundle_warnings(warnings)
+        issues.extend(verify_h5_deflavor_baseline(fp))
+        issues.extend(verify_h5_legal_bundled(fp))
+        issues.extend(verify_h5_legal_ui(fp))
+        issues.extend(verify_h5_overlay_stack(fp))
+        issues.extend(verify_h5_welcome_canon(fp))
+        issues.extend(verify_h5_plaza_dev_gate(fp))
+        issues.extend(verify_skill_ux_gate(fp))
+
+        hard = [i for i in issues if not i.startswith("UX Gate WARN")]
+        if hard:
+            print(">>> dev.h5.gate 未通过:")
+            for item in hard:
+                print(f"       {item}")
+            return False
+        warns = [i for i in issues if i.startswith("UX Gate WARN")]
+        for item in warns:
+            print(f"       WARN: {item}")
         return True
 
     def _step_git_plan(self, ctx: AppContext) -> bool:
@@ -571,10 +655,14 @@ class V3StepRunner:
 _STEP_HANDLERS = {
     PREPARE_CONTEXT: V3StepRunner._step_prepare_context,
     SKILL_DESIGN: V3StepRunner._step_skill_design,
+    SKILL_ENRICH: V3StepRunner._step_skill_enrich,
     SKILL_ADAPT: V3StepRunner._step_skill_adapt,
+    SKILL_PAGES: V3StepRunner._step_skill_pages,
+    SKILL_TOKENS: V3StepRunner._step_skill_tokens,
     LOCK_DIMENSIONS: V3StepRunner._step_lock_dimensions,
     BUILD_AGENT: V3StepRunner._step_build_agent,
     PLAN_GATE: V3StepRunner._step_plan_gate,
+    DEV_H5_GATE: V3StepRunner._step_dev_h5_gate,
     GIT_PLAN: V3StepRunner._step_git_plan,
     PUBGET: V3StepRunner._step_pubget,
     ANALYZE: V3StepRunner._step_analyze,

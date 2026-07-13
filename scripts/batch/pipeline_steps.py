@@ -9,7 +9,10 @@ from batch.state import PM_UI_PLAN_PHASE, PROGRAMMER_PHASE
 
 PREPARE_CONTEXT = "prepare.context"
 SKILL_DESIGN = "skill.design"
+SKILL_ENRICH = "skill.enrich"
 SKILL_ADAPT = "skill.adapt"
+SKILL_PAGES = "skill.pages"
+SKILL_TOKENS = "skill.tokens"
 LOCK_DIMENSIONS = "lock.dimensions"
 
 BUILD_AGENT = "build.agent"
@@ -25,6 +28,7 @@ PREPARE = PREPARE_CONTEXT
 DESIGN_SYSTEM = SKILL_DESIGN
 
 PLAN_GATE = "plan.gate"
+DEV_H5_GATE = "dev.h5.gate"
 GIT_PLAN = "git.plan"
 PUBGET = "dev.pubget"
 ANALYZE = "dev.analyze"
@@ -46,10 +50,14 @@ DEV_GIT = GIT_DEV
 V3_STEPS: tuple[str, ...] = (
     PREPARE_CONTEXT,
     SKILL_DESIGN,
+    SKILL_ENRICH,
     SKILL_ADAPT,
+    SKILL_PAGES,
+    SKILL_TOKENS,
     LOCK_DIMENSIONS,
     BUILD_AGENT,
     PLAN_GATE,
+    DEV_H5_GATE,
     GIT_PLAN,
     PUBGET,
     ANALYZE,
@@ -66,7 +74,10 @@ _LEGACY_AGENT_STEP_IDS: frozenset[str] = frozenset(
 STEP_LABELS: dict[str, str] = {
     PREPARE_CONTEXT: "skill-input · 事实与防撞上下文",
     SKILL_DESIGN: "ui-ux-pro-max · 设计系统生成",
+    SKILL_ENRICH: "skill.enrich · 多域 UX/图标/H5 brief",
     SKILL_ADAPT: "skill-adapt · 候选选型与转换",
+    SKILL_PAGES: "skill.pages · 逐屏 override",
+    SKILL_TOKENS: "skill.tokens · 设计 Token 同步",
     LOCK_DIMENSIONS: "锁维度 + 工程准备",
     BUILD_AGENT: "Build Agent · 蓝图 + 实现（单次调用）",
     AGENT_PLAN: "Agent · 蓝图与计划文档（legacy）",
@@ -74,6 +85,7 @@ STEP_LABELS: dict[str, str] = {
     AGENT_SHELL: "Agent · H5 原生壳（legacy）",
     AGENT_H5: "Agent · H5 vault / legal（legacy）",
     PLAN_GATE: "产出校验 + 主题登记",
+    DEV_H5_GATE: "H5 bundle + UX 门禁",
     GIT_PLAN: "Git 提交（计划产物）",
     PUBGET: "flutter pub get",
     ANALYZE: "flutter analyze",
@@ -84,10 +96,14 @@ STEP_LABELS: dict[str, str] = {
 STEP_TO_PHASE: dict[str, str] = {
     PREPARE_CONTEXT: PM_UI_PLAN_PHASE,
     SKILL_DESIGN: PM_UI_PLAN_PHASE,
+    SKILL_ENRICH: PM_UI_PLAN_PHASE,
     SKILL_ADAPT: PM_UI_PLAN_PHASE,
+    SKILL_PAGES: PM_UI_PLAN_PHASE,
+    SKILL_TOKENS: PM_UI_PLAN_PHASE,
     LOCK_DIMENSIONS: PM_UI_PLAN_PHASE,
     BUILD_AGENT: PM_UI_PLAN_PHASE,
     PLAN_GATE: PM_UI_PLAN_PHASE,
+    DEV_H5_GATE: PM_UI_PLAN_PHASE,
     GIT_PLAN: PM_UI_PLAN_PHASE,
     PUBGET: PROGRAMMER_PHASE,
     ANALYZE: PROGRAMMER_PHASE,
@@ -99,10 +115,14 @@ PHASE_STEPS: dict[str, tuple[str, ...]] = {
     PM_UI_PLAN_PHASE: (
         PREPARE_CONTEXT,
         SKILL_DESIGN,
+        SKILL_ENRICH,
         SKILL_ADAPT,
+        SKILL_PAGES,
+        SKILL_TOKENS,
         LOCK_DIMENSIONS,
         BUILD_AGENT,
         PLAN_GATE,
+        DEV_H5_GATE,
         GIT_PLAN,
     ),
     PROGRAMMER_PHASE: (
@@ -118,6 +138,8 @@ def steps_for_run(*, pack_type: str) -> tuple[str, ...]:
     """Return ordered step ids for this app + config."""
     steps: list[str] = []
     for step in V3_STEPS:
+        if step == DEV_H5_GATE and not is_h5_shell(pack_type):
+            continue
         if step in (PUBGET, ANALYZE) and not is_flutter_runtime(pack_type):
             continue
         if step == NATIVE_CHECK and not is_native_ios_runtime(pack_type):
@@ -161,7 +183,10 @@ def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
         "prepare": PREPARE_CONTEXT,
         "design.system": SKILL_DESIGN,
         "skill.design": SKILL_DESIGN,
+        "skill.enrich": SKILL_ENRICH,
         "skill.adapt": SKILL_ADAPT,
+        "skill.pages": SKILL_PAGES,
+        "skill.tokens": SKILL_TOKENS,
         "lock.dimensions": LOCK_DIMENSIONS,
         "build.agent": BUILD_AGENT,
         "plan.agent": BUILD_AGENT,
@@ -177,6 +202,7 @@ def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
         "dev.pubget": PUBGET,
         "dev.analyze": ANALYZE,
         "native.check": NATIVE_CHECK,
+        "dev.h5.gate": DEV_H5_GATE,
     }
     if text in legacy_map:
         mapped = legacy_map[text]

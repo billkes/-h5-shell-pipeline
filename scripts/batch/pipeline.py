@@ -278,6 +278,90 @@ class FlutterPipeline:
         get_run_log().detail(f"skill.adapt → {brief}")
         return True
 
+    def _run_skill_enrich(self, ctx: AppContext) -> bool:
+        row = self._csv_row_for(ctx)
+        if row is None:
+            raise RuntimeError(f"CSV 未找到任务行: {ctx.name}")
+        from batch.skill_enrich import run_skill_enrich
+
+        try:
+            out = run_skill_enrich(cfg=self.cfg, workspace=ctx.workspace, row=row)
+        except Exception as exc:
+            from batch.batch_run_log import get_run_log
+
+            get_run_log().detail(f"skill.enrich 失败: {exc}")
+            print(f"skill.enrich 失败: {exc}")
+            return False
+        from batch.batch_run_log import get_run_log
+
+        get_run_log().detail(f"skill.enrich → {out}")
+        return True
+
+    def _run_skill_pages(self, ctx: AppContext) -> bool:
+        row = self._csv_row_for(ctx)
+        if row is None:
+            raise RuntimeError(f"CSV 未找到任务行: {ctx.name}")
+        from batch.skill_pages import run_skill_pages
+
+        try:
+            out = run_skill_pages(
+                cfg=self.cfg,
+                workspace=ctx.workspace,
+                row=row,
+                pack_type=ctx.pack_type,
+            )
+        except Exception as exc:
+            from batch.batch_run_log import get_run_log
+
+            get_run_log().detail(f"skill.pages 失败: {exc}")
+            print(f"skill.pages 失败: {exc}")
+            return False
+        from batch.batch_run_log import get_run_log
+
+        get_run_log().detail(f"skill.pages → {out}")
+        return True
+
+    def _run_skill_tokens(self, ctx: AppContext) -> bool:
+        from batch.skill_tokens import run_skill_tokens
+
+        try:
+            out = run_skill_tokens(cfg=self.cfg, workspace=ctx.workspace)
+        except Exception as exc:
+            from batch.batch_run_log import get_run_log
+
+            get_run_log().detail(f"skill.tokens 失败: {exc}")
+            print(f"skill.tokens 失败: {exc}")
+            return False
+        from batch.batch_run_log import get_run_log
+
+        get_run_log().detail(f"skill.tokens → {out}")
+        return True
+
+    def _ux_checklist_block(self, ctx: AppContext) -> str:
+        from batch.skill_enrich import format_enrich_summary_block
+
+        return format_enrich_summary_block(ctx.workspace, ctx.name)
+
+    def _pages_block(self, ctx: AppContext) -> str:
+        from batch.skill_pages import format_pages_block
+
+        return format_pages_block(ctx.workspace, ctx.name)
+
+    def _token_impl_block(self, ctx: AppContext) -> str:
+        from batch.skill_tokens import format_token_impl_block
+
+        return format_token_impl_block(ctx.workspace)
+
+    def _css_motion_block(self, ctx: AppContext) -> str:
+        from batch.skill_adapt import format_css_motion_block
+
+        return format_css_motion_block(ctx.workspace)
+
+    def _icon_manifest_block(self, ctx: AppContext) -> str:
+        from batch.skill_adapt import format_icon_manifest_block
+
+        return format_icon_manifest_block(ctx.workspace)
+
     def _run_lock_dimensions(self, ctx: AppContext) -> bool:
         from batch.workspace import write_layout_manifest
 
@@ -285,6 +369,11 @@ class FlutterPipeline:
         if not self._prepare_programmer_workspace(ctx):
             return False
         write_layout_manifest(ctx.workspace, ctx.dart_name)
+        row = self._csv_row_for(ctx)
+        if row is not None:
+            from batch.skill_logo import maybe_write_logo_brief
+
+            maybe_write_logo_brief(cfg=self.cfg, workspace=ctx.workspace, row=row)
         return True
 
     def _run_design_system_step(self, ctx: AppContext) -> bool:
