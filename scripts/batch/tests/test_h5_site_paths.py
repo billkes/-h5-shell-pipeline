@@ -82,12 +82,19 @@ class H5SitePathsTests(unittest.TestCase):
                 json.dumps({"h5EntryUrl": "http://127.0.0.1:5174/", "h5EntryUrlDev": "http://127.0.0.1:5174/"}),
                 encoding="utf-8",
             )
+            (ws / "Demo").mkdir()
+            (ws / "Demo" / "DemoHostController.m").write_text(
+                '- (void)DemoLoadRegister {\n    self.demoEntryUrl = @"http://127.0.0.1:5174/";\n}\n',
+                encoding="utf-8",
+            )
             with patch("batch.h5_site_paths.detect_lan_ip", return_value="10.0.0.5"):
                 url = sync_h5_dev_entry_urls(ws)
             self.assertEqual(url, "http://10.0.0.5:5174/")
             reg = json.loads((ws / "本包登记信息.json").read_text(encoding="utf-8"))
             self.assertEqual(reg["h5EntryUrlDev"], "http://10.0.0.5:5174/")
             self.assertEqual(reg["h5EntryUrl"], "http://10.0.0.5:5174/")
+            host = (ws / "Demo" / "DemoHostController.m").read_text(encoding="utf-8")
+            self.assertIn('@"http://10.0.0.5:5174/"', host)
 
 
 if __name__ == "__main__":

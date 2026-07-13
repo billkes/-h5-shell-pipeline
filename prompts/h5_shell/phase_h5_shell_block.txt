@@ -28,7 +28,7 @@
 - **Raster assets** (export frames, panel PNGs for mediaServe) stay in **Flutter pubspec** asset roots.
 
 [Flutter shell — startup splash (Programmer)]
-- Read 《H5壳启动闪屏规范.md》. LaunchScreen = **1125×2436 placeholder PNG** (`launchPlaceholderAsset`); real launch art is out of scope.
+- Read 《H5壳启动闪屏规范.md》. LaunchScreen = **1125×2436 placeholder PNG** (`launchPlaceholderAsset` → **Native imageset only**; no `h5/assets/{prefix}_launch/` copy); real launch art is out of scope.
 - Cold start MUST NOT flash black between LaunchScreen and H5 splash.
 - Programmer delivers: `{Prefix}FlutterViewController`, LaunchVeil (same placeholder image), VaultBoot warm-in-initState, Bridge `shellReady`, WebKit channel-before-load, **`loadRequest(h5EntryUrl)`** (NOT loadFlutterAsset).
 

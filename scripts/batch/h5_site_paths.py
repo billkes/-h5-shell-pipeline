@@ -15,6 +15,9 @@ H5_PROD_BASE = f"https://{H5_PROD_HOST}"
 H5_VITE_DEV_PORT = 5174
 DEFAULT_H5_ENTRY_URL_DEV = f"http://127.0.0.1:{H5_VITE_DEV_PORT}/"
 LAUNCH_PLACEHOLDER_SIZE = "1125x2436"
+LAUNCH_PLACEHOLDER_ASSET_URI = (
+    "native:Assets.xcassets/launch_placeholder.imageset/launch_placeholder.png"
+)
 
 
 def detect_lan_ip() -> str | None:
@@ -41,6 +44,54 @@ def h5_dev_entry_url(*, port: int | None = None) -> str:
     return f"http://127.0.0.1:{port}/"
 
 
+_LOAD_REGISTER_RE = re.compile(r"- \(void\)\w+LoadRegister \{.*?\n\}", re.DOTALL)
+_SWIFT_ENTRY_RE = re.compile(
+    r"(static let h5EntryUrl = \")[^\"]+(\";?)",
+)
+
+
+def build_oc_load_register_block(prefix_cap: str, prefix: str, entry_url: str) -> str:
+    return (
+        f"- (void){prefix_cap}LoadRegister {{\n"
+        f"    self.{prefix}EntryUrl = @\"{entry_url}\";\n"
+        f"}}"
+    )
+
+
+def sync_native_hardcoded_h5_entry_url(workspace: Path, entry_url: str) -> list[str]:
+    """Rewrite OC HostController LoadRegister + Swift ShellConfig to hardcoded Vite URL."""
+    ws = workspace.resolve()
+    changed: list[str] = []
+    for path in sorted(ws.rglob("*HostController.m")):
+        if "/build/" in str(path):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        cap_match = re.search(r"- \(void\)(\w+)LoadRegister", text)
+        prop_match = re.search(r"self\.(\w+)EntryUrl =", text)
+        if not cap_match or not prop_match:
+            continue
+        block = build_oc_load_register_block(cap_match.group(1), prop_match.group(1), entry_url)
+        new_text, n = _LOAD_REGISTER_RE.subn(block, text, count=1)
+        if n and new_text != text:
+            path.write_text(new_text, encoding="utf-8")
+            changed.append(str(path.relative_to(ws)))
+    for path in sorted(ws.rglob("*ShellConfig.swift")):
+        if "/build/" in str(path):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        new_text, n = _SWIFT_ENTRY_RE.subn(rf"\1{entry_url}\2", text, count=1)
+        if n and new_text != text:
+            path.write_text(new_text, encoding="utf-8")
+            changed.append(str(path.relative_to(ws)))
+    return changed
+
+
 def sync_h5_dev_entry_urls(project: Path, *, port: int | None = None) -> str | None:
     """Refresh h5EntryUrlDev (and loopback h5EntryUrl) in 本包登记信息.json."""
     import json
@@ -61,6 +112,7 @@ def sync_h5_dev_entry_urls(project: Path, *, port: int | None = None) -> str | N
     if not entry or entry.startswith("http://127.0.0.1") or entry.startswith("http://localhost"):
         reg["h5EntryUrl"] = dev_url
     reg_path.write_text(json.dumps(reg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    sync_native_hardcoded_h5_entry_url(project, dev_url)
     return dev_url
 
 
@@ -135,7 +187,7 @@ def resolve_h5_remote_config(
         "h5EntryUrlDev": h5_dev_entry_url(),
         "h5EntryUrlProd": h5_prod_entry_url(slug, entry_name=entry),
         "h5EntryUrl": h5_dev_entry_url(),
-        "launchPlaceholderAsset": f"assets/{p}_launch/launch_placeholder.png",
+        "launchPlaceholderAsset": LAUNCH_PLACEHOLDER_ASSET_URI,
         "launchPlaceholderSize": LAUNCH_PLACEHOLDER_SIZE,
         # Legacy keys → per-app deploy dir (not upload root)
         "bundleVaultDir": deploy_dir,
@@ -217,7 +269,7 @@ def build_h5_remote_prompt_block(app_name: str, *, prefix: str) -> str:
         "- **Deploy layout:** `h5SiteUploadRoot` + `{appSlug}/` + `h5SiteEntry` "
         "(e.g. `h5_site/temioo/index.html`).\n"
         "- **`dev.h5.build`** copies Vite `dist/index.html` → `{bundleEntryPath}`.\n"
-        "- Shell WebView loads **`h5EntryUrl`** (prod = `h5EntryUrlProd`).\n"
+        "- Shell WebView loads **hardcoded** native `h5EntryUrl` (Vite LAN during dev; change in `*HostController.m` / `*ShellConfig.swift` before release).\n"
         f"  - appSlug: `{cfg['appSlug']}`\n"
         f"  - h5SiteUploadRoot: `{cfg['h5SiteUploadRoot']}`\n"
         f"  - h5SiteRoot: `{cfg['h5SiteRoot']}` (per-app deploy dir)\n"

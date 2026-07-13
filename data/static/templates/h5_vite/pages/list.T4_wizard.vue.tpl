@@ -58,21 +58,28 @@
           class="c-{{PREFIX}}-run-card"
           @click="openRun(r.id)"
         >
-          <div>
-            <div class="c-{{PREFIX}}-run-card__title">{{ r.title }}</div>
-            <div class="c-{{PREFIX}}-run-card__meta">{{ r.courseTag }} · {{ r.dateLabel }} · {{ r.durationLabel }}</div>
+          <div class="c-{{PREFIX}}-run-card__top">
+            <div class="c-{{PREFIX}}-run-card__copy">
+              <div class="c-{{PREFIX}}-run-card__title">{{ r.title }}</div>
+              <div class="c-{{PREFIX}}-run-card__meta">{{ r.courseTag }} · {{ r.dateLabel }} · {{ r.durationLabel }}</div>
+            </div>
+            <div class="c-{{PREFIX}}-pace-mini" aria-label="Average pace">
+              <span class="c-{{PREFIX}}-pace-mini__num">{{ r.wpm }}</span>
+              <span class="c-{{PREFIX}}-pace-mini__unit">WPM</span>
+            </div>
           </div>
-          <div class="c-{{PREFIX}}-pace-mini">{{ r.avgWpm }}</div>
-          <div class="c-{{PREFIX}}-run-card__stats">
-            <span
-              v-if="r.overtimeCount"
-              class="c-{{PREFIX}}-stat-pill c-{{PREFIX}}-stat-pill--warn"
-            >{{ r.overtimeCount }} OT</span>
-            <span v-else class="c-{{PREFIX}}-stat-pill c-{{PREFIX}}-stat-pill--ok">On pace</span>
-            <span class="c-{{PREFIX}}-stat-pill">{{ r.sectionCount }} sections</span>
-            <span v-if="r.hasNotes" class="c-{{PREFIX}}-stat-pill">Notes saved</span>
+          <div class="c-{{PREFIX}}-run-card__bottom">
+            <div class="c-{{PREFIX}}-run-card__stats">
+              <span
+                v-if="r.overtimeCount"
+                class="c-{{PREFIX}}-stat-pill c-{{PREFIX}}-stat-pill--warn"
+              >{{ r.overtimeCount }} OT</span>
+              <span v-else class="c-{{PREFIX}}-stat-pill c-{{PREFIX}}-stat-pill--ok">On pace</span>
+              <span class="c-{{PREFIX}}-stat-pill">{{ r.sectionCount }} sections</span>
+              <span v-if="r.hasNotes" class="c-{{PREFIX}}-stat-pill">Notes saved</span>
+            </div>
+            <svg class="c-{{PREFIX}}-mark c-{{PREFIX}}-run-card__chevron" viewBox="0 0 24 24"><use href="#{{PREFIX}}-mark-chevron-right" /></svg>
           </div>
-          <svg class="c-{{PREFIX}}-mark c-{{PREFIX}}-run-card__chevron" viewBox="0 0 24 24"><use href="#{{PREFIX}}-mark-chevron-right" /></svg>
         </article>
       </section>
     </div>

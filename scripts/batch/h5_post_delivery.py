@@ -143,7 +143,7 @@ def run_post_delivery(workspace: Path, *, fix: bool, sync_dev_url: bool) -> tupl
         if sync_dev_url:
             dev = sync_h5_dev_entry_urls(ws)
             if dev:
-                fixes.append(f"刷新 h5EntryUrlDev: {dev}")
+                fixes.append(f"刷新硬编码 h5EntryUrl: {dev}")
         reg = _read_registration(ws)
         if _sync_register_json(ws, reg):
             fixes.append("同步 register.json ← 本包登记信息.json")
@@ -152,6 +152,12 @@ def run_post_delivery(workspace: Path, *, fix: bool, sync_dev_url: bool) -> tupl
 
     issues.extend(collect_placeholder_violations(ws))
     issues.extend(collect_loading_violations(ws))
+    try:
+        from batch.h5_default_seed import collect_h5_default_seed_violations
+
+        issues.extend(collect_h5_default_seed_violations(ws))
+    except OSError:
+        pass
     try:
         from batch.h5_layout_contract import verify_h5_layout_contract
 
@@ -178,7 +184,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--sync-dev-url",
         action="store_true",
-        help="与 --fix 联用：刷新 h5EntryUrlDev 为本机 LAN Vite 地址",
+        help="与 --fix 联用：刷新 Native 硬编码 Vite LAN 地址（HostController / ShellConfig）",
     )
     args = parser.parse_args(argv)
 

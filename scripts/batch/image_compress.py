@@ -14,6 +14,14 @@ MAX_IMAGE_KB = MAX_IMAGE_BYTES // 1024
 
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".webp"})
 
+# AppIcon / Launch 等编组 A 真图：禁止缩放像素，仅允许保尺寸压缩。
+DIMENSION_LOCKED_NAMES = frozenset(
+    {
+        "AppIcon-1024.png",
+        "launch_placeholder.png",
+    }
+)
+
 SKIP_DIR_NAMES = frozenset(
     {
         ".git",
@@ -56,11 +64,21 @@ def discover_workspace_images(workspace: Path) -> list[Path]:
             found[path.resolve()] = None
 
     asset_dirs: list[Path] = []
-    for candidate in (root / "assets" / "images",):
+    for candidate in (
+        root / "assets" / "images",
+        root / "h5" / "assets",
+    ):
         if candidate.is_dir():
             asset_dirs.append(candidate)
     asset_dirs.extend(
-        p for p in root.glob("**/assets/images") if p.is_dir()
+        p
+        for p in root.glob("**/assets/images")
+        if p.is_dir()
+    )
+    asset_dirs.extend(
+        p
+        for p in root.glob("**/h5/assets")
+        if p.is_dir()
     )
 
     seen_dirs: set[Path] = set()
@@ -91,6 +109,133 @@ def discover_workspace_images(workspace: Path) -> list[Path]:
             add_file(path)
 
     return sorted(found.keys())
+
+
+def is_dimension_locked_asset(path: Path) -> bool:
+    """True for canonical AppIcon / Launch slots that must keep exact pixels."""
+    name = path.name
+    if name not in DIMENSION_LOCKED_NAMES:
+        return False
+    parent_chain = {p.name for p in path.parents}
+    if name == "AppIcon-1024.png" and "AppIcon.appiconset" in parent_chain:
+        return True
+    if name == "launch_placeholder.png" and "launch_placeholder.imageset" in parent_chain:
+        return True
+    return False
+
+
+def _compress_with_pngquant(path: Path, max_bytes: int) -> tuple[bool, int, int]:
+    """Lossy PNG quantize without changing dimensions."""
+    if shutil.which("pngquant") is None or path.suffix.lower() != ".png":
+        return False, path.stat().st_size, path.stat().st_size
+
+    before = path.stat().st_size
+    if before <= max_bytes:
+        return False, before, before
+
+    tmp = path.with_suffix(f"{path.suffix}.pngquant_tmp")
+    best_data: bytes | None = None
+    best_size = before
+
+    for quality in ("60-85", "55-80", "50-75", "45-70", "40-65"):
+        cmd = [
+            "pngquant",
+            f"--quality={quality}",
+            "--skip-if-larger",
+            "--force",
+            "--output",
+            str(tmp),
+            str(path),
+        ]
+        result = subprocess.run(cmd, capture_output=True, check=False)
+        if result.returncode != 0 or not tmp.is_file():
+            tmp.unlink(missing_ok=True)
+            continue
+        size = tmp.stat().st_size
+        data = tmp.read_bytes()
+        if size < best_size:
+            best_size = size
+            best_data = data
+        if size <= max_bytes:
+            path.write_bytes(data)
+            tmp.unlink(missing_ok=True)
+            return True, before, size
+
+    tmp.unlink(missing_ok=True)
+    if best_data is not None and best_size < before:
+        path.write_bytes(best_data)
+        return True, before, best_size
+    return False, before, before
+
+
+def _compress_with_pillow_no_scale(path: Path, max_bytes: int) -> tuple[bool, int, int]:
+    """Palette / quality passes only — never resize locked brand assets."""
+    from PIL import Image
+
+    before = path.stat().st_size
+    if before <= max_bytes:
+        return False, before, before
+
+    with Image.open(path) as source:
+        source.load()
+        orig_size = source.size
+        best_data: bytes | None = None
+        best_size = before
+
+        for colors in (256, 192, 128, 96, 64):
+            working = source
+            if source.mode == "RGBA":
+                buf_img = source
+            else:
+                buf_img = source.convert("P", palette=Image.Palette.ADAPTIVE, colors=colors)
+            buf = io.BytesIO()
+            if source.mode == "RGBA":
+                buf_img.save(buf, format="PNG", optimize=True, compress_level=9)
+            else:
+                buf_img.save(buf, format="PNG", optimize=True, compress_level=9)
+            size = buf.tell()
+            if size < best_size:
+                best_size = size
+                best_data = buf.getvalue()
+            if size <= max_bytes:
+                path.write_bytes(buf.getvalue())
+                with Image.open(path) as check:
+                    if check.size != orig_size:
+                        raise OSError(f"{path}: dimension-locked asset resized unexpectedly")
+                return True, before, size
+
+        if best_data is not None and best_size < before:
+            path.write_bytes(best_data)
+            with Image.open(path) as check:
+                if check.size != orig_size:
+                    raise OSError(f"{path}: dimension-locked asset resized unexpectedly")
+            return True, before, best_size
+
+    return False, before, before
+
+
+def compress_dimension_locked_file(
+    path: Path,
+    *,
+    max_bytes: int = MAX_IMAGE_BYTES,
+) -> tuple[bool, int, int]:
+    """Compress AppIcon / Launch without changing width×height."""
+    if not path.is_file():
+        return False, 0, 0
+
+    before = path.stat().st_size
+    if before <= max_bytes:
+        return False, before, before
+
+    changed, b, a = _compress_with_pngquant(path, max_bytes)
+    if a <= max_bytes:
+        return changed, b, a
+
+    try:
+        changed2, b2, a2 = _compress_with_pillow_no_scale(path, max_bytes)
+        return changed or changed2, before, a2
+    except ImportError:
+        return changed, b, a
 
 
 def _save_jpeg(img, buf: io.BytesIO, quality: int) -> None:
@@ -223,6 +368,9 @@ def compress_image_file(
     before = path.stat().st_size
     if before <= max_bytes:
         return False, before, before
+
+    if is_dimension_locked_asset(path):
+        return compress_dimension_locked_file(path, max_bytes=max_bytes)
 
     try:
         return _compress_with_pillow(path, max_bytes)

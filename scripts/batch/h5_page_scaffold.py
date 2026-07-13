@@ -379,6 +379,40 @@ def sync_h5_welcome_scaffold(
     return written
 
 
+def sync_h5_plaza_scaffold(
+    project: Path,
+    *,
+    app_name: str = "",
+    write: bool = True,
+) -> list[Path]:
+    """Canonical Bridge Plaza view; purchase QA SKU fixed to 311400."""
+    if not is_h5_vite_project(project) or not _router_includes_route(project, "/plaza"):
+        return []
+    tpl = TEMPLATE_ROOT / "pages" / "plaza.vue.tpl"
+    logic_tpl = TEMPLATE_ROOT / "pages" / "plaza.logic.ts.tpl"
+    if not tpl.is_file():
+        return []
+    from batch.h5_plaza_purchase import find_plaza_view
+
+    plaza_view = find_plaza_view(project)
+    if plaza_view is None:
+        plaza_view = h5_src_dir(project) / "views" / "PlazaView.vue"
+    if not app_name:
+        app_name = project.name
+    prefix = resolve_prefix(project)
+    values = template_values(project, app_name=app_name, prefix=prefix)
+    written: list[Path] = []
+    if write:
+        plaza_view.parent.mkdir(parents=True, exist_ok=True)
+        plaza_view.write_text(substitute_text(tpl.read_text(encoding="utf-8"), values), encoding="utf-8")
+        written.append(plaza_view)
+        if logic_tpl.is_file():
+            logic_path = plaza_view.parent / "PlazaView.logic.ts"
+            logic_path.write_text(substitute_text(logic_tpl.read_text(encoding="utf-8"), values), encoding="utf-8")
+            written.append(logic_path)
+    return written
+
+
 def sync_h5_page_scaffold_css(
     project: Path,
     *,
@@ -438,6 +472,15 @@ def sync_h5_page_scaffold(
         written.append(legal_vue)
 
     written.extend(sync_h5_welcome_scaffold(project, app_name=app_name, write=write))
+    written.extend(sync_h5_plaza_scaffold(project, app_name=app_name, write=write))
+    from batch.h5_default_seed import sync_default_seed_stub, sync_settings_clear_bootstrap
+
+    stub = sync_default_seed_stub(project, app_name=app_name, write=write)
+    if stub is not None:
+        written.append(stub)
+    settings_logic = sync_settings_clear_bootstrap(project, app_name=app_name, write=write)
+    if settings_logic is not None:
+        written.append(settings_logic)
 
     for target in targets:
         values = _build_substitutions(project, app_name=app_name, prefix=prefix, target=target)

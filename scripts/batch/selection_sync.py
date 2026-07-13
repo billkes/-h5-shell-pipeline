@@ -17,6 +17,8 @@ from batch.component_kit_index import (
 )
 from batch.selection_requirements import collect_required_selection_ids
 
+from batch.welcome_canon import WELCOME_LAYOUT_VARIANTS
+
 VISUAL_BLUEPRINT_FILE = "视觉蓝图.md"
 VISUAL_LOCK_FILE = "本包视觉锁.json"
 PLAN_FILE = "产包计划.md"
@@ -26,6 +28,27 @@ SPEC_FILE = "功能文档.md"
 _PAIRED_COLOR_DEFAULTS: dict[str, tuple[str, ...]] = {
     "onMuted": ("onSurfaceVariant", "onSurfaceVariantDark", "onSurface"),
 }
+
+_WELCOME_VARIANT_ALIASES: dict[str, str] = {
+    "centered-card": "hero-top-card-legal",
+    "centered_card": "hero-top-card-legal",
+    "card": "hero-top-card-legal",
+    "top-card-legal": "hero-top-card-legal",
+}
+
+
+def _sync_welcome_layout_variant(lock_data: dict) -> list[str]:
+    """Normalize Agent-invented welcome layout names to canonical variants."""
+    spec = lock_data.get("welcomeSpec")
+    if not isinstance(spec, dict):
+        return []
+    variant = str(spec.get("layoutVariant") or "").strip()
+    if not variant or variant in WELCOME_LAYOUT_VARIANTS:
+        return []
+    normalized = _WELCOME_VARIANT_ALIASES.get(variant) or "hero-top-card-legal"
+    spec["layoutVariant"] = normalized
+    lock_data["welcomeSpec"] = spec
+    return [f"本包视觉锁.json welcomeSpec.layoutVariant {variant!r} → {normalized}"]
 
 
 def _read_text(path: Path) -> str:
@@ -282,6 +305,7 @@ def sync_selection_artifacts(
         return []
 
     changes: list[str] = []
+    changes.extend(_sync_welcome_layout_variant(lock_data))
     changes.extend(_sync_lock_selection(lock_data, canonical))
 
     blueprint_path = workspace / VISUAL_BLUEPRINT_FILE

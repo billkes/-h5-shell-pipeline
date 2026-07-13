@@ -95,7 +95,7 @@ H5_PAGE_SPECS: dict[str, dict[str, Any]] = {
         "layout": {
             "Max Width": "480px centered card on full-bleed wash",
             "Layout": "Single column consent gate; no Tab bar",
-            "Sections": "1. Value prop hero, 2. Privacy/User links, 3. Continue CTA, 4. Optional demo import",
+            "Sections": "1. Value prop hero, 2. Privacy/User links, 3. Continue CTA",
         },
         "spacing": {"Content Density": "Low — one decision per screen"},
         "typography": {"Scale": "H1 value prop + body legal copy"},

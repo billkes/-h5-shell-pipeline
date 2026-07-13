@@ -101,18 +101,41 @@ def _count_export_flows_in_spec(spec_text: str) -> int:
     if not match:
         return 1
     block = match.group(1)
+    numbered = re.findall(r"^\s*\d+[.)]\s+\S", block, re.M)
+    if numbered:
+        return len(numbered)
     bullets = re.findall(r"^\s*(?:[-*]|\d+[.)])\s+\S", block, re.M)
-    return max(len(bullets), 1)
+    filtered = [
+        bullet
+        for bullet in bullets
+        if not re.search(
+            r"export\s+record|audit\s+log|metadata|append\s+exportrecord",
+            bullet,
+            re.I,
+        )
+    ]
+    return max(len(filtered), 1)
 
 
 def _count_export_compositions(visual_text: str) -> int:
-    """Count export composition subsections or layer-stack blocks."""
+    """Count export composition subsections, table rows, or layer-stack blocks."""
     if not _section_present(visual_text, "Export Card Composition"):
         return 0
     section = _extract_section(visual_text, "Export Card Composition")
     headings = re.findall(r"^###+\s+\S", section, re.M)
     stacks = len(re.findall(r"layer\s+stack", section, re.I))
-    return max(len(headings), stacks, 1 if section.strip() else 0)
+    table_rows = 0
+    for line in section.splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if not cells or re.match(r"^:?-+:?$", cells[0]):
+            continue
+        first = cells[0].lower()
+        if first in ("flow", "流程", "name", "export flow"):
+            continue
+        table_rows += 1
+    return max(len(headings), stacks, table_rows, 1 if section.strip() else 0)
 
 
 def _extract_section(text: str, heading_fragment: str) -> str:
@@ -183,6 +206,8 @@ def _verify_ambient_canvas_section(
 def _verify_visual_blueprint_depth(
     visual_text: str,
     spec_text: str = "",
+    *,
+    pack_type: str = "",
 ) -> list[str]:
     """V2 depth gate for 视觉蓝图.md."""
     from batch.screen_inventory import (
@@ -214,7 +239,7 @@ def _verify_visual_blueprint_depth(
 
     from batch.component_kit_index import verify_component_kit_blueprint
 
-    issues.extend(verify_component_kit_blueprint(visual_text))
+    issues.extend(verify_component_kit_blueprint(visual_text, pack_type=pack_type))
 
     if spec_text:
         expected_exports = _count_export_flows_in_spec(spec_text)
@@ -253,6 +278,7 @@ def _verify_visual_lock_depth(
     *,
     h5_shell: bool = False,
     spec_text: str = "",
+    pack_type: str = "",
 ) -> list[str]:
     """V2 depth gate for 本包视觉锁.json extended keys."""
     from batch.screen_inventory import filter_visual_lock_v2_keys, parse_h5_routes
@@ -323,7 +349,12 @@ def _verify_visual_lock_depth(
                         )
                 if not kit_ids:
                     issues.append("本包视觉锁.json componentSelection 须含至少一个有效 kit id")
-                issues.extend(validate_selection_ids(kit_ids))
+                issues.extend(
+                    validate_selection_ids(
+                        kit_ids,
+                        pack_type=pack_type or ("h5_shell" if h5_shell else ""),
+                    )
+                )
         elif key == "baselineReference":
             from batch.component_kit_index import resolve_baseline_reference
 
@@ -542,7 +573,9 @@ def verify_phase2_designer_outputs(workspace: Path) -> tuple[bool, list[str]]:
         issues.append("缺少 视觉蓝图.md 或内容过短")
     elif visual.is_file():
         visual_text = visual.read_text(encoding="utf-8", errors="replace")
-        issues.extend(_verify_visual_blueprint_depth(visual_text, spec_text))
+        issues.extend(
+            _verify_visual_blueprint_depth(visual_text, spec_text, pack_type=pack_type)
+        )
 
     if not lock.is_file():
         issues.append("缺少 本包视觉锁.json")
@@ -557,7 +590,12 @@ def verify_phase2_designer_outputs(workspace: Path) -> tuple[bool, list[str]]:
                 if not data.get("colorTokens"):
                     issues.append("本包视觉锁.json 缺少 colorTokens")
                 issues.extend(
-                    _verify_visual_lock_depth(data, h5_shell=h5, spec_text=spec_text)
+                    _verify_visual_lock_depth(
+                        data,
+                        h5_shell=h5,
+                        spec_text=spec_text,
+                        pack_type=pack_type,
+                    )
                 )
         except json.JSONDecodeError:
             issues.append("本包视觉锁.json JSON 不合法")
@@ -761,4 +799,11 @@ def verify_pm_ui_plan_outputs(
     ):
         _soft(issue)
 
-    return PlanGateResult(hard=hard, soft=soft)
+    seen: set[str] = set()
+    deduped_soft: list[str] = []
+    for msg in soft:
+        if msg not in seen:
+            seen.add(msg)
+            deduped_soft.append(msg)
+
+    return PlanGateResult(hard=hard, soft=deduped_soft)

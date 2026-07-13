@@ -7,6 +7,7 @@ from pathlib import Path
 
 from batch.h5_ui_copy import (
     collect_h5_demo_seed_cjk_violations,
+    collect_h5_demo_cta_violations,
     collect_h5_stack_layout_violations,
     collect_h5_ui_cjk_violations,
     collect_h5_welcome_demo_violations,
@@ -78,6 +79,18 @@ def test_collect_h5_ui_cjk_violations(tmp_path: Path) -> None:
     src.mkdir(parents=True)
     (src / "HubView.vue").write_text("<p>严格计时</p>", encoding="utf-8")
     issues = collect_h5_ui_cjk_violations(tmp_path)
+    assert issues
+    assert "HubView.vue" in issues[0]
+
+
+def test_collect_h5_demo_cta_violations_hub(tmp_path: Path) -> None:
+    views = tmp_path / "h5" / "src" / "views"
+    views.mkdir(parents=True)
+    (views / "HubView.vue").write_text(
+        '<button @click="importDemo">Import Demo Script</button>',
+        encoding="utf-8",
+    )
+    issues = collect_h5_demo_cta_violations(tmp_path)
     assert issues
     assert "HubView.vue" in issues[0]
 

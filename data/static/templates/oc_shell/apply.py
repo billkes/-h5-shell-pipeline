@@ -34,6 +34,12 @@ def parse_args() -> argparse.Namespace:
 
 def build_values(args: argparse.Namespace) -> dict[str, str]:
     cap = _prefix_cap(args.prefix)
+    root = Path(__file__).resolve().parents[4]
+    scripts = root / "scripts"
+    if str(scripts) not in sys.path:
+        sys.path.insert(0, str(scripts))
+    from batch.h5_site_paths import H5_VITE_DEV_PORT, h5_dev_entry_url
+
     values = {
         "{{APP_NAME}}": args.app_name,
         "{{APP_NAME_LOWER}}": args.app_name.lower(),
@@ -41,15 +47,13 @@ def build_values(args: argparse.Namespace) -> dict[str, str]:
         "{{PREFIX_CAP}}": cap,
         "{{APP_SLUG}}": args.app_slug,
         "{{H5_HOST}}": args.h5_host,
+        "{{H5_ENTRY_URL}}": h5_dev_entry_url(),
+        "{{H5_DEV_PORT}}": str(H5_VITE_DEV_PORT),
         "{{BUNDLE_ID}}": args.bundle_id,
         "{{TEAM_ID}}": args.team_id or "",
         "{{ASSET_SCHEME}}": args.asset_scheme,
         "{{CALLBACK_SCHEME}}": args.callback_scheme,
     }
-    root = Path(__file__).resolve().parents[4]
-    scripts = root / "scripts"
-    if str(scripts) not in sys.path:
-        sys.path.insert(0, str(scripts))
     from batch.native_launch_style import default_launch_style_values
 
     values.update(default_launch_style_values())

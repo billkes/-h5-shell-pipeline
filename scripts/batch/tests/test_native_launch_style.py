@@ -12,22 +12,39 @@ from batch.native_launch_style import (
 )
 
 
-def test_launch_style_reads_visual_lock(tmp_path: Path) -> None:
-    (tmp_path / "本包视觉锁.json").write_text(
-        json.dumps(
-            {
-                "colorTokens": {
-                    "primary": "#EA580C",
-                    "accent": "#059669",
-                    "backgroundDark": "#0F172A",
-                }
-            }
-        ),
+def test_launch_style_reads_h5_css(tmp_path: Path) -> None:
+    h5 = tmp_path / "h5" / "src" / "styles"
+    h5.mkdir(parents=True)
+    (h5 / "global.css").write_text(
+        """
+:root {
+  --uhfnf-bg: #F5F5F7;
+  --uhfnf-fg: #0F172A;
+  --uhfnf-sheet: #FFFFFF;
+  --uhfnf-on-muted: #64748B;
+  --uhfnf-primary: #EA580C;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --uhfnf-bg: #0F172A;
+    --uhfnf-fg: #FFFFFF;
+    --uhfnf-sheet: rgba(32,28,39,0.88);
+    --uhfnf-on-muted: #94A3B8;
+    --uhfnf-primary: #EA580C;
+  }
+}
+""",
+        encoding="utf-8",
+    )
+    (tmp_path / "本包登记信息.json").write_text(
+        json.dumps({"codeAntiCorrelation": {"dartCodePrefix": "uhfnf"}}),
         encoding="utf-8",
     )
     style = launch_style_values(tmp_path)
-    assert style["{{LAUNCH_PRIMARY_R}}"].startswith("0.9")
-    assert style["{{LAUNCH_BG_B}}"].startswith("0.1")
+    assert style["{{LAUNCH_D_BG_B}}"].startswith("0.1")
+    assert style["{{LAUNCH_L_BG_R}}"] > style["{{LAUNCH_D_BG_R}}"] or float(style["{{LAUNCH_L_BG_R}}"]) > float(
+        style["{{LAUNCH_D_BG_R}}"]
+    )
 
 
 def test_collect_native_launch_ui_violations_flags_generic_copy(tmp_path: Path) -> None:
@@ -57,4 +74,6 @@ def test_sync_oc_host_launch_ui_writes_branded_host(tmp_path: Path) -> None:
     text = out.read_text(encoding="utf-8")
     assert "VeilCaption" in text
     assert "Connection issue" not in text
+    assert "ApplyLaunchTheme" in text
+    assert "LAUNCH_D_BG_R" not in text
     assert "Temioo offline" in text

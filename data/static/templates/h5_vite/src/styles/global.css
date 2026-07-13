@@ -30,16 +30,16 @@
   :root {
     --{{PREFIX}}-bg: #0f172a;
     --{{PREFIX}}-fg: #ffffff;
-    --{{PREFIX}}-muted: #201c27;
-    --{{PREFIX}}-on-muted: #94a3b8;
-    --{{PREFIX}}-border: rgba(255, 255, 255, 0.08);
-    --{{PREFIX}}-card: rgba(15, 23, 42, 0.82);
-    --{{PREFIX}}-sheet: rgba(32, 28, 39, 0.88);
+    --{{PREFIX}}-muted: #2a2636;
+    --{{PREFIX}}-on-muted: #cbd5e1;
+    --{{PREFIX}}-border: rgba(255, 255, 255, 0.14);
+    --{{PREFIX}}-card: rgba(22, 30, 48, 0.88);
+    --{{PREFIX}}-sheet: rgba(32, 28, 39, 0.92);
     --{{PREFIX}}-ambient-a: rgba(37, 99, 235, 0.22);
     --{{PREFIX}}-ambient-b: rgba(59, 130, 246, 0.14);
     --{{PREFIX}}-ambient-c: rgba(5, 150, 105, 0.10);
     --{{PREFIX}}-ambient-ring: rgba(37, 99, 235, 0.28);
-    --{{PREFIX}}-ambient-grid: rgba(255, 255, 255, 0.05);
+    --{{PREFIX}}-ambient-grid: rgba(255, 255, 255, 0.08);
     --{{PREFIX}}-ambient-scan: rgba(5, 150, 105, 0.35);
   }
 }
@@ -55,24 +55,37 @@
 html,
 body {
   margin: 0;
-  min-height: 100%;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
   background: var(--{{PREFIX}}-bg);
   color: var(--{{PREFIX}}-fg);
   font-family: var(--{{PREFIX}}-font-body);
   -webkit-tap-highlight-color: transparent;
 }
 
-.h5-app-shell {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  isolation: isolate;
-}
-
 #app {
   position: relative;
   z-index: 1;
-  min-height: 100vh;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.h5-app-shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  isolation: isolate;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 input,
@@ -91,6 +104,17 @@ body:not(input):not(textarea) {
 
 ::-webkit-scrollbar {
   display: none;
+  width: 0;
+  height: 0;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#app::-webkit-scrollbar,
+.h5-app-shell::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -102,21 +126,16 @@ body:not(input):not(textarea) {
   }
 }
 
-.h5-app-shell {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  isolation: isolate;
-}
-
 /* LAYOUT:pipeline — auto-synced; do not hand-edit */
 :root {
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, constant(safe-area-inset-top, 0px));
+  --safe-bottom: env(safe-area-inset-bottom, constant(safe-area-inset-bottom, 0px));
   --{{PREFIX}}-appbar-height: 48px;
   --{{PREFIX}}-tabbar-height: 56px;
   --{{PREFIX}}-page-inset-top: calc(var(--{{PREFIX}}-appbar-height) + var(--safe-top));
   --{{PREFIX}}-page-inset-bottom: calc(var(--{{PREFIX}}-tabbar-height) + var(--safe-bottom));
+  --{{PREFIX}}-page-content-gap: 12px;
+  --{{PREFIX}}-page-bottom-gap: 20px;
 }
 
 .c-{{PREFIX}}-topbar {
@@ -145,6 +164,41 @@ body:not(input):not(textarea) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.c-{{PREFIX}}-topbar__back {
+  grid-column: 1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 4px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--{{PREFIX}}-primary) 24%, var(--{{PREFIX}}-border));
+  border-radius: 12px;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--{{PREFIX}}-primary) 12%, var(--{{PREFIX}}-sheet)),
+    color-mix(in srgb, var(--{{PREFIX}}-accent) 8%, var(--{{PREFIX}}-muted))
+  );
+  color: var(--{{PREFIX}}-primary);
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.c-{{PREFIX}}-topbar__back:active {
+  transform: scale(0.94);
+  background: color-mix(in srgb, var(--{{PREFIX}}-primary) 20%, var(--{{PREFIX}}-muted));
+  border-color: color-mix(in srgb, var(--{{PREFIX}}-primary) 40%, transparent);
+}
+
+.c-{{PREFIX}}-topbar__back-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .c-{{PREFIX}}-tabbar {
@@ -180,14 +234,25 @@ body:not(input):not(textarea) {
 }
 
 .page-shell {
-  min-height: 100vh;
-  padding: var(--{{PREFIX}}-page-inset-top) 16px var(--{{PREFIX}}-page-inset-bottom);
+  min-height: 100%;
+  overflow-x: hidden;
+  max-width: 100%;
+  padding:
+    calc(var(--{{PREFIX}}-page-inset-top) + var(--{{PREFIX}}-page-content-gap))
+    16px
+    calc(var(--{{PREFIX}}-page-inset-bottom) + var(--{{PREFIX}}-page-bottom-gap));
   box-sizing: border-box;
 }
 
 .page-full {
   min-height: 100vh;
   padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom));
+  box-sizing: border-box;
+}
+
+.page-stack {
+  min-height: 100vh;
+  padding: calc(var(--{{PREFIX}}-page-inset-top) + var(--{{PREFIX}}-page-content-gap)) 16px calc(16px + var(--safe-bottom));
   box-sizing: border-box;
 }
 /* LAYOUT:end */

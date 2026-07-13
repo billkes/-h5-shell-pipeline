@@ -96,6 +96,8 @@ def _verify_selection_id_consistency(
     lock_ids: set[str],
     override_ids: set[str],
     plan_ids: set[str],
+    *,
+    pack_type: str = "",
 ) -> list[str]:
     issues: list[str] = []
 
@@ -133,7 +135,7 @@ def _verify_selection_id_consistency(
 
     issues.extend(
         f"[SEL-006] {msg}"
-        for msg in validate_selection_ids(sorted(blueprint_ids))
+        for msg in validate_selection_ids(sorted(blueprint_ids), pack_type=pack_type)
     )
     return issues
 
@@ -257,7 +259,9 @@ def verify_selection_plan(
 
     issues: list[str] = []
     issues.extend(
-        _verify_selection_id_consistency(blueprint_ids, lock_ids, override_ids, plan_ids)
+        _verify_selection_id_consistency(
+            blueprint_ids, lock_ids, override_ids, plan_ids, pack_type=pt
+        )
     )
 
     signals = detect_feature_signals(

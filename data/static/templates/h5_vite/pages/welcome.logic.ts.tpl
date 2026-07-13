@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { ensureBootstrapData } from '../store/defaultSeed';
 
 export function useWelcomeLogic() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export function useWelcomeLogic() {
   }
 
   function continueFlow() {
+    ensureBootstrapData();
     localStorage.setItem('{{PREFIX}}_welcome_v1', 'true');
     router.replace('/hub');
   }

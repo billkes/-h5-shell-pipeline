@@ -11,6 +11,7 @@
   border: 1px solid var(--{{PREFIX}}-border);
   border-radius: 8px; padding: 10px 8px; text-align: center;
   font-size: 12px; color: var(--{{PREFIX}}-on-muted);
+  transition: none;
 }
 .c-{{PREFIX}}-wizard-lane__step--done {
   border-color: var(--{{PREFIX}}-accent); color: var(--{{PREFIX}}-accent);

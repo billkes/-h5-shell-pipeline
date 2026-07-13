@@ -2,6 +2,6 @@ import Foundation
 
 enum {{APP_NAME}}ShellConfig {
     static let assetScheme = "{{ASSET_SCHEME}}"
-    /// Prod H5 entry — hardcoded; change here before release.
-    static let h5EntryUrl = "https://{{H5_HOST}}/{{APP_SLUG}}/{{APP_NAME_LOWER}}_entry.htm"
+    /// Vite dev entry — hardcoded in native shell; run `h5-post --sync-dev-url` to refresh LAN IP.
+    static let h5EntryUrl = "{{H5_ENTRY_URL}}"
 }

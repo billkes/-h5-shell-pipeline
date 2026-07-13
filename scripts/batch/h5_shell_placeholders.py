@@ -7,14 +7,85 @@ import re
 import shutil
 from pathlib import Path
 
+from batch.h5_site_paths import LAUNCH_PLACEHOLDER_ASSET_URI
 from batch.image_placeholders import palette_from_color_tokens, write_placeholder
 
 APP_ICON_SIZE = (1024, 1024)
 LAUNCH_PLACEHOLDER_SIZE = (1125, 2436)
 
+__all__ = [
+    "APP_ICON_SIZE",
+    "LAUNCH_PLACEHOLDER_ASSET_URI",
+    "LAUNCH_PLACEHOLDER_SIZE",
+    "apply_shell_placeholders",
+    "collect_placeholder_violations",
+    "find_launch_placeholder_png",
+    "launch_placeholder_asset_uri",
+    "legacy_h5_launch_path",
+    "prefix_from_workspace",
+    "remove_legacy_h5_launch_assets",
+]
+
 # Hathoo-OC reference binaries accidentally baked into early oc_shell templates.
 _FACTORY_ICON_BYTES = frozenset({104_895})
 _FACTORY_LAUNCH_BYTES = frozenset({192_901})
+
+_LEGACY_H5_LAUNCH_RE = re.compile(r"^assets/[a-z0-9]+_launch/launch_placeholder\.png$")
+
+
+def launch_placeholder_asset_uri() -> str:
+    return LAUNCH_PLACEHOLDER_ASSET_URI
+
+
+def find_launch_placeholder_png(workspace: Path) -> Path | None:
+    """Resolve the canonical Native launch PNG under *launch* imageset."""
+    ws = workspace.resolve()
+    for img_set in ws.rglob("*.imageset"):
+        if "/build/" in str(img_set) or "launch" not in img_set.name.lower():
+            continue
+        contents = img_set / "Contents.json"
+        target_name = "launch_placeholder.png"
+        if contents.is_file():
+            try:
+                data = json.loads(contents.read_text(encoding="utf-8"))
+                for item in data.get("images") or []:
+                    if isinstance(item, dict) and item.get("filename"):
+                        target_name = str(item["filename"])
+                        break
+            except json.JSONDecodeError:
+                pass
+        candidate = img_set / target_name
+        if candidate.is_file():
+            return candidate
+        pngs = sorted(img_set.glob("*.png"))
+        if pngs:
+            return pngs[0]
+    return None
+
+
+def legacy_h5_launch_path(workspace: Path, prefix: str = "") -> Path | None:
+    prefix = (prefix or prefix_from_workspace(workspace)).strip()
+    if not prefix:
+        return None
+    return workspace / "h5" / "assets" / f"{prefix}_launch" / "launch_placeholder.png"
+
+
+def remove_legacy_h5_launch_assets(workspace: Path, *, prefix: str = "") -> list[str]:
+    """Drop deprecated H5 launch mirror copies (Native bundle is source of truth)."""
+    ws = workspace.resolve()
+    prefix = (prefix or prefix_from_workspace(ws)).strip()
+    removed: list[str] = []
+    if not prefix:
+        return removed
+    legacy_dir = ws / "h5" / "assets" / f"{prefix}_launch"
+    legacy_file = legacy_dir / "launch_placeholder.png"
+    if legacy_file.is_file():
+        legacy_file.unlink()
+        removed.append(str(legacy_file.relative_to(ws)))
+    if legacy_dir.is_dir() and not any(legacy_dir.iterdir()):
+        legacy_dir.rmdir()
+        removed.append(str(legacy_dir.relative_to(ws)))
+    return removed
 
 
 def _palette_from_workspace(workspace: Path) -> list[tuple[int, int, int]]:
@@ -65,10 +136,6 @@ def prefix_from_workspace(workspace: Path) -> str:
                 p = str(anti.get("dartCodePrefix") or "").strip()
                 if p:
                     return p
-            launch = str(data.get("launchPlaceholderAsset") or "")
-            m = re.search(r"assets/([a-z0-9]+)_launch/", launch)
-            if m:
-                return m.group(1)
     return ""
 
 
@@ -148,7 +215,7 @@ def apply_shell_placeholders(
     prefix: str = "",
     force: bool = False,
 ) -> list[str]:
-    """Write watermark placeholders into native AppIcon + launch imagesets and H5 launch asset."""
+    """Write watermark placeholders into native AppIcon + launch imageset only."""
     ws = workspace.resolve()
     prefix = (prefix or prefix_from_workspace(ws)).strip()
     palette = _palette_from_workspace(ws)
@@ -170,7 +237,6 @@ def apply_shell_placeholders(
         for p in ws.rglob("*.imageset")
         if "/build/" not in str(p) and "launch" in p.name.lower()
     ]
-    launch_png: Path | None = None
     for img_set in launch_sets:
         contents = img_set / "Contents.json"
         target_name = "launch_placeholder.png"
@@ -187,22 +253,9 @@ def apply_shell_placeholders(
         if dest.is_file() and not force and not _looks_like_factory_asset(dest):
             continue
         write_launch_placeholder_png(dest, palette=palette, headline=app_name)
-        rel = str(dest.relative_to(ws))
-        changed.append(rel)
-        launch_png = dest
+        changed.append(str(dest.relative_to(ws)))
 
-    if prefix:
-        h5_dest = ws / "h5" / "assets" / f"{prefix}_launch" / "launch_placeholder.png"
-        if launch_png and launch_png.is_file():
-            h5_dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(launch_png, h5_dest)
-            changed.append(str(h5_dest.relative_to(ws)))
-        else:
-            if h5_dest.is_file() and not force and not _looks_like_factory_asset(h5_dest):
-                pass
-            else:
-                write_launch_placeholder_png(h5_dest, palette=palette)
-                changed.append(str(h5_dest.relative_to(ws)))
+    changed.extend(remove_legacy_h5_launch_assets(ws, prefix=prefix))
 
     from batch.native_launch_style import sync_oc_host_launch_ui
 
@@ -214,7 +267,7 @@ def apply_shell_placeholders(
 
 
 def collect_placeholder_violations(workspace: Path) -> list[str]:
-    """Flag missing launch/icon assets or factory-copied binaries."""
+    """Flag missing launch/icon assets, factory binaries, or legacy H5 launch mirrors."""
     ws = workspace.resolve()
     issues: list[str] = []
 
@@ -231,30 +284,35 @@ def collect_placeholder_violations(workspace: Path) -> list[str]:
                     f"AppIcon 仍为厂包真图（须占位）: {dest.relative_to(ws)}"
                 )
 
-    launch_sets = [
-        p
-        for p in ws.rglob("*.imageset")
-        if "/build/" not in str(p) and "launch" in p.name.lower()
-    ]
-    if not launch_sets:
-        issues.append("缺少 launch_placeholder imageset")
-    for img_set in launch_sets:
-        pngs = list(img_set.glob("*.png"))
-        if not pngs:
-            issues.append(f"Launch 占位图缺失: {img_set.relative_to(ws)}")
-            continue
-        for png in pngs:
-            if _looks_like_factory_asset(png):
+    launch_png = find_launch_placeholder_png(ws)
+    if launch_png is None:
+        issues.append("缺少 launch_placeholder imageset / launch_placeholder.png")
+    elif _looks_like_factory_asset(launch_png):
+        issues.append(f"Launch 占位仍为厂包真图（须占位）: {launch_png.relative_to(ws)}")
+
+    reg_path = ws / "本包登记信息.json"
+    if reg_path.is_file():
+        try:
+            reg = json.loads(reg_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            reg = {}
+        if isinstance(reg, dict):
+            launch_uri = str(reg.get("launchPlaceholderAsset") or "").strip()
+            if launch_uri and _LEGACY_H5_LAUNCH_RE.match(launch_uri):
                 issues.append(
-                    f"Launch 占位仍为厂包真图（须占位）: {png.relative_to(ws)}"
+                    "launchPlaceholderAsset 仍为旧 H5 路径，须改为 "
+                    f"{LAUNCH_PLACEHOLDER_ASSET_URI}"
+                )
+            elif launch_uri and launch_uri != LAUNCH_PLACEHOLDER_ASSET_URI:
+                issues.append(
+                    f"launchPlaceholderAsset 非 canonical Native URI: {launch_uri}"
                 )
 
     prefix = prefix_from_workspace(ws)
-    if prefix:
-        h5_launch = ws / "h5" / "assets" / f"{prefix}_launch" / "launch_placeholder.png"
-        if not h5_launch.is_file():
-            issues.append(f"H5 launch 占位缺失: {h5_launch.relative_to(ws)}")
-        elif _looks_like_factory_asset(h5_launch):
-            issues.append(f"H5 launch 仍为厂包真图: {h5_launch.relative_to(ws)}")
+    legacy = legacy_h5_launch_path(ws, prefix)
+    if legacy and legacy.is_file():
+        issues.append(
+            f"冗余 H5 launch 副本应删除（Native 为唯一真源）: {legacy.relative_to(ws)}"
+        )
 
     return issues

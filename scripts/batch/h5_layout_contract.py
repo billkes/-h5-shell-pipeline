@@ -23,12 +23,13 @@ def build_layout_block(prefix: str) -> str:
     p = prefix.lower()
     return f"""{LAYOUT_START}
 :root {{
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, constant(safe-area-inset-top, 0px));
+  --safe-bottom: env(safe-area-inset-bottom, constant(safe-area-inset-bottom, 0px));
   --{p}-appbar-height: {_APPBAR_HEIGHT};
   --{p}-tabbar-height: {_TABBAR_HEIGHT};
   --{p}-page-inset-top: calc(var(--{p}-appbar-height) + var(--safe-top));
   --{p}-page-inset-bottom: calc(var(--{p}-tabbar-height) + var(--safe-bottom));
+  --{p}-page-content-gap: 12px;
 }}
 
 .c-{p}-topbar {{
@@ -39,7 +40,7 @@ def build_layout_block(prefix: str) -> str:
   z-index: 40;
   display: grid;
   grid-template-columns: 44px 1fr 44px;
-  align-items: center;
+  align-items: end;
   height: var(--{p}-page-inset-top);
   padding: var(--safe-top) 8px 0;
   box-sizing: border-box;
@@ -57,6 +58,41 @@ def build_layout_block(prefix: str) -> str:
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}}
+
+.c-{p}-topbar__back {{
+  grid-column: 1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 4px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--{p}-primary) 24%, var(--{p}-border));
+  border-radius: 12px;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--{p}-primary) 12%, var(--{p}-sheet)),
+    color-mix(in srgb, var(--{p}-accent) 8%, var(--{p}-muted))
+  );
+  color: var(--{p}-primary);
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}}
+
+.c-{p}-topbar__back:active {{
+  transform: scale(0.94);
+  background: color-mix(in srgb, var(--{p}-primary) 20%, var(--{p}-muted));
+  border-color: color-mix(in srgb, var(--{p}-primary) 40%, transparent);
+}}
+
+.c-{p}-topbar__back-icon {{
+  width: 20px;
+  height: 20px;
 }}
 
 .c-{p}-tabbar {{
@@ -92,8 +128,10 @@ def build_layout_block(prefix: str) -> str:
 }}
 
 .page-shell {{
-  min-height: 100vh;
-  padding: var(--{p}-page-inset-top) 16px var(--{p}-page-inset-bottom);
+  min-height: 100%;
+  overflow-x: hidden;
+  max-width: 100%;
+  padding: calc(var(--{p}-page-inset-top) + var(--{p}-page-content-gap)) 16px var(--{p}-page-inset-bottom);
   box-sizing: border-box;
 }}
 
@@ -105,7 +143,7 @@ def build_layout_block(prefix: str) -> str:
 
 .page-stack {{
   min-height: 100vh;
-  padding: var(--{p}-page-inset-top) 16px calc(16px + var(--safe-bottom));
+  padding: calc(var(--{p}-page-inset-top) + var(--{p}-page-content-gap)) 16px calc(16px + var(--safe-bottom));
   box-sizing: border-box;
 }}
 {LAYOUT_END}"""

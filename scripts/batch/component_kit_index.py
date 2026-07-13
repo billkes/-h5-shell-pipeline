@@ -70,13 +70,24 @@ def validate_selection_ids(
     ids: list[str],
     *,
     root: Path | None = None,
+    pack_type: str = "",
 ) -> list[str]:
-    """Return unknown component ids (not in kit, not marked temporary)."""
+    """Return unknown component ids (not in kit, not marked temporary).
+
+    h5_shell only validates ``shell/*`` ids against on-disk kit docs. Other
+    categories (feedback/, patterns/, …) are logical H5 section aliases and are
+    not required to have ``component_kit/*.md`` files in this repo.
+    """
+    from batch.pack_type import is_h5_shell
+
     known = component_id_set(root)
+    h5_shell = is_h5_shell(pack_type)
     issues: list[str] = []
     for raw in ids:
         cid = raw.strip()
         if not cid or cid.lower().startswith("temp"):
+            continue
+        if h5_shell and not cid.startswith("shell/"):
             continue
         if cid not in known:
             issues.append(f"component_kit 中未找到组件: {cid}")
@@ -416,7 +427,11 @@ def _extract_md_section(text: str, heading_fragment: str) -> str:
     return "\n".join(out)
 
 
-def verify_component_kit_blueprint(visual_text: str) -> list[str]:
+def verify_component_kit_blueprint(
+    visual_text: str,
+    *,
+    pack_type: str = "",
+) -> list[str]:
     """Gate checks for Component Selection + Package Token Overrides."""
     issues: list[str] = []
     has_selection = "component selection" in visual_text.lower()
@@ -445,7 +460,7 @@ def verify_component_kit_blueprint(visual_text: str) -> list[str]:
         ids = extract_selection_ids_from_blueprint(visual_text)
         if not ids:
             issues.append("视觉蓝图.md §Component Selection 须列出至少一个组件 ID")
-        issues.extend(validate_selection_ids(ids))
+        issues.extend(validate_selection_ids(ids, pack_type=pack_type))
 
     overrides = _extract_md_section(visual_text, "Package Token Overrides")
     if overrides and not re.search(

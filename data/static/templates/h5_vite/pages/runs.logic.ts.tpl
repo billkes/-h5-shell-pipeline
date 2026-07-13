@@ -28,7 +28,7 @@ export function useRunsLogic() {
         courseTag: plan?.courseLabel || 'Unknown',
         dateLabel: formatShortDateTime(r.startedAt),
         durationLabel: formatDuration(r.startedAt, r.endedAt || r.startedAt),
-        avgWpm: Math.round(r.avgWpm),
+        wpm: String(Math.round(r.avgWpm)),
         overtimeCount: r.overtimeSegments.length,
         sectionCount: sections.length || r.sectionTimings?.length || 0,
         hasNotes: Boolean(r.notes?.trim()),

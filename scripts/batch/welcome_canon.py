@@ -18,6 +18,20 @@ WELCOME_LAYOUT_VARIANTS: frozenset[str] = frozenset(
     }
 )
 
+_WELCOME_VARIANT_ALIASES: dict[str, str] = {
+    "centered-card": "hero-top-card-legal",
+    "centered_card": "hero-top-card-legal",
+    "card": "hero-top-card-legal",
+    "top-card-legal": "hero-top-card-legal",
+}
+
+
+def _normalize_welcome_layout_variant(variant: str) -> str:
+    cleaned = variant.strip()
+    if cleaned in WELCOME_LAYOUT_VARIANTS:
+        return cleaned
+    return _WELCOME_VARIANT_ALIASES.get(cleaned, cleaned)
+
 _GLOBAL_INPUT_APPEARANCE_NONE = re.compile(
     r"input\s*,\s*textarea\s*\{[^}]*appearance\s*:\s*none",
     re.I | re.S,
@@ -160,9 +174,10 @@ def verify_welcome_visual_lock(
         return issues
 
     variant = str(spec.get("layoutVariant") or "").strip()
+    normalized = _normalize_welcome_layout_variant(variant)
     if not variant:
         issues.append("本包视觉锁.json welcomeSpec.layoutVariant 必填")
-    elif variant not in WELCOME_LAYOUT_VARIANTS:
+    elif normalized not in WELCOME_LAYOUT_VARIANTS:
         issues.append(
             f"本包视觉锁.json welcomeSpec.layoutVariant 非法: {variant!r} "
             f"(allowed: {sorted(WELCOME_LAYOUT_VARIANTS)})"

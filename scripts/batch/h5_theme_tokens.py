@@ -78,8 +78,8 @@ def _load_candidate_colors(project: Path) -> dict[str, str]:
 def _dark_palette(colors: dict[str, str]) -> dict[str, str]:
     bg = colors.get("background") or "#0F172A"
     fg = colors.get("foreground") or colors.get("text") or "#FFFFFF"
-    muted = colors.get("muted") or "#201C27"
-    border = colors.get("border") or "rgba(255,255,255,0.08)"
+    muted = colors.get("muted") or "#2A2636"
+    border = colors.get("border") or "rgba(255, 255, 255, 0.14)"
     return {
         "primary": colors.get("primary") or "#2563EB",
         "secondary": colors.get("secondary") or colors.get("primary") or "#3B82F6",
@@ -89,14 +89,14 @@ def _dark_palette(colors: dict[str, str]) -> dict[str, str]:
         "muted": muted,
         "border": border,
         "destructive": colors.get("destructive") or "#DC2626",
-        "card": "rgba(15, 23, 42, 0.82)",
-        "sheet": "rgba(32, 28, 39, 0.88)",
-        "on_muted": "#94A3B8",
+        "card": "rgba(22, 30, 48, 0.88)",
+        "sheet": "rgba(32, 28, 39, 0.92)",
+        "on_muted": "#CBD5E1",
         "ambient_a": "rgba(234, 88, 12, 0.22)",
         "ambient_b": "rgba(249, 115, 22, 0.14)",
         "ambient_c": "rgba(5, 150, 105, 0.10)",
         "ambient_ring": "rgba(234, 88, 12, 0.28)",
-        "ambient_grid": "rgba(234, 88, 12, 0.05)",
+        "ambient_grid": "rgba(255, 255, 255, 0.08)",
         "ambient_scan": "rgba(5, 150, 105, 0.35)",
     }
 

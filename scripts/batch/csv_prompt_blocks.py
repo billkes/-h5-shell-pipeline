@@ -47,8 +47,10 @@ def csv_iap_block(
         "(Flutter: in_app_purchase; OC/Swift: native StoreKit API).\n"
         "- If you find dangling pbxproj/scheme references to a deleted "
         "`.storekit`, strip the references — do NOT re-add the file.\n"
-        "- FORBIDDEN in code: 311400, 324001, 32408, or any ID from old "
+        "- FORBIDDEN in store/native IAP code: 324001, 32408, or any ID from old "
         "`内购项列表参考.md` price tables.\n"
+        "- EXCEPTION: Bridge Plaza `#/plaza` `purchase` QA button MUST use "
+        "productId `311400` only (not catalog SKUs).\n"
     )
     if base_block:
         return f"{header}\n{base_block}"

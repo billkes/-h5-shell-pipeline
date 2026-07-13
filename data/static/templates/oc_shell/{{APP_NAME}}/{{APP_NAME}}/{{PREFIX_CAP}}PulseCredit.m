@@ -23,13 +23,13 @@
     NSString *raw = productId.length ? productId : @"";
     NSString *pid = [raw stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     if (!pid.length) {
-        if (handler) handler(-1, @{@"message": @"productId is required"});
+        if (handler) handler(-1, @{@"message": @"INVALID_REQUEST"});
         return;
     }
     self.pending = handler;
     self.pendingProductId = pid;
     if (![SKPaymentQueue canMakePayments]) {
-        if (handler) handler(-1, @{@"message": @"IAP unavailable"});
+        if (handler) handler(-1, @{@"message": @"STORE_UNAVAILABLE"});
         self.pending = nil;
         self.pendingProductId = nil;
         return;
@@ -59,11 +59,7 @@
     NSString *pid = self.pendingProductId ?: @"";
     SKProduct *product = [self {{PREFIX}}ProductMatchingId:pid inResponse:response];
     if (!product) {
-        NSArray *invalid = response.invalidProductIdentifiers ?: @[];
-        NSString *invalidText = invalid.count ? [invalid componentsJoinedByString:@","] : @"none";
-        NSString *msg = [NSString stringWithFormat:@"Product not found: %@ (invalid: %@). Check Scheme StoreKit config or ASC sandbox SKU.",
-                         pid, invalidText];
-        if (self.pending) self.pending(-1, @{@"message": msg, @"productId": pid, @"invalidProductIds": invalidText});
+        if (self.pending) self.pending(-1, @{@"message": @"STORE_ITEM_UNAVAILABLE"});
         self.pending = nil;
         self.pendingProductId = nil;
         return;
@@ -74,10 +70,7 @@
 
 - (void)request:(SKRequest *)request didFailWithError:(NSError *)error {
     if (self.pending) {
-        self.pending(-1, @{
-            @"message": error.localizedDescription ?: @"Product request failed",
-            @"productId": self.pendingProductId ?: @""
-        });
+        self.pending(-1, @{@"message": @"PURCHASE_FAILED"});
     }
     self.pending = nil;
     self.pendingProductId = nil;
@@ -102,8 +95,9 @@
             case SKPaymentTransactionStateFailed: {
                 [[SKPaymentQueue defaultQueue] finishTransaction:tx];
                 NSInteger code = (tx.error.code == SKErrorPaymentCancelled) ? -2 : -1;
+                NSString *msg = (code == -2) ? @"USER_CANCELLED" : @"PURCHASE_FAILED";
                 if (self.pending) {
-                    self.pending(code, @{@"message": tx.error.localizedDescription ?: @"failed"});
+                    self.pending(code, @{@"message": msg});
                 }
                 self.pending = nil;
                 self.pendingProductId = nil;
@@ -122,7 +116,7 @@
 }
 
 - (void)paymentQueue:(SKPaymentQueue *)queue restoreCompletedTransactionsFailedWithError:(NSError *)error {
-    if (self.pending) self.pending(-1, @{@"message": error.localizedDescription ?: @"restore failed"});
+    if (self.pending) self.pending(-1, @{@"message": @"RESTORE_FAILED"});
     self.pending = nil;
     self.pendingProductId = nil;
 }

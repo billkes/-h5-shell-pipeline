@@ -240,32 +240,53 @@ def collect_h5_stack_layout_violations(project: Path) -> list[str]:
     return issues
 
 
-def collect_h5_welcome_demo_violations(project: Path) -> list[str]:
-    """Hard gate: Welcome must not expose demo/sample seed CTAs."""
-    from batch.h5_vite_gate import find_welcome_view_text, h5_src_dir
+_DEMO_CTA_PATTERNS: tuple[tuple[str, str], ...] = (
+    (r"\bimportDemo\b", "importDemo"),
+    (r"\bshowDemo\b", "showDemo"),
+    (r"\bloadDemo\b", "loadDemo"),
+    (r"\bseedDemoData\s*\(", "seedDemoData()"),
+    (r"Import Demo", "Import Demo"),
+    (r"Load demo", "Load demo"),
+    (r"Try sample", "Try sample"),
+    (r"demo plan", "demo plan"),
+    (r"Import Demo Script", "Import Demo Script"),
+)
 
-    welcome = find_welcome_view_text(project)
-    if not welcome:
+
+def _demo_cta_audit_paths(project: Path) -> list[Path]:
+    from batch.h5_vite_gate import h5_src_dir
+
+    root = h5_src_dir(project) / "views"
+    if not root.is_dir():
         return []
-    logic_path = h5_src_dir(project) / "views" / "WelcomeView.logic.ts"
-    audit = welcome
-    if logic_path.is_file():
-        try:
-            audit += "\n" + logic_path.read_text(encoding="utf-8", errors="ignore")
-        except OSError:
-            pass
-    patterns = (
-        r"showDemo",
-        r"loadDemo",
-        r"seedDemoData",
-        r"Load demo",
-        r"Try sample",
-        r"demo plan",
-        r"action--secondary",
-    )
+    paths: list[Path] = []
+    for path in sorted(root.rglob("*")):
+        if not path.is_file():
+            continue
+        if path.suffix.lower() not in {".vue", ".ts", ".tsx"}:
+            continue
+        paths.append(path)
+    return paths
+
+
+def collect_h5_demo_cta_violations(project: Path) -> list[str]:
+    """Hard gate: no demo/sample seed CTAs on any H5 view (Welcome, Hub, etc.)."""
     issues: list[str] = []
-    for pat in patterns:
-        if re.search(pat, audit, re.I):
-            issues.append("Welcome 页禁止 Load demo / showDemo / loadDemo 按钮")
-            break
+    for path in _demo_cta_audit_paths(project):
+        try:
+            text = path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        for pattern, label in _DEMO_CTA_PATTERNS:
+            if re.search(pattern, text, re.I):
+                rel = path.name
+                issues.append(
+                    f"H5 禁止 demo 灌数入口（{label}）: {rel} — 见编组 D #17"
+                )
+                break
     return issues
+
+
+def collect_h5_welcome_demo_violations(project: Path) -> list[str]:
+    """Backward-compatible alias — scans all views, not Welcome only."""
+    return collect_h5_demo_cta_violations(project)

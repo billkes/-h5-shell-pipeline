@@ -16,7 +16,6 @@ const {
   wizardStepLabel,
   wizardSteps,
   startWizard,
-  importDemo,
   openDraft,
 } = useHubLogic();
 </script>

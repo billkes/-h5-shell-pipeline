@@ -46,6 +46,7 @@
     [self {{PREFIX}}BuildSurface];
     [self {{PREFIX}}BuildVeil];
     [self {{PREFIX}}BuildRetry];
+    [self {{PREFIX}}ApplyLaunchTheme];
     [self {{PREFIX}}StartPathMonitor];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector({{PREFIX}}AppDidBecomeActive)
@@ -64,20 +65,7 @@
 }
 
 - (void){{PREFIX}}LoadRegister {
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"本包登记信息" ofType:@"json"];
-    if (!path) {
-        path = [[NSBundle mainBundle] pathForResource:@"register" ofType:@"json"];
-    }
-    NSData *data = path ? [NSData dataWithContentsOfFile:path] : nil;
-    if (data) {
-        NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-        NSString *url = [json isKindOfClass:[NSDictionary class]] ? json[@"h5EntryUrl"] : nil;
-        if ([url isKindOfClass:[NSString class]] && url.length) {
-            self.{{PREFIX}}EntryUrl = url;
-            return;
-        }
-    }
-    self.{{PREFIX}}EntryUrl = @"https://{{H5_HOST}}/{{APP_SLUG}}/{{PREFIX}}_entry.htm";
+    self.{{PREFIX}}EntryUrl = @"{{H5_ENTRY_URL}}";
 }
 
 - (void){{PREFIX}}BuildSurface {
@@ -127,6 +115,108 @@
     [self {{PREFIX}}PushSafeAreaInsets];
 }
 
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    [super traitCollectionDidChange:previousTraitCollection];
+    if (@available(iOS 13.0, *)) {
+        if ([self.traitCollection hasDifferentColorAppearanceComparedToTraitCollection:previousTraitCollection]) {
+            [self {{PREFIX}}ApplyLaunchTheme];
+        }
+    }
+}
+
+- (BOOL){{PREFIX}}PrefersDarkLaunch {
+    if (@available(iOS 13.0, *)) {
+        UIUserInterfaceStyle style = self.traitCollection.userInterfaceStyle;
+        if (style == UIUserInterfaceStyleUnspecified) return YES;
+        return style == UIUserInterfaceStyleDark;
+    }
+    return YES;
+}
+
+- (UIColor *){{PREFIX}}LaunchBg {
+    if ([self {{PREFIX}}PrefersDarkLaunch]) {
+        return [UIColor colorWithRed:{{LAUNCH_D_BG_R}} green:{{LAUNCH_D_BG_G}} blue:{{LAUNCH_D_BG_B}} alpha:1.0];
+    }
+    return [UIColor colorWithRed:{{LAUNCH_L_BG_R}} green:{{LAUNCH_L_BG_G}} blue:{{LAUNCH_L_BG_B}} alpha:1.0];
+}
+
+- (UIColor *){{PREFIX}}LaunchFg {
+    if ([self {{PREFIX}}PrefersDarkLaunch]) {
+        return [UIColor colorWithRed:{{LAUNCH_D_FG_R}} green:{{LAUNCH_D_FG_G}} blue:{{LAUNCH_D_FG_B}} alpha:1.0];
+    }
+    return [UIColor colorWithRed:{{LAUNCH_L_FG_R}} green:{{LAUNCH_L_FG_G}} blue:{{LAUNCH_L_FG_B}} alpha:1.0];
+}
+
+- (UIColor *){{PREFIX}}LaunchSheet {
+    if ([self {{PREFIX}}PrefersDarkLaunch]) {
+        return [UIColor colorWithRed:{{LAUNCH_D_SHEET_R}} green:{{LAUNCH_D_SHEET_G}} blue:{{LAUNCH_D_SHEET_B}} alpha:{{LAUNCH_D_SHEET_A}}];
+    }
+    return [UIColor colorWithRed:{{LAUNCH_L_SHEET_R}} green:{{LAUNCH_L_SHEET_G}} blue:{{LAUNCH_L_SHEET_B}} alpha:{{LAUNCH_L_SHEET_A}}];
+}
+
+- (UIColor *){{PREFIX}}LaunchOnMuted {
+    if ([self {{PREFIX}}PrefersDarkLaunch]) {
+        return [UIColor colorWithRed:{{LAUNCH_D_ON_MUTED_R}} green:{{LAUNCH_D_ON_MUTED_G}} blue:{{LAUNCH_D_ON_MUTED_B}} alpha:1.0];
+    }
+    return [UIColor colorWithRed:{{LAUNCH_L_ON_MUTED_R}} green:{{LAUNCH_L_ON_MUTED_G}} blue:{{LAUNCH_L_ON_MUTED_B}} alpha:1.0];
+}
+
+- (UIColor *){{PREFIX}}LaunchPrimary {
+    if ([self {{PREFIX}}PrefersDarkLaunch]) {
+        return [UIColor colorWithRed:{{LAUNCH_D_PRIMARY_R}} green:{{LAUNCH_D_PRIMARY_G}} blue:{{LAUNCH_D_PRIMARY_B}} alpha:1.0];
+    }
+    return [UIColor colorWithRed:{{LAUNCH_L_PRIMARY_R}} green:{{LAUNCH_L_PRIMARY_G}} blue:{{LAUNCH_L_PRIMARY_B}} alpha:1.0];
+}
+
+- (UIColor *){{PREFIX}}LaunchScrim {
+    if ([self {{PREFIX}}PrefersDarkLaunch]) {
+        return [UIColor colorWithRed:0 green:0 blue:0 alpha:{{LAUNCH_D_SCRIM_A}}];
+    }
+    return [[self {{PREFIX}}LaunchFg] colorWithAlphaComponent:{{LAUNCH_L_SCRIM_A}}];
+}
+
+- (CGFloat){{PREFIX}}LaunchGaugeTrackAlpha {
+    return [self {{PREFIX}}PrefersDarkLaunch] ? {{LAUNCH_D_GAUGE_TRACK_A}} : {{LAUNCH_L_GAUGE_TRACK_A}};
+}
+
+- (void){{PREFIX}}ApplyLaunchTheme {
+    UIColor *bg = [self {{PREFIX}}LaunchBg];
+    self.view.backgroundColor = bg;
+    if (self.{{PREFIX}}Surface) {
+        self.{{PREFIX}}Surface.backgroundColor = bg;
+    }
+    if (self.{{PREFIX}}Veil) {
+        self.{{PREFIX}}Veil.backgroundColor = bg;
+        self.{{PREFIX}}Veil.alpha = [self {{PREFIX}}PrefersDarkLaunch] ? 1.0 : 0.46;
+    }
+    if (self.{{PREFIX}}VeilGaugeTrack) {
+        self.{{PREFIX}}VeilGaugeTrack.backgroundColor = [[self {{PREFIX}}LaunchFg] colorWithAlphaComponent:[self {{PREFIX}}LaunchGaugeTrackAlpha]];
+    }
+    if (self.{{PREFIX}}VeilGaugeFill) {
+        self.{{PREFIX}}VeilGaugeFill.backgroundColor = [self {{PREFIX}}LaunchPrimary];
+    }
+    if (self.{{PREFIX}}VeilCaption) {
+        self.{{PREFIX}}VeilCaption.textColor = [self {{PREFIX}}LaunchOnMuted];
+    }
+    if (self.{{PREFIX}}RetryScrim) {
+        self.{{PREFIX}}RetryScrim.backgroundColor = [self {{PREFIX}}LaunchScrim];
+    }
+    if (self.{{PREFIX}}RetryPanel) {
+        self.{{PREFIX}}RetryPanel.backgroundColor = [self {{PREFIX}}LaunchSheet];
+        self.{{PREFIX}}RetryPanel.layer.borderColor = [[self {{PREFIX}}LaunchPrimary] colorWithAlphaComponent:0.55].CGColor;
+    }
+    if (self.{{PREFIX}}RetryTitle) {
+        self.{{PREFIX}}RetryTitle.textColor = [self {{PREFIX}}LaunchFg];
+    }
+    if (self.{{PREFIX}}RetryLabel) {
+        self.{{PREFIX}}RetryLabel.textColor = [[self {{PREFIX}}LaunchFg] colorWithAlphaComponent:0.72];
+    }
+    if (self.{{PREFIX}}Retry) {
+        [self.{{PREFIX}}Retry setTitleColor:[self {{PREFIX}}LaunchPrimary] forState:UIControlStateNormal];
+        self.{{PREFIX}}Retry.layer.borderColor = [self {{PREFIX}}LaunchPrimary].CGColor;
+    }
+}
+
 - (void){{PREFIX}}PushSafeAreaInsets {
     if (!self.{{PREFIX}}Surface) return;
     UIEdgeInsets inset = self.view.safeAreaInsets;
@@ -156,18 +246,6 @@
     }
 }
 
-- (UIColor *){{PREFIX}}LaunchBg {
-    return [UIColor colorWithRed:{{LAUNCH_BG_R}} green:{{LAUNCH_BG_G}} blue:{{LAUNCH_BG_B}} alpha:1.0];
-}
-
-- (UIColor *){{PREFIX}}LaunchPrimary {
-    return [UIColor colorWithRed:{{LAUNCH_PRIMARY_R}} green:{{LAUNCH_PRIMARY_G}} blue:{{LAUNCH_PRIMARY_B}} alpha:1.0];
-}
-
-- (UIColor *){{PREFIX}}LaunchAccent {
-    return [UIColor colorWithRed:{{LAUNCH_ACCENT_R}} green:{{LAUNCH_ACCENT_G}} blue:{{LAUNCH_ACCENT_B}} alpha:1.0];
-}
-
 - (void){{PREFIX}}BuildVeil {
     self.{{PREFIX}}Veil = [[UIImageView alloc] initWithFrame:self.view.bounds];
     self.{{PREFIX}}Veil.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -182,19 +260,16 @@
     [self.view addSubview:self.{{PREFIX}}Veil];
 
     self.{{PREFIX}}VeilGaugeTrack = [[UIView alloc] initWithFrame:CGRectZero];
-    self.{{PREFIX}}VeilGaugeTrack.backgroundColor = [UIColor colorWithWhite:1 alpha:0.12];
     self.{{PREFIX}}VeilGaugeTrack.layer.cornerRadius = 2;
     self.{{PREFIX}}VeilGaugeTrack.clipsToBounds = YES;
     [self.{{PREFIX}}Veil addSubview:self.{{PREFIX}}VeilGaugeTrack];
 
     self.{{PREFIX}}VeilGaugeFill = [[UIView alloc] initWithFrame:CGRectZero];
-    self.{{PREFIX}}VeilGaugeFill.backgroundColor = [self {{PREFIX}}LaunchPrimary];
     self.{{PREFIX}}VeilGaugeFill.layer.cornerRadius = 2;
     [self.{{PREFIX}}VeilGaugeTrack addSubview:self.{{PREFIX}}VeilGaugeFill];
 
     self.{{PREFIX}}VeilCaption = [[UILabel alloc] initWithFrame:CGRectZero];
     self.{{PREFIX}}VeilCaption.text = @"Pulling rehearsal shelf…";
-    self.{{PREFIX}}VeilCaption.textColor = [UIColor colorWithWhite:1 alpha:0.72];
     self.{{PREFIX}}VeilCaption.font = [UIFont monospacedSystemFontOfSize:11 weight:UIFontWeightMedium];
     self.{{PREFIX}}VeilCaption.textAlignment = NSTextAlignmentCenter;
     [self.{{PREFIX}}Veil addSubview:self.{{PREFIX}}VeilCaption];
@@ -220,28 +295,23 @@
 
 - (void){{PREFIX}}BuildRetry {
     self.{{PREFIX}}RetryScrim = [[UIView alloc] initWithFrame:CGRectZero];
-    self.{{PREFIX}}RetryScrim.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.72];
     self.{{PREFIX}}RetryScrim.hidden = YES;
     self.{{PREFIX}}RetryScrim.alpha = 0;
     [self.view addSubview:self.{{PREFIX}}RetryScrim];
 
     self.{{PREFIX}}RetryPanel = [[UIView alloc] initWithFrame:CGRectZero];
-    self.{{PREFIX}}RetryPanel.backgroundColor = [[self {{PREFIX}}LaunchBg] colorWithAlphaComponent:0.94];
     self.{{PREFIX}}RetryPanel.layer.cornerRadius = 16;
     self.{{PREFIX}}RetryPanel.layer.borderWidth = 1;
-    self.{{PREFIX}}RetryPanel.layer.borderColor = [[self {{PREFIX}}LaunchPrimary] colorWithAlphaComponent:0.55].CGColor;
     [self.{{PREFIX}}RetryScrim addSubview:self.{{PREFIX}}RetryPanel];
 
     self.{{PREFIX}}RetryTitle = [[UILabel alloc] initWithFrame:CGRectZero];
     self.{{PREFIX}}RetryTitle.text = @"{{APP_NAME}} offline";
-    self.{{PREFIX}}RetryTitle.textColor = [UIColor whiteColor];
     self.{{PREFIX}}RetryTitle.font = [UIFont systemFontOfSize:17 weight:UIFontWeightSemibold];
     self.{{PREFIX}}RetryTitle.textAlignment = NSTextAlignmentCenter;
     [self.{{PREFIX}}RetryPanel addSubview:self.{{PREFIX}}RetryTitle];
 
     self.{{PREFIX}}RetryLabel = [[UILabel alloc] initWithFrame:CGRectZero];
     self.{{PREFIX}}RetryLabel.text = @"Check your connection, then try again.";
-    self.{{PREFIX}}RetryLabel.textColor = [UIColor colorWithWhite:1 alpha:0.72];
     self.{{PREFIX}}RetryLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightRegular];
     self.{{PREFIX}}RetryLabel.textAlignment = NSTextAlignmentCenter;
     self.{{PREFIX}}RetryLabel.numberOfLines = 0;
@@ -249,12 +319,10 @@
 
     self.{{PREFIX}}Retry = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.{{PREFIX}}Retry setTitle:@"Try again" forState:UIControlStateNormal];
-    [self.{{PREFIX}}Retry setTitleColor:[self {{PREFIX}}LaunchPrimary] forState:UIControlStateNormal];
     self.{{PREFIX}}Retry.titleLabel.font = [UIFont monospacedSystemFontOfSize:14 weight:UIFontWeightSemibold];
     self.{{PREFIX}}Retry.backgroundColor = [UIColor clearColor];
     self.{{PREFIX}}Retry.layer.cornerRadius = 12;
     self.{{PREFIX}}Retry.layer.borderWidth = 1.5;
-    self.{{PREFIX}}Retry.layer.borderColor = [self {{PREFIX}}LaunchPrimary].CGColor;
     [self.{{PREFIX}}Retry addTarget:self action:@selector({{PREFIX}}RetryTapped) forControlEvents:UIControlEventTouchUpInside];
     [self.{{PREFIX}}Retry addTarget:self action:@selector({{PREFIX}}RetryTouchDown:) forControlEvents:UIControlEventTouchDown];
     [self.{{PREFIX}}Retry addTarget:self action:@selector({{PREFIX}}RetryTouchUp:) forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchUpOutside | UIControlEventTouchCancel];
@@ -283,6 +351,7 @@
 
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
+    [self {{PREFIX}}PushSafeAreaInsets];
     CGFloat w = self.view.bounds.size.width;
     CGFloat h = self.view.bounds.size.height;
 

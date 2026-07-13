@@ -8,11 +8,20 @@ const emit = defineEmits<{ back: [] }>();
     <button
       v-if="back"
       type="button"
-      class="c-{{PREFIX}}-action c-{{PREFIX}}-action--ghost"
+      class="c-{{PREFIX}}-topbar__back"
       aria-label="Back"
       @click="emit('back')"
     >
-      ←
+      <svg class="c-{{PREFIX}}-topbar__back-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M15 6l-6 6 6 6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.25"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
     </button>
     <span v-else aria-hidden="true" />
     <span class="c-{{PREFIX}}-topbar__title">{{ title }}</span>

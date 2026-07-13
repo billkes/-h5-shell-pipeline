@@ -135,11 +135,8 @@ def _write_registration(ctx: BuildContext, row: CsvTaskRow, workspace: Path) -> 
     }
     # Merge remote H5 site registration fields (h5SiteRoot/Entry, bundleEntryPath, etc.)
     reg.update(resolve_h5_remote_config(app_name, prefix=prefix))
-    # Prefer prod URL once host is known; dev URL remains available for local iteration.
-    if h5_host:
-        reg["h5EntryUrl"] = reg["h5EntryUrlProd"]
-    else:
-        reg["h5EntryUrl"] = reg["h5EntryUrlProd"]
+    # Native shell hardcodes Vite LAN URL; JSON keeps prod URL for deploy reference.
+    reg["h5EntryUrl"] = reg["h5EntryUrlDev"]
     (workspace / "本包登记信息.json").write_text(
         json.dumps(reg, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",

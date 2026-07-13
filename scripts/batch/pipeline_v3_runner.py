@@ -615,6 +615,7 @@ class V3StepRunner:
         issues.extend(verify_skill_ux_gate(fp))
         from batch.h5_ui_copy import (
             collect_h5_demo_seed_cjk_violations,
+            collect_h5_demo_cta_violations,
             collect_h5_ui_cjk_violations,
             collect_h5_stack_layout_violations,
             collect_h5_welcome_demo_violations,
@@ -623,7 +624,12 @@ class V3StepRunner:
         issues.extend(collect_h5_ui_cjk_violations(ws))
         issues.extend(collect_h5_demo_seed_cjk_violations(ws))
         issues.extend(collect_h5_stack_layout_violations(ws))
-        issues.extend(collect_h5_welcome_demo_violations(ws))
+        issues.extend(collect_h5_demo_cta_violations(ws))
+        from batch.h5_plaza_purchase import collect_h5_plaza_purchase_violations
+        from batch.h5_default_seed import collect_h5_default_seed_violations
+
+        issues.extend(collect_h5_plaza_purchase_violations(ws))
+        issues.extend(collect_h5_default_seed_violations(ws))
 
         hard = [i for i in issues if not i.startswith("UX Gate WARN")]
         if hard:

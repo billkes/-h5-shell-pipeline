@@ -51,12 +51,19 @@ def parse_args() -> argparse.Namespace:
 
 
 def build_values(args: argparse.Namespace) -> dict[str, str]:
+    root = Path(__file__).resolve().parents[4]
+    scripts = root / "scripts"
+    if str(scripts) not in sys.path:
+        sys.path.insert(0, str(scripts))
+    from batch.h5_site_paths import h5_dev_entry_url
+
     return {
         "{{APP_NAME}}": args.app_name,
         "{{APP_NAME_LOWER}}": args.app_name.lower(),
         "{{PREFIX}}": args.prefix,
         "{{APP_SLUG}}": args.app_slug,
         "{{H5_HOST}}": args.h5_host,
+        "{{H5_ENTRY_URL}}": h5_dev_entry_url(),
         "{{BUNDLE_ID}}": args.bundle_id,
         "{{TEAM_ID}}": args.team_id,
         "{{ASSET_SCHEME}}": args.asset_scheme,

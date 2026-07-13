@@ -12,7 +12,7 @@
       class="c-{{PREFIX}}-draft-card"
       @click="openDraft(d.id)"
     >
-      <div style="display:flex;justify-content:space-between;gap:8px">
+      <div class="c-{{PREFIX}}-draft-card__head">
         <div>
           <div class="c-{{PREFIX}}-draft-card__title">{{ d.title }}</div>
           <div class="c-{{PREFIX}}-draft-card__meta">{{ d.courseTag }} · {{ d.sections.length }} sections</div>

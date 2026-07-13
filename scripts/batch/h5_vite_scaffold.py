@@ -114,6 +114,7 @@ def _merge_toolchain_only(dst: Path, values: dict[str, str]) -> None:
     for rel in (
         "package.json",
         "vite.config.ts",
+        "legal-md-sync.plugin.mjs",
         "tsconfig.json",
         "tsconfig.node.json",
         "index.html",
@@ -154,6 +155,28 @@ def _merge_toolchain_only(dst: Path, values: dict[str, str]) -> None:
                 substitute_text(tpl_router.read_text(encoding="utf-8"), values),
                 encoding="utf-8",
             )
+
+
+def ensure_public_vault_symlink(h5_dir: Path, prefix: str) -> bool:
+    """Expose h5/assets/{prefix}_vault via public/assets/ for Vite dev + preview."""
+    vault_src = h5_dir / "assets" / f"{prefix}_vault"
+    if not vault_src.is_dir():
+        return False
+    public_assets = h5_dir / "public" / "assets"
+    link = public_assets / f"{prefix}_vault"
+    public_assets.mkdir(parents=True, exist_ok=True)
+    rel_target = Path("..") / ".." / "assets" / f"{prefix}_vault"
+    if link.is_symlink():
+        try:
+            if link.resolve() == vault_src.resolve():
+                return False
+        except OSError:
+            pass
+        link.unlink()
+    elif link.exists():
+        return False
+    link.symlink_to(rel_target, target_is_directory=True)
+    return True
 
 
 def ensure_vite_lan_server(h5_dir: Path) -> bool:
@@ -203,6 +226,7 @@ def apply_h5_vite_scaffold(
         _merge_toolchain_only(dst, values)
 
     ensure_vite_lan_server(dst)
+    ensure_public_vault_symlink(dst, values["{{PREFIX}}"])
     return dst
 
 
@@ -221,6 +245,7 @@ def ensure_h5_vite_scaffold(
         p = "app"
     dst = apply_h5_vite_scaffold(project, app_name=app_name, prefix=p, force=force)
     ensure_vite_lan_server(dst)
+    ensure_public_vault_symlink(dst, p)
     sync_h5_dev_entry_urls(project)
     return dst
 

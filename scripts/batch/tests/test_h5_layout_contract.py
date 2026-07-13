@@ -32,8 +32,9 @@ def _write_project(root: Path, *, css: str) -> Path:
 def test_build_layout_block_has_page_inset_tokens() -> None:
     block = build_layout_block("demo")
     assert "--demo-page-inset-top" in block
+    assert "--demo-page-content-gap" in block
     assert "height: var(--demo-page-inset-top)" in block
-    assert "padding: var(--demo-page-inset-top)" in block
+    assert "calc(var(--demo-page-inset-top) + var(--demo-page-content-gap))" in block
     assert "align-items: center" in block
     assert ".page-stack" in block
 

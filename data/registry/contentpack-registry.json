@@ -15,7 +15,7 @@
       "h5SourceRoot": "h5/",
       "h5BuildCommand": "npm run build:deploy",
       "bundleEntryPath": "h5_site/temioo/index.html",
-      "launchPlaceholderAsset": "assets/uhfnf_launch/launch_placeholder.png",
+      "launchPlaceholderAsset": "native:Assets.xcassets/launch_placeholder.imageset/launch_placeholder.png",
       "h5VaultPattern": "h5_monolith",
       "h5VaultLayout": "assets_img_flat",
       "bridgeDeckSelections": {

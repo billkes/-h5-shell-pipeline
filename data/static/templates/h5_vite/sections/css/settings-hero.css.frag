@@ -1,4 +1,9 @@
-.c-{{PREFIX}}-settings-hero { margin-bottom: var(--space-lg, 20px); }
+.c-{{PREFIX}}-settings-hero {
+  position: relative;
+  margin-bottom: var(--space-lg, 20px);
+  padding-left: 12px;
+  border-left: 3px solid var(--{{PREFIX}}-primary);
+}
 .c-{{PREFIX}}-settings-hero__eyebrow {
   font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--{{PREFIX}}-secondary); margin-bottom: 6px;

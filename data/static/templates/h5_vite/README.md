@@ -10,5 +10,6 @@ npm run build:deploy # → ../h5_site/{{PREFIX}}_entry.htm
 ```
 
 - **Do not** hand-edit `h5_site/{{PREFIX}}_entry.htm` — it is build output.
-- Legal strings: `sync_h5_legal_bundled.py` → `src/legal/{{PREFIX}}_legal_bundled.ts`
+- Legal strings: edit `../* Privacy Agreement.md` / `../* User Agreement.md` at workspace root; `npm run dev` auto-syncs via `legal-md-sync.plugin.mjs` → `src/legal/{{PREFIX}}_legal_bundled.ts` (or run `sync_h5_legal_bundled.py` manually)
 - Kit namespace: `window.{{PREFIX_CAP}}.ui.*` (wired in `src/main.ts`)
+- **Media attach**: `src/components/MediaSourceSheet.vue` + `src/lib/pickImage.ts` — camera/photo sheet before `pickImage` Bridge (see phase_h5_implementer §13)

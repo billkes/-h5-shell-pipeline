@@ -22,6 +22,22 @@ _OPTIONAL_PATTERN = re.compile(
     r"\b(?:optional|may\s+be\s+skipped|if\s+needed|can\s+be\s+skipped)\b|可选项|可选",
     re.I,
 )
+
+
+def _strip_glossary_for_optional_scan(spec_text: str) -> str:
+    """Remove Domain Glossary — field definitions may use 'Optional' as a qualifier."""
+    match = re.search(
+        r"(?is)(?:^|\n)#+\s*.*(?:domain\s+glossary|术语表).*?\n(.*?)(?:\n#+\s|\Z)",
+        spec_text,
+    )
+    if not match:
+        return spec_text
+    return spec_text[: match.start()] + spec_text[match.end() :]
+
+
+def _has_forbidden_optional_wording(spec_text: str) -> bool:
+    scan_text = _strip_glossary_for_optional_scan(spec_text)
+    return bool(_OPTIONAL_PATTERN.search(scan_text))
 _WORKFLOW_STEP_PATTERN = re.compile(r"^\s*\d+[.)]\s+\S", re.M)
 _GLOSSARY_ROW_PATTERN = re.compile(r"^\s*\|[^|]+\|[^|]+\|", re.M)
 _SECONDARY_FLOW_PATTERN = re.compile(
@@ -310,7 +326,7 @@ def verify_spec_business_depth(
             "[SPEC-010] signature H5 interaction 须绑定 Primary Workflow 步骤或 BR-xx"
         )
 
-    if _OPTIONAL_PATTERN.search(spec_text):
+    if _has_forbidden_optional_wording(spec_text):
         issues.append("[SPEC-011] 功能文档禁止 optional/may/可选项 等模糊措辞")
 
     return issues

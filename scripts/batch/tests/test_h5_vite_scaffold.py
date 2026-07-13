@@ -21,10 +21,13 @@ def test_apply_h5_vite_scaffold(tmp_path: Path) -> None:
     assert "vite-plugin-singlefile" in pkg
     vite_cfg = (dst / "vite.config.ts").read_text(encoding="utf-8")
     assert "host: true" in vite_cfg
+    assert "legalMdSyncPlugin" in vite_cfg
+    assert (dst / "legal-md-sync.plugin.mjs").is_file()
     assert '"dev": "vite --host"' in pkg or "'dev': 'vite --host'" in pkg
     copy_script = (dst / "scripts" / "copy-to-h5-site.mjs").read_text(encoding="utf-8")
     assert "h5_site" in copy_script
     assert "H5_APP_SLUG" in copy_script
+    assert "uhfnf_vault" in copy_script or "_vault" in copy_script
 
 
 def test_scaffold_idempotent(tmp_path: Path) -> None:

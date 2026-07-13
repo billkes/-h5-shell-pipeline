@@ -11,9 +11,11 @@ ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
+from batch.h5_site_paths import LAUNCH_PLACEHOLDER_ASSET_URI  # noqa: E402
 from batch.h5_shell_placeholders import (  # noqa: E402
     apply_shell_placeholders,
     collect_placeholder_violations,
+    legacy_h5_launch_path,
 )
 from batch.native_shell_apply import (  # noqa: E402
     clear_stale_native_shell,
@@ -35,7 +37,7 @@ def _write_combo(ws: Path, prefix: str = "mocko") -> None:
             {
                 "appName": "Mockoo",
                 "shellRuntime": "oc",
-                "launchPlaceholderAsset": f"assets/{prefix}_launch/launch_placeholder.png",
+                "launchPlaceholderAsset": LAUNCH_PLACEHOLDER_ASSET_URI,
             },
             ensure_ascii=False,
         ),
@@ -88,7 +90,10 @@ def test_ensure_native_shell_scaffold_merges_at_workspace_root() -> None:
         assert has_root_xcode_project(ws)
         assert native_shell_layout_ok(ws, "Mockoo")
         assert (ws / "Mockoo.xcodeproj" / "project.pbxproj").is_file()
-        assert (ws / "h5" / "assets" / "mocko_launch" / "launch_placeholder.png").is_file()
+        launch = ws / "Mockoo" / "Assets.xcassets" / "launch_placeholder.imageset" / "launch_placeholder.png"
+        assert launch.is_file()
+        legacy = legacy_h5_launch_path(ws, "mocko")
+        assert legacy is not None and not legacy.is_file()
         assert not collect_placeholder_violations(ws)
 
 

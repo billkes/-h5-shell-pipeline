@@ -91,9 +91,6 @@
           <svg class="c-{{PREFIX}}-mark" viewBox="0 0 24 24"><use href="#{{PREFIX}}-mark-add" /></svg>
           New Rehearsal Plan
         </button>
-        <button class="c-{{PREFIX}}-action c-{{PREFIX}}-action--secondary" type="button" @click="importDemo">
-          Import Demo Script
-        </button>
       </div>
 
       <section>
@@ -110,7 +107,7 @@
             class="c-{{PREFIX}}-draft-card"
             @click="openDraft(d.id)"
           >
-            <div style="display:flex;justify-content:space-between;gap:8px">
+            <div class="c-{{PREFIX}}-draft-card__head">
               <div>
                 <div class="c-{{PREFIX}}-draft-card__title">{{ d.title }}</div>
                 <div class="c-{{PREFIX}}-draft-card__meta">{{ d.courseTag }} · {{ d.sections.length }} sections</div>
@@ -155,7 +152,6 @@ const {
   wizardStepLabel,
   wizardSteps,
   startWizard,
-  importDemo,
   openDraft,
 } = useHubLogic();
 </script>
