@@ -36,6 +36,9 @@ ${ICON_MANIFEST_BLOCK}
 7. IAP store UI in H5 when Screen Inventory includes `#/store`; call Bridge `purchase` only.
 8. Media: relative paths + Bridge `mediaServe` for shell-bundled rasters — **no base64** large images.
 9. After implementation, pipeline runs **`dev.h5.build`** (`cd h5 && npm run build:deploy`). Local dev: `npm run dev` on port **5174**.
+10. **All user-visible UI copy must be English** — no Chinese/CJK in Vue templates, labels, buttons, KPI text, **demo/seed data**, or input placeholders. Dates/times: import `H5_UI_LOCALE` / `formatShortDate*` from `h5/src/lib/uiLocale.ts` (never `toLocaleString(undefined)`).
+11. **Stack routes** (wizard/live/detail/export/store): reuse `<TopBar back />` + `.page-stack` from `LAYOUT:pipeline` for **insets only** (safe-area / no tab bar). Do **not** hand-roll `wizard-bar`. **Visual composition** (hero, export card, detail nodes) comes from **视觉蓝图.md per-screen + 本包视觉锁.json** — pipeline LAYOUT block has **no** stack-page visual CSS to copy.
+12. **Welcome page — no demo CTAs** — do **not** add Load demo / Try sample / `showDemo` / `loadDemo` / `seedDemoData` buttons on Welcome. Onboarding is checkbox + Continue only; demo seed helpers may exist in `store/data.ts` for Hub empty-state only, never as a Welcome shortcut.
 
 [Icon sprite — MANDATORY]
 (Same as before — inline SVG sprite in entry, forbidden icon font libraries.)
@@ -53,7 +56,7 @@ ${ICON_MANIFEST_BLOCK}
 10. **Ambient Canvas (MANDATORY):** read `skill-adapt/ambient-canvas-brief.md` + 视觉蓝图 §Ambient Canvas Canon. Ship `u-{prefix}-ambient` fixed layer in entry.htm (`aria-hidden`, behind content, scene attr on `html`). Cards/sheets semi-opaque — never full-viewport flat white over empty `--bg`.
 11. **Fixed AppBar / TabBar layout (MANDATORY when Screen Inventory uses top tabs or page titles):** use scaffold `TopBar.vue` + `TabBar.vue` + `.page-shell` from `h5/src/styles/global.css` **LAYOUT:pipeline** block. **Do NOT** redefine `.c-{prefix}-topbar`, `.c-{prefix}-tabbar`, `.page-shell` heights/padding — pipeline `sync_h5_layout_contract` overwrites at build. Content pages wrap body in `<div class="page-shell">` so fixed chrome never covers primary UI.
 12. **Tab-root scaffold (MANDATORY):** `sync_h5_page_scaffold` generates Hub / Runs / Settings `<template>` — **DO NOT rewrite**. Implement business in `views/*View.logic.ts` only. Wizard / Live / Export remain full Agent ownership.
-13. **Legal modal kit (if Screen Inventory includes `#/legal`).**
+13. **Welcome / Legal scaffold (MANDATORY when routes exist):** pipeline syncs Welcome template + `WelcomeView.logic.ts` stub, `LegalOverlay.vue`, `lib/formatLegalBody.ts`, and `LEGAL:pipeline` CSS in `global.css` — **DO NOT** put legal kit classes only in `<style scoped>`. Legal body must come from PM `{App} Privacy/User Agreement.md` via `sync_h5_legal_bundled.py` and render with `formatLegalBody` (section + para HTML, **not** `<br>` dump). Header title = first line of bundled MD. Customize Welcome behavior in `WelcomeView.logic.ts` only.
 14. **Overlay router stack (MANDATORY when Screen Inventory includes hash overlays).**
 
 [Forbidden]

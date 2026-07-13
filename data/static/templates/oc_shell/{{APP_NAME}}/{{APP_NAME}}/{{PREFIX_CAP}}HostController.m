@@ -11,9 +11,10 @@
 @interface {{PREFIX_CAP}}HostController () <WKScriptMessageHandler, WKNavigationDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 @property (nonatomic, strong) WKWebView *{{PREFIX}}Surface;
 @property (nonatomic, strong) UIImageView *{{PREFIX}}Veil;
-@property (nonatomic, strong) UIView *{{PREFIX}}VeilHud;
-@property (nonatomic, strong) UIActivityIndicatorView *{{PREFIX}}VeilSpinner;
-@property (nonatomic, strong) UILabel *{{PREFIX}}VeilLabel;
+@property (nonatomic, strong) UILabel *{{PREFIX}}VeilCaption;
+@property (nonatomic, strong) UIView *{{PREFIX}}VeilGaugeTrack;
+@property (nonatomic, strong) UIView *{{PREFIX}}VeilGaugeFill;
+@property (nonatomic, strong) UIView *{{PREFIX}}RetryScrim;
 @property (nonatomic, strong) UIView *{{PREFIX}}RetryPanel;
 @property (nonatomic, strong) UIButton *{{PREFIX}}Retry;
 @property (nonatomic, strong) UILabel *{{PREFIX}}RetryLabel;
@@ -37,7 +38,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.backgroundColor = [UIColor colorWithRed:0.980 green:0.961 blue:1.0 alpha:1.0];
+    self.view.backgroundColor = [self {{PREFIX}}LaunchBg];
     self.{{PREFIX}}Credit = [[{{PREFIX_CAP}}PulseCredit alloc] init];
     self.{{PREFIX}}Vault = [[{{PREFIX_CAP}}LaneVault alloc] init];
     self.{{PREFIX}}PathSatisfied = YES;
@@ -155,12 +156,16 @@
     }
 }
 
-- (UIColor *){{PREFIX}}BrandBlue {
-    return [UIColor colorWithRed:0.145 green:0.388 blue:0.922 alpha:1.0];
+- (UIColor *){{PREFIX}}LaunchBg {
+    return [UIColor colorWithRed:{{LAUNCH_BG_R}} green:{{LAUNCH_BG_G}} blue:{{LAUNCH_BG_B}} alpha:1.0];
 }
 
-- (UIColor *){{PREFIX}}BrandPink {
-    return [UIColor colorWithRed:0.925 green:0.286 blue:0.600 alpha:1.0];
+- (UIColor *){{PREFIX}}LaunchPrimary {
+    return [UIColor colorWithRed:{{LAUNCH_PRIMARY_R}} green:{{LAUNCH_PRIMARY_G}} blue:{{LAUNCH_PRIMARY_B}} alpha:1.0];
+}
+
+- (UIColor *){{PREFIX}}LaunchAccent {
+    return [UIColor colorWithRed:{{LAUNCH_ACCENT_R}} green:{{LAUNCH_ACCENT_G}} blue:{{LAUNCH_ACCENT_B}} alpha:1.0];
 }
 
 - (void){{PREFIX}}BuildVeil {
@@ -173,63 +178,83 @@
         if (p) img = [UIImage imageWithContentsOfFile:p];
     }
     self.{{PREFIX}}Veil.image = img;
-    self.{{PREFIX}}Veil.backgroundColor = self.view.backgroundColor;
+    self.{{PREFIX}}Veil.backgroundColor = [self {{PREFIX}}LaunchBg];
     [self.view addSubview:self.{{PREFIX}}Veil];
 
-    self.{{PREFIX}}VeilHud = [[UIView alloc] initWithFrame:CGRectZero];
-    self.{{PREFIX}}VeilHud.backgroundColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:0.82];
-    self.{{PREFIX}}VeilHud.layer.cornerRadius = 16;
-    self.{{PREFIX}}VeilHud.layer.borderWidth = 1;
-    self.{{PREFIX}}VeilHud.layer.borderColor = [UIColor colorWithRed:0.894 green:0.925 blue:0.992 alpha:1.0].CGColor;
-    [self.{{PREFIX}}Veil addSubview:self.{{PREFIX}}VeilHud];
+    self.{{PREFIX}}VeilGaugeTrack = [[UIView alloc] initWithFrame:CGRectZero];
+    self.{{PREFIX}}VeilGaugeTrack.backgroundColor = [UIColor colorWithWhite:1 alpha:0.12];
+    self.{{PREFIX}}VeilGaugeTrack.layer.cornerRadius = 2;
+    self.{{PREFIX}}VeilGaugeTrack.clipsToBounds = YES;
+    [self.{{PREFIX}}Veil addSubview:self.{{PREFIX}}VeilGaugeTrack];
 
-    if (@available(iOS 13.0, *)) {
-        self.{{PREFIX}}VeilSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
-    } else {
-        self.{{PREFIX}}VeilSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-    }
-    self.{{PREFIX}}VeilSpinner.color = [UIColor colorWithRed:0.486 green:0.227 blue:0.929 alpha:1.0];
-    [self.{{PREFIX}}VeilHud addSubview:self.{{PREFIX}}VeilSpinner];
+    self.{{PREFIX}}VeilGaugeFill = [[UIView alloc] initWithFrame:CGRectZero];
+    self.{{PREFIX}}VeilGaugeFill.backgroundColor = [self {{PREFIX}}LaunchPrimary];
+    self.{{PREFIX}}VeilGaugeFill.layer.cornerRadius = 2;
+    [self.{{PREFIX}}VeilGaugeTrack addSubview:self.{{PREFIX}}VeilGaugeFill];
 
-    self.{{PREFIX}}VeilLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    self.{{PREFIX}}VeilLabel.text = @"Loading…";
-    self.{{PREFIX}}VeilLabel.textColor = [UIColor colorWithRed:0.392 green:0.455 blue:0.545 alpha:1.0];
-    self.{{PREFIX}}VeilLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightSemibold];
-    self.{{PREFIX}}VeilLabel.textAlignment = NSTextAlignmentCenter;
-    [self.{{PREFIX}}VeilHud addSubview:self.{{PREFIX}}VeilLabel];
+    self.{{PREFIX}}VeilCaption = [[UILabel alloc] initWithFrame:CGRectZero];
+    self.{{PREFIX}}VeilCaption.text = @"Pulling rehearsal shelf…";
+    self.{{PREFIX}}VeilCaption.textColor = [UIColor colorWithWhite:1 alpha:0.72];
+    self.{{PREFIX}}VeilCaption.font = [UIFont monospacedSystemFontOfSize:11 weight:UIFontWeightMedium];
+    self.{{PREFIX}}VeilCaption.textAlignment = NSTextAlignmentCenter;
+    [self.{{PREFIX}}Veil addSubview:self.{{PREFIX}}VeilCaption];
+}
+
+- (void){{PREFIX}}StartGaugePulse {
+    [self.{{PREFIX}}VeilGaugeFill.layer removeAllAnimations];
+    self.{{PREFIX}}VeilGaugeFill.alpha = 1;
+    CGFloat trackW = self.{{PREFIX}}VeilGaugeTrack.bounds.size.width;
+    if (trackW < 8) return;
+    self.{{PREFIX}}VeilGaugeFill.frame = CGRectMake(0, 0, trackW * 0.22, 3);
+    [UIView animateWithDuration:1.05
+                          delay:0
+                        options:UIViewAnimationOptionAutoreverse | UIViewAnimationOptionRepeat | UIViewAnimationOptionCurveEaseInOut
+                     animations:^{
+        self.{{PREFIX}}VeilGaugeFill.frame = CGRectMake(0, 0, trackW * 0.78, 3);
+    } completion:nil];
+}
+
+- (void){{PREFIX}}StopGaugePulse {
+    [self.{{PREFIX}}VeilGaugeFill.layer removeAllAnimations];
 }
 
 - (void){{PREFIX}}BuildRetry {
+    self.{{PREFIX}}RetryScrim = [[UIView alloc] initWithFrame:CGRectZero];
+    self.{{PREFIX}}RetryScrim.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.72];
+    self.{{PREFIX}}RetryScrim.hidden = YES;
+    self.{{PREFIX}}RetryScrim.alpha = 0;
+    [self.view addSubview:self.{{PREFIX}}RetryScrim];
+
     self.{{PREFIX}}RetryPanel = [[UIView alloc] initWithFrame:CGRectZero];
-    self.{{PREFIX}}RetryPanel.backgroundColor = [UIColor colorWithWhite:0 alpha:0.38];
+    self.{{PREFIX}}RetryPanel.backgroundColor = [[self {{PREFIX}}LaunchBg] colorWithAlphaComponent:0.94];
     self.{{PREFIX}}RetryPanel.layer.cornerRadius = 16;
     self.{{PREFIX}}RetryPanel.layer.borderWidth = 1;
-    self.{{PREFIX}}RetryPanel.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.14].CGColor;
-    self.{{PREFIX}}RetryPanel.hidden = YES;
-    self.{{PREFIX}}RetryPanel.alpha = 0;
-    [self.view addSubview:self.{{PREFIX}}RetryPanel];
+    self.{{PREFIX}}RetryPanel.layer.borderColor = [[self {{PREFIX}}LaunchPrimary] colorWithAlphaComponent:0.55].CGColor;
+    [self.{{PREFIX}}RetryScrim addSubview:self.{{PREFIX}}RetryPanel];
 
     self.{{PREFIX}}RetryTitle = [[UILabel alloc] initWithFrame:CGRectZero];
-    self.{{PREFIX}}RetryTitle.text = @"Connection issue";
+    self.{{PREFIX}}RetryTitle.text = @"{{APP_NAME}} offline";
     self.{{PREFIX}}RetryTitle.textColor = [UIColor whiteColor];
-    self.{{PREFIX}}RetryTitle.font = [UIFont systemFontOfSize:18 weight:UIFontWeightBold];
+    self.{{PREFIX}}RetryTitle.font = [UIFont systemFontOfSize:17 weight:UIFontWeightSemibold];
     self.{{PREFIX}}RetryTitle.textAlignment = NSTextAlignmentCenter;
     [self.{{PREFIX}}RetryPanel addSubview:self.{{PREFIX}}RetryTitle];
 
     self.{{PREFIX}}RetryLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    self.{{PREFIX}}RetryLabel.text = @"Unable to load. Check your connection.";
-    self.{{PREFIX}}RetryLabel.textColor = [UIColor colorWithWhite:1 alpha:0.82];
-    self.{{PREFIX}}RetryLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightRegular];
+    self.{{PREFIX}}RetryLabel.text = @"Check your connection, then try again.";
+    self.{{PREFIX}}RetryLabel.textColor = [UIColor colorWithWhite:1 alpha:0.72];
+    self.{{PREFIX}}RetryLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightRegular];
     self.{{PREFIX}}RetryLabel.textAlignment = NSTextAlignmentCenter;
     self.{{PREFIX}}RetryLabel.numberOfLines = 0;
     [self.{{PREFIX}}RetryPanel addSubview:self.{{PREFIX}}RetryLabel];
 
     self.{{PREFIX}}Retry = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.{{PREFIX}}Retry setTitle:@"Retry" forState:UIControlStateNormal];
-    [self.{{PREFIX}}Retry setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    self.{{PREFIX}}Retry.titleLabel.font = [UIFont systemFontOfSize:16 weight:UIFontWeightSemibold];
-    self.{{PREFIX}}Retry.backgroundColor = [self {{PREFIX}}BrandPink];
-    self.{{PREFIX}}Retry.layer.cornerRadius = 10;
+    [self.{{PREFIX}}Retry setTitle:@"Try again" forState:UIControlStateNormal];
+    [self.{{PREFIX}}Retry setTitleColor:[self {{PREFIX}}LaunchPrimary] forState:UIControlStateNormal];
+    self.{{PREFIX}}Retry.titleLabel.font = [UIFont monospacedSystemFontOfSize:14 weight:UIFontWeightSemibold];
+    self.{{PREFIX}}Retry.backgroundColor = [UIColor clearColor];
+    self.{{PREFIX}}Retry.layer.cornerRadius = 12;
+    self.{{PREFIX}}Retry.layer.borderWidth = 1.5;
+    self.{{PREFIX}}Retry.layer.borderColor = [self {{PREFIX}}LaunchPrimary].CGColor;
     [self.{{PREFIX}}Retry addTarget:self action:@selector({{PREFIX}}RetryTapped) forControlEvents:UIControlEventTouchUpInside];
     [self.{{PREFIX}}Retry addTarget:self action:@selector({{PREFIX}}RetryTouchDown:) forControlEvents:UIControlEventTouchDown];
     [self.{{PREFIX}}Retry addTarget:self action:@selector({{PREFIX}}RetryTouchUp:) forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchUpOutside | UIControlEventTouchCancel];
@@ -261,18 +286,20 @@
     CGFloat w = self.view.bounds.size.width;
     CGFloat h = self.view.bounds.size.height;
 
-    CGFloat hudW = MIN(w - 80, 220);
-    CGFloat hudH = 108;
-    self.{{PREFIX}}VeilHud.frame = CGRectMake((w - hudW) / 2.0, h * 0.56, hudW, hudH);
-    self.{{PREFIX}}VeilSpinner.frame = CGRectMake((hudW - 37) / 2.0, 18, 37, 37);
-    self.{{PREFIX}}VeilLabel.frame = CGRectMake(12, 62, hudW - 24, 22);
+    CGFloat insetBottom = self.view.safeAreaInsets.bottom;
+    CGFloat trackW = MIN(w - 72, 168);
+    CGFloat trackY = h - insetBottom - 56;
+    self.{{PREFIX}}VeilGaugeTrack.frame = CGRectMake((w - trackW) / 2.0, trackY, trackW, 3);
+    self.{{PREFIX}}VeilGaugeFill.frame = CGRectMake(0, 0, trackW * 0.28, 3);
+    self.{{PREFIX}}VeilCaption.frame = CGRectMake(24, trackY + 12, w - 48, 18);
 
-    CGFloat panelW = MIN(w - 48, 320);
-    CGFloat panelH = 188;
-    self.{{PREFIX}}RetryPanel.frame = CGRectMake((w - panelW) / 2.0, h * 0.38, panelW, panelH);
-    self.{{PREFIX}}RetryTitle.frame = CGRectMake(20, 22, panelW - 40, 24);
-    self.{{PREFIX}}RetryLabel.frame = CGRectMake(20, 52, panelW - 40, 52);
-    self.{{PREFIX}}Retry.frame = CGRectMake(20, panelH - 64, panelW - 40, 48);
+    self.{{PREFIX}}RetryScrim.frame = self.view.bounds;
+    CGFloat panelW = MIN(w - 48, 300);
+    CGFloat panelH = 196;
+    self.{{PREFIX}}RetryPanel.frame = CGRectMake((w - panelW) / 2.0, (h - panelH) / 2.0, panelW, panelH);
+    self.{{PREFIX}}RetryTitle.frame = CGRectMake(20, 24, panelW - 40, 24);
+    self.{{PREFIX}}RetryLabel.frame = CGRectMake(20, 56, panelW - 40, 56);
+    self.{{PREFIX}}Retry.frame = CGRectMake(20, panelH - 64, panelW - 40, 44);
 }
 
 - (void){{PREFIX}}CancelVeilTimeout {
@@ -296,10 +323,10 @@
         __strong typeof(weakSelf) self = weakSelf;
         if (!self || self.{{PREFIX}}ShellReady || self.{{PREFIX}}Veil.hidden) return;
         if (self.{{PREFIX}}LoadPending) {
-            self.{{PREFIX}}VeilLabel.text = @"Waiting for network…";
+            self.{{PREFIX}}VeilCaption.text = @"Waiting for network…";
             return;
         }
-        self.{{PREFIX}}RetryLabel.text = @"Still loading… Check your connection, then tap Retry.";
+        self.{{PREFIX}}RetryLabel.text = @"Still syncing the rehearsal shelf. Check your connection, then try again.";
         [self {{PREFIX}}ShowRetryPanel];
     });
     self.{{PREFIX}}VeilTimeoutWork = work;
@@ -307,16 +334,17 @@
 }
 
 - (void){{PREFIX}}ShowRetryPanel {
-    self.{{PREFIX}}VeilHud.hidden = YES;
-    [self.{{PREFIX}}VeilSpinner stopAnimating];
-    self.{{PREFIX}}RetryPanel.hidden = NO;
+    [self {{PREFIX}}StopGaugePulse];
+    self.{{PREFIX}}VeilCaption.hidden = YES;
+    self.{{PREFIX}}VeilGaugeTrack.hidden = YES;
+    self.{{PREFIX}}RetryScrim.hidden = NO;
     self.{{PREFIX}}Veil.hidden = NO;
     self.{{PREFIX}}Veil.alpha = 1;
     [self.view bringSubviewToFront:self.{{PREFIX}}Veil];
-    [self.view bringSubviewToFront:self.{{PREFIX}}RetryPanel];
+    [self.view bringSubviewToFront:self.{{PREFIX}}RetryScrim];
     self.{{PREFIX}}RetryPanel.transform = CGAffineTransformMakeTranslation(0, 12);
     [UIView animateWithDuration:0.32 delay:0 usingSpringWithDamping:0.86 initialSpringVelocity:0.4 options:0 animations:^{
-        self.{{PREFIX}}RetryPanel.alpha = 1;
+        self.{{PREFIX}}RetryScrim.alpha = 1;
         self.{{PREFIX}}RetryPanel.transform = CGAffineTransformIdentity;
     } completion:nil];
 }
@@ -341,7 +369,7 @@
 
 - (void){{PREFIX}}AppDidBecomeActive {
     if (self.{{PREFIX}}ShellReady) return;
-    if (self.{{PREFIX}}NeedsReload || self.{{PREFIX}}LoadPending || !self.{{PREFIX}}RetryPanel.hidden) {
+    if (self.{{PREFIX}}NeedsReload || self.{{PREFIX}}LoadPending || !self.{{PREFIX}}RetryScrim.hidden) {
         [self {{PREFIX}}ScheduleAutoRetryAfter:0.35];
     }
 }
@@ -357,7 +385,7 @@
 - (void){{PREFIX}}ScheduleAutoRetryAfter:(NSTimeInterval)delay {
     if (self.{{PREFIX}}ShellReady) return;
     if (self.{{PREFIX}}AutoRetryCount >= 4) {
-        self.{{PREFIX}}RetryLabel.text = @"Unable to load. Check your connection.";
+        self.{{PREFIX}}RetryLabel.text = @"Check your connection, then try again.";
         [self {{PREFIX}}ShowRetryPanel];
         return;
     }
@@ -368,11 +396,12 @@
         if (!self || self.{{PREFIX}}ShellReady) return;
         if (!self.{{PREFIX}}PathSatisfied) {
             self.{{PREFIX}}LoadPending = YES;
-            self.{{PREFIX}}VeilHud.hidden = NO;
-            [self.{{PREFIX}}VeilSpinner startAnimating];
-            self.{{PREFIX}}VeilLabel.text = @"Waiting for network…";
-            self.{{PREFIX}}RetryPanel.hidden = YES;
-            self.{{PREFIX}}RetryPanel.alpha = 0;
+            self.{{PREFIX}}VeilCaption.hidden = NO;
+            self.{{PREFIX}}VeilGaugeTrack.hidden = NO;
+            self.{{PREFIX}}VeilCaption.text = @"Waiting for network…";
+            self.{{PREFIX}}RetryScrim.hidden = YES;
+            self.{{PREFIX}}RetryScrim.alpha = 0;
+            [self {{PREFIX}}StartGaugePulse];
             return;
         }
         self.{{PREFIX}}AutoRetryCount += 1;
@@ -412,44 +441,46 @@
     self.{{PREFIX}}NeedsReload = YES;
     if ([self {{PREFIX}}IsTransientNetworkError:error] && self.{{PREFIX}}AutoRetryCount < 4) {
         self.{{PREFIX}}LoadPending = !self.{{PREFIX}}PathSatisfied;
-        self.{{PREFIX}}RetryPanel.hidden = YES;
-        self.{{PREFIX}}RetryPanel.alpha = 0;
+        self.{{PREFIX}}RetryScrim.hidden = YES;
+        self.{{PREFIX}}RetryScrim.alpha = 0;
         self.{{PREFIX}}Veil.hidden = NO;
         self.{{PREFIX}}Veil.alpha = 1;
-        self.{{PREFIX}}VeilHud.hidden = NO;
-        [self.{{PREFIX}}VeilSpinner startAnimating];
-        self.{{PREFIX}}VeilLabel.text = self.{{PREFIX}}PathSatisfied ? @"Reconnecting…" : @"Waiting for network…";
+        self.{{PREFIX}}VeilCaption.hidden = NO;
+        self.{{PREFIX}}VeilGaugeTrack.hidden = NO;
+        self.{{PREFIX}}VeilCaption.text = self.{{PREFIX}}PathSatisfied ? @"Reconnecting…" : @"Waiting for network…";
+        [self {{PREFIX}}StartGaugePulse];
         [self.view bringSubviewToFront:self.{{PREFIX}}Veil];
         [self {{PREFIX}}ScheduleAutoRetryAfter:self.{{PREFIX}}PathSatisfied ? 0.8 : 0.4];
         return;
     }
-    self.{{PREFIX}}RetryLabel.text = @"Unable to load. Check your connection.";
+    self.{{PREFIX}}RetryLabel.text = @"Check your connection, then try again.";
     [self {{PREFIX}}ShowRetryPanel];
 }
 
 - (void){{PREFIX}}OpenEntry {
     [self {{PREFIX}}CancelVeilTimeout];
     [self {{PREFIX}}CancelAutoRetry];
-    self.{{PREFIX}}RetryPanel.hidden = YES;
-    self.{{PREFIX}}RetryPanel.alpha = 0;
+    self.{{PREFIX}}RetryScrim.hidden = YES;
+    self.{{PREFIX}}RetryScrim.alpha = 0;
     self.{{PREFIX}}ShellReady = NO;
     self.{{PREFIX}}NeedsReload = NO;
     self.{{PREFIX}}Veil.hidden = NO;
     self.{{PREFIX}}Veil.alpha = 1;
     self.{{PREFIX}}Veil.transform = CGAffineTransformIdentity;
-    self.{{PREFIX}}VeilHud.hidden = NO;
-    [self.{{PREFIX}}VeilSpinner startAnimating];
+    self.{{PREFIX}}VeilCaption.hidden = NO;
+    self.{{PREFIX}}VeilGaugeTrack.hidden = NO;
+    [self {{PREFIX}}StartGaugePulse];
     [self.view bringSubviewToFront:self.{{PREFIX}}Veil];
 
     if (!self.{{PREFIX}}PathSatisfied) {
         self.{{PREFIX}}LoadPending = YES;
-        self.{{PREFIX}}VeilLabel.text = @"Waiting for network…";
+        self.{{PREFIX}}VeilCaption.text = @"Waiting for network…";
         [self {{PREFIX}}ScheduleVeilTimeout];
         return;
     }
 
     self.{{PREFIX}}LoadPending = NO;
-    self.{{PREFIX}}VeilLabel.text = @"Loading…";
+    self.{{PREFIX}}VeilCaption.text = @"Pulling rehearsal shelf…";
     [self {{PREFIX}}ScheduleVeilTimeout];
     NSString *entry = self.{{PREFIX}}EntryUrl ?: @"https://{{H5_HOST}}/{{APP_SLUG}}/{{PREFIX}}_entry.htm";
     NSURL *url = [NSURL URLWithString:entry];
@@ -464,8 +495,8 @@
     self.{{PREFIX}}NeedsReload = NO;
     self.{{PREFIX}}LoadPending = NO;
     self.{{PREFIX}}AutoRetryCount = 0;
-    self.{{PREFIX}}RetryPanel.hidden = YES;
-    self.{{PREFIX}}RetryPanel.alpha = 0;
+    self.{{PREFIX}}RetryScrim.hidden = YES;
+    self.{{PREFIX}}RetryScrim.alpha = 0;
     dispatch_async(dispatch_get_main_queue(), ^{
         [UIView animateWithDuration:0.32 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.{{PREFIX}}Veil.alpha = 0;
@@ -474,7 +505,7 @@
             self.{{PREFIX}}Veil.hidden = YES;
             self.{{PREFIX}}Veil.alpha = 1;
             self.{{PREFIX}}Veil.transform = CGAffineTransformIdentity;
-            [self.{{PREFIX}}VeilSpinner stopAnimating];
+            [self {{PREFIX}}StopGaugePulse];
         }];
     });
 }
@@ -504,7 +535,7 @@
         if (status >= 400) {
             decisionHandler(WKNavigationResponsePolicyCancel);
             self.{{PREFIX}}NeedsReload = YES;
-            self.{{PREFIX}}RetryLabel.text = @"Unable to load. Check your connection.";
+            self.{{PREFIX}}RetryLabel.text = @"Check your connection, then try again.";
             [self {{PREFIX}}ShowRetryPanel];
             return;
         }

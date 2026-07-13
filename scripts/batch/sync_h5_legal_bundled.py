@@ -36,6 +36,26 @@ TERMS_MD_GLOB = "* User Agreement.md"
 PRIVACY_REQUIRED_HEADINGS = ("Children's Privacy",)
 TERMS_REQUIRED_HEADINGS = ("Limitation of Liability",)
 
+PRIVACY_CANON_SECTIONS: dict[str, str] = {
+    "Children's Privacy": (
+        "## Children's Privacy\n\n"
+        "{app_name} is intended for users aged 18 and older. We do not knowingly "
+        "collect personal information from children under 13. All app data remains "
+        "on your device; delete the app to remove local data. If you believe a "
+        "child has provided information, contact {contact}."
+    ),
+}
+
+TERMS_CANON_SECTIONS: dict[str, str] = {
+    "Limitation of Liability": (
+        "## Limitation of Liability\n\n"
+        'TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, {app_name} IS PROVIDED '
+        '"AS IS" WITHOUT WARRANTIES OF ANY KIND. THE PUBLISHER SHALL NOT BE LIABLE '
+        "FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES "
+        "ARISING FROM USE OF THE APP."
+    ),
+}
+
 HEADING_RE = re.compile(r"^(#{1,3})\s+(.*)$")
 BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
 JS_STRING_RE = re.compile(
@@ -72,6 +92,92 @@ def find_privacy_md(project: Path) -> Path | None:
 def find_terms_md(project: Path) -> Path | None:
     matches = sorted(project.glob(TERMS_MD_GLOB))
     return matches[0] if matches else None
+
+
+def _resolve_app_display_name(project: Path) -> str:
+    reg = _read_register(project)
+    for key in ("appDisplayName", "appName", "displayName"):
+        value = str(reg.get(key) or "").strip()
+        if value:
+            return value
+    folder = project.name.split("-")[0].strip()
+    return folder or "App"
+
+
+def _resolve_contact_email(project: Path, app_name: str) -> str:
+    reg = _read_register(project)
+    for key in ("supportEmail", "contactEmail", "legalContact"):
+        value = str(reg.get(key) or "").strip()
+        if value:
+            return value
+    slug = str(reg.get("appSlug") or app_name).lower()
+    return f"support@{slug}.app"
+
+
+def _md_has_heading(md_text: str, heading: str) -> bool:
+    return heading in md_to_plain(md_text)
+
+
+def _append_canon_sections(
+    md_text: str,
+    *,
+    sections: dict[str, str],
+    required: tuple[str, ...],
+    app_name: str,
+    contact: str,
+) -> tuple[str, list[str]]:
+    patched = md_text.rstrip()
+    actions: list[str] = []
+    for heading in required:
+        if _md_has_heading(patched, heading):
+            continue
+        body = sections[heading].format(app_name=app_name, contact=contact)
+        patched = f"{patched}\n\n{body}\n"
+        actions.append(f"+{heading}")
+    return patched, actions
+
+
+def ensure_legal_md_canon(project: Path, *, write: bool = True) -> list[str]:
+    """Ensure legal MD files include gate-required headings."""
+    project = project.expanduser().resolve()
+    if not is_h5_shell_project(project):
+        return []
+
+    app_name = _resolve_app_display_name(project)
+    contact = _resolve_contact_email(project, app_name)
+    actions: list[str] = []
+
+    privacy_md = find_privacy_md(project)
+    if privacy_md is not None:
+        text = privacy_md.read_text(encoding="utf-8")
+        patched, added = _append_canon_sections(
+            text,
+            sections=PRIVACY_CANON_SECTIONS,
+            required=PRIVACY_REQUIRED_HEADINGS,
+            app_name=app_name,
+            contact=contact,
+        )
+        if added:
+            actions.extend(f"privacy {item}" for item in added)
+            if write:
+                privacy_md.write_text(patched, encoding="utf-8")
+
+    terms_md = find_terms_md(project)
+    if terms_md is not None:
+        text = terms_md.read_text(encoding="utf-8")
+        patched, added = _append_canon_sections(
+            text,
+            sections=TERMS_CANON_SECTIONS,
+            required=TERMS_REQUIRED_HEADINGS,
+            app_name=app_name,
+            contact=contact,
+        )
+        if added:
+            actions.extend(f"terms {item}" for item in added)
+            if write:
+                terms_md.write_text(patched, encoding="utf-8")
+
+    return actions
 
 
 def md_to_plain(text: str) -> str:
@@ -252,6 +358,7 @@ def sync_h5_legal_bundled(project: Path, *, write: bool = True) -> Path:
     if not is_h5_shell_project(project):
         raise ValueError(f"Not an h5_shell project: {project}")
 
+    ensure_legal_md_canon(project, write=write)
     expected, meta = load_expected_legal(project)
     out_path = bundled_script_path(project)
     use_ts = out_path.suffix == ".ts"

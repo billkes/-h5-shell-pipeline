@@ -68,7 +68,12 @@
         "icons",
         "web"
       ],
-      "pageOverrideCount": 0
+      "pageOverrideCount": 13,
+      "iconLibrary": [
+        "canonical",
+        "uupm-icons"
+      ],
+      "tokenHash": "f06ef23834c2bee3"
     }
   },
   "fingerprints": {

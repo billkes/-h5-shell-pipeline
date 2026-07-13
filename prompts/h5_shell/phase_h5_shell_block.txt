@@ -38,6 +38,11 @@
 - `boot()` / splash: double `requestAnimationFrame` then `bridge.call('shellReady',{})`.
 - Implement `#/plaza` **only if** Screen Inventory lists `#/plaza` — per 《H5壳广场页规范.md》; production entry = Settings long-press version label 3s when declared.
 
+[PM — Tab complexity]
+- **功能文档.md** Screen Inventory MUST list **4–5 H5 tab-root routes** (visible bottom TabBar). PM names tabs and maps each tab to a primary module — not a fixed Prepare/Runs/Settings trio.
+- Wizard steps, live session, `#/legal`, `#/plaza`, export overlays are **stack routes** — they do not count toward the 4–5 tab minimum.
+- **Do NOT** encode tab names or tab count in `task.csv` `productFlow`; navigation IA lives here (Screen Inventory + Navigation Pattern + Per-screen Layout).
+
 [PM deliverables]
 - **功能文档.md:** Full depth per 《H5壳功能文档深度标准.md》 (tier in context.json) + **Screen Inventory** (PM-authored route list — sole source of required H5 pages). Flutter inventory = WebView host + error fallback + launch placeholder only.
 - **本包登记信息.json:** `shellRuntime`, `packType`, `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd`, `h5SiteRoot`, `h5SiteEntry`, `launchPlaceholderAsset`, `h5VaultPattern`, `h5VaultLayout`, `bridgeDeckSelections`, `bridgeCapabilities`, `kitDeckSelections` (11 kit dims from CSV).

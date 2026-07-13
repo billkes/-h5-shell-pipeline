@@ -340,8 +340,10 @@ def generate_product_flow_for_topology(
             f"jump to a chapter detail; export a date-range story card for {aud}."
         ),
         "T4_wizard": (
-            f"Launch a guided wizard for {sc}: step through inputs, validate, commit to {feat}; "
-            f"review the final artifact; export the completed {feat} bundle."
+            f"Import or paste a script for {sc}; map sections to time budgets in a wizard pipeline; "
+            f"run time-mapped auto-scroll teleprompter with live pace monitoring and structural "
+            f"overtime alerts ({feat}); attach reference slides; log rehearsal notes; export a "
+            f"rhythm summary card; review past runs by course or date for {aud}."
         ),
         "T5_workspace": (
             f"Use a single workspace canvas for {sc}: edit {feat} fields in place for {aud}; "

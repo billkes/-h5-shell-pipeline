@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import re
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -20,16 +19,23 @@ if TYPE_CHECKING:
     from batch.config import BatchConfig
     from batch.csv_tasks import CsvTaskRow
 
-CANONICAL_H5_PAGES: tuple[str, ...] = (
-    "splash",
-    "welcome",
-    "hub",
-    "list",
-    "detail",
-    "store",
-    "export",
-    "plaza",
-    "settings",
+CANONICAL_H5_PAGES: tuple[str, ...] = tuple(
+    sorted(
+        {
+            "splash",
+            "welcome",
+            "hub",
+            "list",
+            "detail",
+            "store",
+            "export",
+            "plaza",
+            "settings",
+            "legal",
+            "wizard",
+            "live",
+        }
+    )
 )
 
 H5_PAGE_QUERY_HINTS: dict[str, str] = {
@@ -42,6 +48,9 @@ H5_PAGE_QUERY_HINTS: dict[str, str] = {
     "export": "export share card summary weekly report decision",
     "plaza": "bridge plaza internal QA hidden diagnostics",
     "settings": "settings profile preferences privacy terms clear data",
+    "legal": "legal privacy terms modal overlay hash route stacked scrim",
+    "wizard": "wizard multi-step form pipeline import map review",
+    "live": "live session teleprompter realtime gauge monitoring",
 }
 
 H5_PAGE_TYPE_LABELS: dict[str, str] = {
@@ -54,6 +63,9 @@ H5_PAGE_TYPE_LABELS: dict[str, str] = {
     "export": "Export / Share Preview",
     "plaza": "Bridge Plaza (hidden QA)",
     "settings": "Settings / Profile",
+    "legal": "Legal Modal Overlay",
+    "wizard": "Wizard Pipeline Step",
+    "live": "Live Session / Teleprompter",
 }
 
 # Per-page H5 shell semantics — each override must differ from MASTER and from siblings.
@@ -242,22 +254,81 @@ H5_PAGE_SPECS: dict[str, dict[str, Any]] = {
         ],
         "unique_components": ["settings row groups", "clear data confirm modal", "version long-press handler"],
         "recommendations": [
-            "Clear data returns to welcome gate",
+            "Clear data returns to welcome gate when declared",
             "Optional demo import chip for review path",
             "Tab: usually 4th tab or overflow",
         ],
     },
+    "legal": {
+        "layout": {
+            "Max Width": "min(90vw, 340px) modal card",
+            "Layout": "Hash overlay stacked on source route — never full-page replace",
+            "Sections": "1. Header + close, 2. Scrollable legal body, 3. Bottom fade mask",
+        },
+        "spacing": {"Content Density": "Low — reading column only"},
+        "typography": {"Scale": "titleMedium header + body legal copy"},
+        "colors": {"Strategy": "Elevated card on scrim; links use accent"},
+        "components": [
+            "Required: formatLegalBody + kit classes c-{prefix}-legal-*",
+            "Required: overlay router stacks base page under veil",
+            "Avoid: LEGAL br-dump single div wall",
+        ],
+        "unique_components": ["shell/legal_modal", "overlay veil-dialog stack"],
+        "recommendations": [
+            "Route `#/legal?doc=privacy|terms`",
+            "Open from Welcome / Settings link rows",
+            "Sync MD via sync_h5_legal_bundled.py",
+        ],
+    },
+    "wizard": {
+        "layout": {
+            "Max Width": "720px centered step column",
+            "Layout": "Step indicator + primary form + sticky footer actions",
+            "Sections": "1. Step title, 2. Step body, 3. Back/Continue",
+        },
+        "spacing": {"Content Density": "Medium — one primary task per step"},
+        "typography": {"Scale": "H2 step title + body fields"},
+        "colors": {"Strategy": "Primary on Continue; muted on Back"},
+        "components": [
+            "Required: linear step progression per Primary Workflow",
+            "Required: persist draft between steps in localStorage",
+            "Avoid: Skipping validation gates between steps",
+        ],
+        "unique_components": ["step rail", "wizard footer bar", "draft persistence chip"],
+        "recommendations": [
+            "Map each `#/wizard/*` route to one workflow step",
+            "Show progress N/M in header",
+            "Final step routes to live session or hub",
+        ],
+    },
+    "live": {
+        "layout": {
+            "Max Width": "100% immersive column",
+            "Layout": "Telemetry strip + scroll stage + control dock",
+            "Sections": "1. Pace/time KPIs, 2. Auto-scroll script stage, 3. Pause/mark controls",
+        },
+        "spacing": {"Content Density": "High — focus on teleprompter viewport"},
+        "typography": {"Scale": "Large readable script line + compact meta"},
+        "colors": {"Strategy": "Overtime markers use warning token; calm default wash"},
+        "components": [
+            "Required: bind to session entity from Domain Model",
+            "Required: live metrics per Business Rules Engine",
+            "Avoid: Tab bar on live route",
+        ],
+        "unique_components": ["pace gauge", "overtime marker rail", "auto-scroll controller"],
+        "recommendations": [
+            "Respect prefers-reduced-motion for scroll cadence",
+            "Persist run log on session end → detail route",
+            "Bridge hooks only for media/export when declared",
+        ],
+    },
 }
-
-_SCREEN_SLUG_RE = re.compile(
-    r"(?:^|\n)\s*(?:[-*]|\d+\.)\s*\**([A-Za-z][\w\s/-]{1,40})\**",
-    re.M,
-)
 
 
 def _slugify_page(name: str) -> str:
-    slug = re.sub(r"[^a-z0-9]+", "-", name.strip().lower()).strip("-")
-    return slug or "screen"
+    from batch.screen_inventory import _slugify_page_token
+
+    return _slugify_page_token(name)
 
 
 def _load_selected_candidate(workspace: Path, app_name: str = "") -> dict[str, Any]:
@@ -345,14 +416,41 @@ def _pattern_context_lines(
     return lines
 
 
+def _generic_page_spec(page: str) -> dict[str, Any]:
+    title = page.replace("-", " ").title()
+    return {
+        "layout": {
+            "Max Width": "Per 视觉蓝图 §Per-screen Layout",
+            "Layout": f"Implement Screen Inventory route(s) mapped to `{page}`",
+            "Sections": f"Follow PM 功能文档 Primary Workflow for {title}",
+        },
+        "spacing": {"Content Density": "Per ux-checklist.md"},
+        "typography": {"Scale": "Use MASTER typography tokens"},
+        "colors": {"Strategy": "Use package color tokens — light + dark"},
+        "components": [
+            f"Required: only if `{page}` appears in Screen Inventory",
+            "Avoid: pages/routes not listed by PM",
+        ],
+        "unique_components": [f"{title} screen kit components per §Component Selection"],
+        "recommendations": [
+            "Read design-system/pages/{page}.md before implementing matching routes",
+            "Cross-check 视觉蓝图 Per-screen Layout table",
+        ],
+    }
+
+
+def _page_spec(page: str) -> dict[str, Any]:
+    return H5_PAGE_SPECS.get(page) or _generic_page_spec(page)
+
+
 def _format_h5_page_override_md(
     page: str,
     candidate: dict[str, Any],
     ctx: dict[str, Any],
     row: CsvTaskRow,
 ) -> str:
-    """Write H5 canonical page overrides locally — do not delegate to uupm generic landing search."""
-    spec = H5_PAGE_SPECS[page]
+    """Write H5 page overrides locally — do not delegate to uupm generic landing search."""
+    spec = _page_spec(page)
     project = candidate.get("project_name") or row.name
     page_title = page.replace("-", " ").replace("_", " ").title()
     page_type = H5_PAGE_TYPE_LABELS.get(page, page_title)
@@ -459,7 +557,18 @@ def _persist_pages(
         persist_design_system(candidate, None, str(workspace), base_query)
     pages_dir = design_system_dir_for_app(workspace, row.name) / "pages"
     for page in pages:
-        if h5_canonical and page in H5_PAGE_SPECS:
+        if h5_canonical:
+            created.append(
+                _write_h5_page_file(
+                    pages_dir,
+                    page=page,
+                    candidate=candidate,
+                    ctx=ctx,
+                    row=row,
+                )
+            )
+            continue
+        if page in H5_PAGE_SPECS:
             created.append(
                 _write_h5_page_file(
                     pages_dir,
@@ -484,7 +593,7 @@ def run_skill_pages(
     row: CsvTaskRow,
     pack_type: str,
 ) -> Path:
-    """Generate design-system/{slug}/pages/*.md from selected candidate."""
+    """Prepare design-system dir; h5_shell page overrides deferred to Screen Inventory reconcile."""
     ds_dir = design_system_dir_for_app(workspace, row.name)
     if not integration_enabled(cfg, "page_overrides"):
         return ds_dir
@@ -496,7 +605,9 @@ def run_skill_pages(
     ctx = json.loads(ctx_path.read_text(encoding="utf-8")) if ctx_path.is_file() else {}
     base_query = _base_query(workspace, row)
 
-    pages = list(CANONICAL_H5_PAGES) if is_h5_shell(pack_type) else ["welcome", "home", "store", "export"]
+    pages: list[str] = []
+    if not is_h5_shell(pack_type):
+        pages = ["welcome", "home", "store", "export"]
     _persist_pages(
         cfg,
         candidate,
@@ -519,49 +630,46 @@ def run_skill_pages(
     return ds_dir / "pages"
 
 
-def _extract_screen_slugs(spec_text: str) -> list[str]:
-    slugs: list[str] = []
-    in_inventory = False
-    for line in spec_text.splitlines():
-        if re.search(r"screen\s+inventory", line, re.I):
-            in_inventory = True
-            continue
-        if in_inventory and line.strip().startswith("#"):
-            if "screen" not in line.lower():
-                in_inventory = False
-            continue
-        if not in_inventory:
-            continue
-        m = _SCREEN_SLUG_RE.search(line)
-        if m:
-            slug = _slugify_page(m.group(1))
-            if slug not in slugs and slug not in ("screen", "inventory"):
-                slugs.append(slug)
-    return slugs
-
-
-def sync_pages_from_spec(
+def reconcile_pages_from_spec(
     *,
     cfg: BatchConfig,
     workspace: Path,
     row: CsvTaskRow,
     pack_type: str,
+    prune_orphans: bool = True,
+    write_missing: bool = True,
 ) -> list[str]:
-    """After plan.gate — add page overrides for screens in 功能文档.md."""
+    """Align design-system/pages/*.md with PM Screen Inventory."""
+    from batch.screen_inventory import page_slugs_from_spec, read_spec_text
+
+    if not is_h5_shell(pack_type):
+        return []
     if not integration_enabled(cfg, "page_overrides"):
         return []
-    spec = workspace / "功能文档.md"
-    if not spec.is_file():
-        return []
-    slugs = _extract_screen_slugs(spec.read_text(encoding="utf-8", errors="replace"))
+
+    spec_text = read_spec_text(workspace)
+    slugs = page_slugs_from_spec(spec_text)
     if not slugs:
-        return []
+        return ["page reconcile: Screen Inventory 无 H5 路由 — 跳过"]
 
     pages_dir = design_system_dir_for_app(workspace, row.name) / "pages"
+    messages: list[str] = []
+    expected = set(slugs)
+
+    if pages_dir.is_dir() and prune_orphans:
+        for path in sorted(pages_dir.glob("*.md")):
+            if path.stem not in expected:
+                path.unlink()
+                messages.append(f"removed orphan page override: {path.stem}")
+
+    if not write_missing:
+        return messages
+
     existing = {p.stem for p in pages_dir.glob("*.md")} if pages_dir.is_dir() else set()
-    missing = [s for s in slugs if s not in existing]
-    if not missing:
-        return []
+    to_write = slugs if prune_orphans else [s for s in slugs if s not in existing]
+    if not to_write:
+        messages.append(f"page reconcile: {len(slugs)} slugs already present")
+        return messages
 
     inject_uupm_scripts(cfg)
     candidate = _load_selected_candidate(workspace, row.name)
@@ -573,12 +681,33 @@ def sync_pages_from_spec(
         cfg,
         candidate,
         workspace,
-        pages=missing,
+        pages=to_write,
         base_query=base_query,
         ctx=ctx,
         row=row,
+        h5_canonical=True,
     )
-    return [f"page override: {s}" for s in missing]
+    for slug in to_write:
+        messages.append(f"page override: {slug}")
+    return messages
+
+
+def sync_pages_from_spec(
+    *,
+    cfg: BatchConfig,
+    workspace: Path,
+    row: CsvTaskRow,
+    pack_type: str,
+) -> list[str]:
+    """After 功能文档.md exists — sync page overrides to Screen Inventory."""
+    return reconcile_pages_from_spec(
+        cfg=cfg,
+        workspace=workspace,
+        row=row,
+        pack_type=pack_type,
+        prune_orphans=True,
+        write_missing=True,
+    )
 
 
 def format_pages_block(workspace: Path, app_name: str) -> str:

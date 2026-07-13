@@ -637,14 +637,40 @@ def verify_pm_ui_plan_outputs(
         _soft("缺少 design-system/*/ux-checklist.md（skill.enrich 产物）")
 
     if h5_shell:
+        from batch.screen_inventory import page_slugs_from_spec
+
+        spec_path = workspace / "功能文档.md"
+        spec_for_pages = (
+            spec_path.read_text(encoding="utf-8", errors="replace")
+            if spec_path.is_file()
+            else ""
+        )
+        expected_slugs = page_slugs_from_spec(spec_for_pages)
         pages_dir = None
         for path in workspace.glob("design-system/*/pages"):
             if path.is_dir():
                 pages_dir = path
                 break
-        page_count = len(list(pages_dir.glob("*.md"))) if pages_dir else 0
-        if page_count < 5:
-            _soft(f"design-system pages 不足（当前 {page_count}，需要 >= 5）")
+        page_files = list(pages_dir.glob("*.md")) if pages_dir else []
+        page_count = len(page_files)
+        if expected_slugs:
+            if page_count < len(expected_slugs):
+                _soft(
+                    f"design-system pages 不足（当前 {page_count}，"
+                    f"Screen Inventory 需要 {len(expected_slugs)}）"
+                )
+            present = {p.stem for p in page_files}
+            orphans = sorted(present - set(expected_slugs))
+            if orphans:
+                _soft(
+                    f"design-system pages 含 Inventory 未声明项: "
+                    f"{orphans[:8]}{'…' if len(orphans) > 8 else ''}"
+                )
+        elif page_count > 0:
+            _soft(
+                f"design-system pages 存在 {page_count} 个文件，"
+                "但 Screen Inventory 未解析到 H5 路由"
+            )
 
         tokens_css = workspace / "skill-adapt" / "design-tokens.css"
         if not tokens_css.is_file():

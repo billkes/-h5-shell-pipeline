@@ -250,6 +250,7 @@ def write_placeholder(
     basename: str,
     palette_anchors: list[tuple[int, int, int]],
     size: tuple[int, int] = DEFAULT_SIZE,
+    headline: str = "",
 ) -> None:
     """Write a uniform palette-tinted placeholder PNG with replace-hint watermark.
 
@@ -275,6 +276,9 @@ def write_placeholder(
     body_font = _load_font(max(18, min(w, h) // 28))
     small_font = _load_font(max(14, min(w, h) // 40))
     text_color = (32, 24, 16)
+    lum = 0.2126 * fill[0] + 0.7152 * fill[1] + 0.0722 * fill[2]
+    if lum < 140:
+        text_color = (235, 238, 245)
 
     cw, ch = w // 2, h // 2
 
@@ -284,7 +288,7 @@ def write_placeholder(
         th = bbox[3] - bbox[1]
         draw.text((cw - tw / 2, ch - th / 2 + dy), txt, fill=text_color, font=fnt)
 
-    _centered("PLACEHOLDER", title_font, -int(min(w, h) * 0.12))
+    _centered((headline or "PLACEHOLDER").upper(), title_font, -int(min(w, h) * 0.12))
     _centered(f"role · {role}", body_font, int(min(w, h) * 0.02))
     _centered(basename, body_font, int(min(w, h) * 0.08))
     _centered(f"{w}×{h}", small_font, int(min(w, h) * 0.14))

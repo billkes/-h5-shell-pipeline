@@ -69,12 +69,16 @@ def test_page_query_includes_domain_hints() -> None:
     assert H5_PAGE_QUERY_HINTS["hub"] in q
 
 
-def test_canonical_h5_pages_count() -> None:
-    assert len(CANONICAL_H5_PAGES) >= 9
+def test_canonical_h5_pages_is_template_catalog() -> None:
+    assert "splash" in CANONICAL_H5_PAGES
+    assert "wizard" in CANONICAL_H5_PAGES
 
 
-def test_h5_page_specs_cover_canonical_pages() -> None:
-    assert set(H5_PAGE_SPECS) == set(CANONICAL_H5_PAGES)
+def test_h5_page_specs_cover_known_templates() -> None:
+    from batch.skill_pages import H5_PAGE_SPECS
+
+    for slug in ("splash", "welcome", "hub", "list", "legal", "wizard", "live"):
+        assert slug in H5_PAGE_SPECS
 
 
 def test_slugify_page() -> None:

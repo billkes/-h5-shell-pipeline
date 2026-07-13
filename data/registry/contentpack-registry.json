@@ -1,90 +1,23 @@
 {
   "packages": [
     {
-      "themeAngle": "Offline academic speech control with time-mapped teleprompter scroll and live pace overtime warnings",
-      "mainFeature": "Import presentation scripts, run time-mapped auto-scroll teleprompter with live WPM monitoring, mark structural overtime segments, log rehearsal notes, attach reference slides, export session rhythm summary cards, review runs by course or date",
-      "tab1Name": "Prepare",
-      "tab2Name": "Runs",
-      "tab3Name": "Settings",
-      "toolInputModality": "Paste or import script text with section markers",
-      "toolListLayout": "Results-only run history with course/date filters",
-      "signatureFeature": "Live pace gauge with structural overtime segment marking during teleprompter run",
-      "monetizationHook": "Export rhythm summary cards and premium section templates via coin balance",
-      "emptyStateTone": "Encouraging campus-rehearsal copy with wizard CTA",
-      "pmDeckSelections": {
-        "primaryUserGoal": "Run time-mapped teleprompter rehearsals with live pace monitoring and overtime warnings",
-        "inputModality": "Paste or import script text with section markers",
-        "mainListLayout": "Results-only run history with course/date filters",
-        "signatureFeature": "Live pace gauge with structural overtime segment marking during teleprompter run",
-        "monetizationHook": "Export rhythm summary cards and premium section templates via coin balance",
-        "emptyStateTone": "Encouraging campus-rehearsal copy with wizard CTA"
-      },
-      "codeAntiCorrelation": {
-        "dartCodePrefix": "klhvl",
-        "namingStyle": "screen_suffix",
-        "folderStyle": "by_feature",
-        "architecture": "layered",
-        "stateManagement": "mobx",
-        "codeOrganization": "fine_grained",
-        "fileNaming": "snake_case",
-        "importStyle": "relative",
-        "constantsLayout": "single_file",
-        "iapModuleName": "CoinStore",
-        "reportModuleName": "ReportHandler",
-        "constantsModuleName": "ThemeConstants",
-        "networkLayerName": "ApiClient",
-        "routeCoordinatorName": "AppRouter",
-        "utilityHelperName": "DateUtils",
-        "architectureFolders": {
-          "models": {
-            "role": "models",
-            "folderSuffix": "ember_pulse",
-            "folderBasename": "klhvl_ember_pulse",
-            "stubBasename": "klhvl_open_wave_anchor",
-            "stubClassSuffix": "Layer"
-          },
-          "views": {
-            "role": "views",
-            "folderSuffix": "byte_ring",
-            "folderBasename": "klhvl_byte_ring",
-            "stubBasename": "klhvl_byte_slot_anchor",
-            "stubClassSuffix": "Layer"
-          },
-          "controllers": {
-            "role": "controllers",
-            "folderSuffix": "byte_unit",
-            "folderBasename": "klhvl_byte_unit",
-            "stubBasename": "klhvl_byte_gate_anchor",
-            "stubClassSuffix": "Controller"
-          }
-        },
-        "programmingStyle": "俄罗斯人",
-        "architecturePattern": "mvc",
-        "csvStateManagement": "MobX",
-        "csvArchitecturePattern": "MVC",
-        "namingObfuscationRule": "单声母三随机策略",
-        "namingRuleMeta": {
-          "packageSeed": "klhvl",
-          "namingObfuscationRule": "单声母三随机策略"
-        }
-      },
+      "themeAngle": "Theme: 离线学术演讲控制系统：时间映射滚动与语速超时预警; Track: 校园效率; Audience: 大学生; Core scene: 严格计时的课堂与大学演讲; Local feature: 实时语速监测与结构性超时预警; Product flow: Import or paste a presentation script, run time-mapped auto-scroll teleprompter with live pace monitoring, mark structural overtime segments automatically, log rehearsal notes for university students, attach reference slides per section, export a session rhythm summary card, and review runs by course or date",
       "shellRuntime": "oc",
       "packType": "h5_oc_shell",
       "appSlug": "temioo",
       "bundleId": "com.temioo.quietgauge",
       "h5EntryUrl": "https://test.darin.beauty/temioo/",
-      "h5EntryUrlDev": "http://127.0.0.1:5174/",
+      "h5EntryUrlDev": "http://172.19.0.1:5174/",
       "h5EntryUrlProd": "https://test.darin.beauty/temioo/",
       "h5SiteUploadRoot": "h5_site/",
       "h5SiteRoot": "h5_site/temioo/",
       "h5SiteEntry": "index.html",
       "h5SourceRoot": "h5/",
       "h5BuildCommand": "npm run build:deploy",
-      "launchPlaceholderAsset": "assets/klhvl_launch/launch_placeholder.png",
+      "bundleEntryPath": "h5_site/temioo/index.html",
+      "launchPlaceholderAsset": "assets/uhfnf_launch/launch_placeholder.png",
       "h5VaultPattern": "h5_monolith",
       "h5VaultLayout": "assets_img_flat",
-      "bundleVaultDir": "h5_site/temioo/",
-      "bundleEntryPath": "h5_site/temioo/index.html",
       "bridgeDeckSelections": {
         "webviewEngine": "wkwebview_oc",
         "bridgeCallStyle": "window.webkit.messageHandlers.{prefix}.postMessage(JSON)",
@@ -100,7 +33,6 @@
         "writeFile",
         "pickImage",
         "saveImage",
-        "saveImageToAlbum",
         "purchase",
         "restorePurchases",
         "mediaServe",
@@ -121,7 +53,56 @@
         "h5RouterPattern": "hash-router",
         "h5ScreenPattern": "controller-view"
       },
-      "kitJsNamespaceResolved": "Klhvl.ui",
+      "kitJsNamespaceResolved": "Uhfnf.ui",
+      "codeAntiCorrelation": {
+        "dartCodePrefix": "uhfnf",
+        "namingStyle": "screen_suffix",
+        "folderStyle": "by_feature",
+        "architecture": "layered",
+        "stateManagement": "mobx",
+        "codeOrganization": "fine_grained",
+        "fileNaming": "snake_case",
+        "importStyle": "relative",
+        "constantsLayout": "single_file",
+        "iapModuleName": "CoinStore",
+        "reportModuleName": "ReportHandler",
+        "constantsModuleName": "ThemeConstants",
+        "networkLayerName": "ApiClient",
+        "routeCoordinatorName": "AppRouter",
+        "utilityHelperName": "DateUtils",
+        "architectureFolders": {
+          "models": {
+            "role": "models",
+            "folderSuffix": "prism_path",
+            "folderBasename": "uhfnf_prism_path",
+            "stubBasename": "uhfnf_spark_nest_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "views": {
+            "role": "views",
+            "folderSuffix": "prism_strip",
+            "folderBasename": "uhfnf_prism_strip",
+            "stubBasename": "uhfnf_mesh_slot_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "controllers": {
+            "role": "controllers",
+            "folderSuffix": "drift_zone",
+            "folderBasename": "uhfnf_drift_zone",
+            "stubBasename": "uhfnf_ember_slot_anchor",
+            "stubClassSuffix": "Controller"
+          }
+        },
+        "programmingStyle": "俄罗斯人",
+        "architecturePattern": "mvc",
+        "csvStateManagement": "MobX",
+        "csvArchitecturePattern": "MVC",
+        "namingObfuscationRule": "单声母三随机策略",
+        "namingRuleMeta": {
+          "packageSeed": "uhfnf",
+          "namingObfuscationRule": "单声母三随机策略"
+        }
+      },
       "designerDeckSelections": {
         "colorTemperature": "Energetic orange + pace green on dark",
         "shapeLanguage": "Voice-First Multimodal",
@@ -132,7 +113,7 @@
         "iconStyle": "outlined 2px stroke SVG"
       },
       "name": "Temioo",
-      "description": "Theme: 离线学术演讲控制系统：时间映射滚动与语速超时预警; Track: 校园效率; Audience: 大学生; Core scene: 严格计时的课堂与大学演讲; Local feature: 实时语速监测与结构性超时预警; Product flow: Import or paste a presentation script, run time-mapped auto-scroll teleprompter with live pace monitoring, mark structural overtime segments automatically, log rehearsal notes for university students, attach reference slides per section, export a session rhythm summary card, and review runs by course or date",
+      "description": "Theme: 离线学术演讲节奏控制系统; Track: 校园效率; Audience: 大学生; Core scene: 严格计时的课堂与大学演讲; Local feature: 实时语速监测与结构性超时预警; Product flow: Import or paste a presentation script; map each section to a time budget in a wizard pipeline; run intelligent time-mapped auto-scroll teleprompter with live pace monitoring and structural overtime alerts; attach reference slides per section; log rehearsal notes; export a session rhythm summary card; filter and review past runs by course or date.",
       "registeredAt": "2026-07-13",
       "batchId": "TEST-0714",
       "usedAt": "2026-07-13"

@@ -182,6 +182,9 @@ def verify_h5_legal_ui(project: Path) -> list[str]:
             issues.append(f"RENDER: missing class {token} in renderLegal markup")
 
     css = resolve_vault_css_text(project)
+    section_key = f"{class_token}-section"
+    if section_key not in render_text and section_key not in (css or ""):
+        issues.append(f"RENDER: missing {section_key} (Legal kit section headings)")
     if css is None:
         if is_h5_vite_project(project):
             issues.append("CSS: missing h5/src/styles CSS for Legal overlay (h5_vite)")

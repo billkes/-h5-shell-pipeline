@@ -1,4 +1,9 @@
-"""Canonical H5 fixed AppBar / TabBar / page-shell layout contract (Vite source)."""
+"""Canonical H5 fixed AppBar / TabBar / page inset layout contract (Vite source).
+
+Structural only: safe-area tokens, fixed chrome geometry, `.page-shell` / `.page-stack`
+padding. No per-screen visual composition (hero/export/detail) — those belong in
+Agent implementation per 视觉蓝图.md.
+"""
 
 from __future__ import annotations
 
@@ -34,7 +39,7 @@ def build_layout_block(prefix: str) -> str:
   z-index: 40;
   display: grid;
   grid-template-columns: 44px 1fr 44px;
-  align-items: end;
+  align-items: center;
   height: var(--{p}-page-inset-top);
   padding: var(--safe-top) 8px 0;
   box-sizing: border-box;
@@ -95,6 +100,12 @@ def build_layout_block(prefix: str) -> str:
 .page-full {{
   min-height: 100vh;
   padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom));
+  box-sizing: border-box;
+}}
+
+.page-stack {{
+  min-height: 100vh;
+  padding: var(--{p}-page-inset-top) 16px calc(16px + var(--safe-bottom));
   box-sizing: border-box;
 }}
 {LAYOUT_END}"""

@@ -30,6 +30,24 @@ def _palette_from_workspace(workspace: Path) -> list[tuple[int, int, int]]:
             if isinstance(data, dict):
                 tokens = data.get("colorTokens")
                 if isinstance(tokens, dict):
+                    flat: dict[str, str] = {}
+                    if isinstance(tokens.get("light"), dict):
+                        flat.update(tokens["light"])
+                    for key in ("primary", "secondary", "accent", "backgroundDark", "surface"):
+                        if key in tokens and isinstance(tokens[key], str):
+                            flat[key] = tokens[key]
+                if flat:
+                    bg = flat.get("backgroundDark")
+                    primary = flat.get("primary")
+                    if isinstance(bg, str) and bg.startswith("#") and isinstance(primary, str) and primary.startswith("#"):
+                        from batch.image_placeholders import hex_to_rgb
+
+                        anchors = [hex_to_rgb(bg), hex_to_rgb(primary)]
+                        accent = flat.get("accent")
+                        if isinstance(accent, str) and accent.startswith("#"):
+                            anchors.append(hex_to_rgb(accent))
+                        return anchors
+                    return palette_from_color_tokens({"light": flat})
                     return palette_from_color_tokens(tokens)
     return palette_from_color_tokens(None)
 
@@ -93,13 +111,34 @@ def write_app_icon_placeholder(dest: Path, *, palette: list[tuple[int, int, int]
     )
 
 
-def write_launch_placeholder_png(dest: Path, *, palette: list[tuple[int, int, int]] | None = None) -> None:
+def _resolve_app_display_name(workspace: Path) -> str:
+    reg = workspace / "本包登记信息.json"
+    if reg.is_file():
+        try:
+            data = json.loads(reg.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            data = {}
+        if isinstance(data, dict):
+            for key in ("appName", "appDisplayName", "displayName"):
+                val = str(data.get(key) or "").strip()
+                if val:
+                    return val
+    return workspace.name.split("-")[0] or "App"
+
+
+def write_launch_placeholder_png(
+    dest: Path,
+    *,
+    palette: list[tuple[int, int, int]] | None = None,
+    headline: str = "",
+) -> None:
     write_placeholder(
         dest,
         role="launch_placeholder",
         basename=dest.name,
         palette_anchors=palette or palette_from_color_tokens(None),
         size=LAUNCH_PLACEHOLDER_SIZE,
+        headline=headline or "Launch",
     )
 
 
@@ -113,6 +152,7 @@ def apply_shell_placeholders(
     ws = workspace.resolve()
     prefix = (prefix or prefix_from_workspace(ws)).strip()
     palette = _palette_from_workspace(ws)
+    app_name = _resolve_app_display_name(ws)
     changed: list[str] = []
 
     for icon_set in ws.rglob("AppIcon.appiconset"):
@@ -146,7 +186,7 @@ def apply_shell_placeholders(
         dest = img_set / target_name
         if dest.is_file() and not force and not _looks_like_factory_asset(dest):
             continue
-        write_launch_placeholder_png(dest, palette=palette)
+        write_launch_placeholder_png(dest, palette=palette, headline=app_name)
         rel = str(dest.relative_to(ws))
         changed.append(rel)
         launch_png = dest
@@ -163,6 +203,12 @@ def apply_shell_placeholders(
             else:
                 write_launch_placeholder_png(h5_dest, palette=palette)
                 changed.append(str(h5_dest.relative_to(ws)))
+
+    from batch.native_launch_style import sync_oc_host_launch_ui
+
+    synced = sync_oc_host_launch_ui(ws, write=True)
+    if synced is not None:
+        changed.append(str(synced.relative_to(ws)))
 
     return changed
 

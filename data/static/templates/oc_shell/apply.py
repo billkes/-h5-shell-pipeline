@@ -34,7 +34,7 @@ def parse_args() -> argparse.Namespace:
 
 def build_values(args: argparse.Namespace) -> dict[str, str]:
     cap = _prefix_cap(args.prefix)
-    return {
+    values = {
         "{{APP_NAME}}": args.app_name,
         "{{APP_NAME_LOWER}}": args.app_name.lower(),
         "{{PREFIX}}": args.prefix,
@@ -46,6 +46,14 @@ def build_values(args: argparse.Namespace) -> dict[str, str]:
         "{{ASSET_SCHEME}}": args.asset_scheme,
         "{{CALLBACK_SCHEME}}": args.callback_scheme,
     }
+    root = Path(__file__).resolve().parents[4]
+    scripts = root / "scripts"
+    if str(scripts) not in sys.path:
+        sys.path.insert(0, str(scripts))
+    from batch.native_launch_style import default_launch_style_values
+
+    values.update(default_launch_style_values())
+    return values
 
 
 def substitute_in_text(text: str, values: dict[str, str]) -> str:
@@ -118,6 +126,11 @@ def _apply_shell_placeholders(dst: Path, values: dict[str, str]) -> None:
     changed = apply_shell_placeholders(dst, prefix=prefix, force=True)
     for rel in changed:
         print(f"  >>> Shell placeholder: {rel}")
+    from batch.native_launch_style import sync_oc_host_launch_ui
+
+    synced = sync_oc_host_launch_ui(dst, write=True)
+    if synced is not None:
+        print(f"  >>> Native launch UI: {synced.relative_to(dst)}")
 
 
 def _enforce_no_storekit(dst: Path) -> None:

@@ -45,6 +45,7 @@ Read 《H5壳功能文档深度标准.md》 before writing. Shallow headers **fa
 Sections in order (include all):
 - **App Theme & Angle** — one paragraph grounded in CSV product flow
 - **Screen Inventory** — table: **PM-authored complete H5 route list** (no pipeline-default pages; include Splash / Welcome / Legal / Plaza / Store **only when product needs them**); shell = WebView + error + launch only
+- **Tab navigation (h5_shell)** — declare **4–5 distinct H5 tab-root routes** with bottom TabBar (each tab = primary module with its own hero/KPI/content — not a generic 3-tab shell). Examples: Plans · Rehearse · Insights · Library · Settings. **Hidden / stack routes** (`#/legal`, `#/plaza`, wizard steps, live session, export overlay) **do not** count toward the 4–5.
 - **Interaction Topology** — cite assigned topology id; primary vs secondary module roles; **Explicitly NOT** (forbidden landing patterns)
 - **Domain Model & Data Contract** — entity table (Entity | Fields | Type | Validation | Persistence key); count per tier
 - **Business Rules Engine** — BR-01… numbered rules (trigger · logic · conflict · user feedback)
@@ -100,6 +101,9 @@ Sections in order (include all V2 gates plus H5 ambient):
   - Card surface rule: semi-opaque cards; canvas visible between/behind surfaces
   - Motion notes (respect prefers-reduced-motion)
 - **Per-screen Layout** — EVERY screen **listed in Screen Inventory** (and only those)
+
+> **skill.pages (h5_shell):** `design-system/*/pages/*.md` are **not** pre-seeded. After `功能文档.md` exists, pipeline runs **`reconcile_pages_from_spec`** before plan.gate to write/prune overrides matching Screen Inventory only.
+
 - **Overlay & Feedback Specs** — table ≥4 scenarios
 - **Confirmation Dialog Inventory**
 - **Export Card Composition** — layer stack per export flow

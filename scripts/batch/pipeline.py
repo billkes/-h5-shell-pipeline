@@ -54,7 +54,7 @@ from batch.csv_prompt_blocks import (
 )
 from batch.csv_tasks import CsvTaskRow, parse_privacy_style_number
 from batch.h5_bundle_gate import print_h5_bundle_warnings, verify_h5_bundle_soft
-from batch.pack_type import is_flutter_runtime, is_h5_shell
+from batch.pack_type import is_flutter_runtime, is_h5_shell, is_native_ios_runtime
 from batch.cursor_rules import write_flutter_cursor_rules
 from batch.failure_notes import analyze_log_error_snippets
 from batch.cursor_runner import run_agent
@@ -408,6 +408,35 @@ class FlutterPipeline:
                     get_run_log().detail(
                         f"h5 page scaffold → {sp.relative_to(ctx.workspace)}"
                     )
+        if is_native_ios_runtime(ctx.pack_type):
+            row = self._csv_row_for(ctx)
+            if row is None:
+                get_run_log().detail("native shell scaffold 跳过：CSV 未找到任务行")
+                return False
+            from batch.h5_shell_placeholders import apply_shell_placeholders
+            from batch.native_shell_apply import ensure_native_shell_scaffold
+
+            try:
+                native_paths = ensure_native_shell_scaffold(
+                    project_dir=self.cfg.project_dir,
+                    workspace=ctx.workspace,
+                    row=row,
+                    bundle_id=self.cfg.xcode_bundle_id,
+                    force=self.cfg.force_rerun,
+                )
+            except (OSError, RuntimeError) as exc:
+                get_run_log().detail(f"native shell scaffold 失败: {exc}")
+                return False
+            for rel in native_paths:
+                get_run_log().detail(f"native shell scaffold → {rel}")
+            prefix = dart_prefix(ctx.workspace)
+            for rel in apply_shell_placeholders(ctx.workspace, prefix=prefix, force=True):
+                get_run_log().detail(f"shell placeholder → {rel}")
+            from batch.native_launch_style import sync_oc_host_launch_ui
+
+            synced = sync_oc_host_launch_ui(ctx.workspace, write=True)
+            if synced is not None:
+                get_run_log().detail(f"native launch UI → {synced.relative_to(ctx.workspace)}")
         write_layout_manifest(ctx.workspace, ctx.dart_name)
         row = self._csv_row_for(ctx)
         if row is not None:
@@ -524,6 +553,8 @@ class FlutterPipeline:
             f"  Contact: {main_name}@gmail.com.\n"
             f"- Body: H1/H2/H3 + prose; NO markdown tables, lists, or block "
             f"quotes.\n"
+            f"- Privacy MUST include H2 section: Children's Privacy\n"
+            f"- Terms MUST include H2 section: Limitation of Liability\n"
         )
 
     def _naming_transform_block(self, ctx: AppContext) -> str:

@@ -34,6 +34,8 @@ def test_build_layout_block_has_page_inset_tokens() -> None:
     assert "--demo-page-inset-top" in block
     assert "height: var(--demo-page-inset-top)" in block
     assert "padding: var(--demo-page-inset-top)" in block
+    assert "align-items: center" in block
+    assert ".page-stack" in block
 
 
 def test_sync_appends_layout_block_at_end(tmp_path: Path) -> None:

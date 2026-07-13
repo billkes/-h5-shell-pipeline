@@ -6,7 +6,7 @@ import json
 import re
 from pathlib import Path
 
-from batch.h5_vite_gate import find_welcome_view_text, is_h5_vite_project, vite_css_text
+from batch.h5_vite_gate import find_welcome_view_text, h5_src_dir, is_h5_vite_project, vite_css_text
 from batch.pack_type import is_h5_shell
 
 WELCOME_LAYOUT_VARIANTS: frozenset[str] = frozenset(
@@ -190,6 +190,14 @@ def _verify_h5_welcome_vite(project: Path) -> list[str]:
         issues.append("MISSING: WelcomeView.vue for welcome audit (h5_vite)")
         return issues
 
+    audit_surface = welcome
+    logic_path = h5_src_dir(project) / "views" / "WelcomeView.logic.ts"
+    if logic_path.is_file():
+        try:
+            audit_surface += "\n" + logic_path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            pass
+
     if not re.search(
         r"welcome-title|welcome-intro|c-[\w-]+-welcome-title|<h1",
         welcome,
@@ -208,11 +216,19 @@ def _verify_h5_welcome_vite(project: Path) -> list[str]:
     if not re.search(r":disabled|disabled.*Continue|Continue.*disabled", welcome, re.I):
         issues.append("MISSING: disabled Agree CTA until checkbox checked")
 
-    if not re.search(r"#/legal|legal\?doc=|path:\s*['\"]/legal|/legal", welcome, re.I):
+    if not re.search(
+        r"#/legal|legal\?doc=|path:\s*['\"]/legal|/legal|openLegal\s*\(|Privacy Agreement",
+        audit_surface,
+        re.I,
+    ):
         issues.append("MISSING: Privacy/Terms legal links in WelcomeView")
 
     if not re.search(r"\b18\b|18\s*\+|older", welcome, re.I):
         issues.append("MISSING: 18+ age notice in WelcomeView")
+
+    from batch.h5_ui_copy import collect_h5_welcome_demo_violations
+
+    issues.extend(collect_h5_welcome_demo_violations(project))
 
     css = vite_css_text(project)
     if css:

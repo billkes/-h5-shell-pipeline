@@ -344,6 +344,16 @@ class V3StepRunner:
             prompt,
             log_section_title=f"{ctx.name} · Build Agent · 蓝图 + 实现",
         )
+        if ok and is_native_ios_runtime(ctx.pack_type):
+            shell_ok, issues = self._check_native_shell(ctx)
+            if not shell_ok:
+                update_state_fields(
+                    ctx.workspace,
+                    phase_programmer_failure_reason="build.agent 后 native shell 预检未通过",
+                    phase_programmer_failure_details=issues,
+                )
+                get_run_log().fail_banner("build.agent 后 native shell 预检未通过", issues)
+                ok = False
         if ok:
             extra: dict[str, str] = {"phase_programmer_agent": "done"}
             if is_h5_shell(ctx.pack_type):
@@ -401,6 +411,20 @@ class V3StepRunner:
                 print(">>> Selection 产物同步（plan.gate 前）:")
                 for line in sync_changes:
                     print(f"       {line}")
+            row = self.p._csv_row_for(ctx)
+            if row is not None and h5 and (ws / "功能文档.md").is_file():
+                from batch.skill_pages import reconcile_pages_from_spec
+
+                page_sync = reconcile_pages_from_spec(
+                    cfg=self.p.cfg,
+                    workspace=ws,
+                    row=row,
+                    pack_type=ctx.pack_type,
+                )
+                if page_sync:
+                    print(">>> skill.pages reconcile（plan.gate 前）:")
+                    for line in page_sync:
+                        print(f"       {line}")
             return verify_pm_ui_plan_outputs(
                 ws,
                 tool_flutter=tool,
@@ -589,6 +613,17 @@ class V3StepRunner:
         issues.extend(verify_h5_welcome_canon(fp))
         issues.extend(verify_h5_plaza_dev_gate(fp))
         issues.extend(verify_skill_ux_gate(fp))
+        from batch.h5_ui_copy import (
+            collect_h5_demo_seed_cjk_violations,
+            collect_h5_ui_cjk_violations,
+            collect_h5_stack_layout_violations,
+            collect_h5_welcome_demo_violations,
+        )
+
+        issues.extend(collect_h5_ui_cjk_violations(ws))
+        issues.extend(collect_h5_demo_seed_cjk_violations(ws))
+        issues.extend(collect_h5_stack_layout_violations(ws))
+        issues.extend(collect_h5_welcome_demo_violations(ws))
 
         hard = [i for i in issues if not i.startswith("UX Gate WARN")]
         if hard:
@@ -645,8 +680,16 @@ class V3StepRunner:
         ws = ctx.workspace
         runtime = h5_shell_runtime(ctx.pack_type)
         issues: list[str] = []
-        if not any(ws.glob("*.xcodeproj")) and not any(ws.glob("*.xcworkspace")):
+        from batch.native_shell_apply import find_xcode_projects
+
+        xcode_projects = find_xcode_projects(ws)
+        if not xcode_projects:
             issues.append("缺少 .xcodeproj/.xcworkspace")
+        elif not any(p.parent.resolve() == ws.resolve() for p in xcode_projects):
+            rel = xcode_projects[0].relative_to(ws)
+            issues.append(
+                f".xcodeproj/.xcworkspace 不在 workspace 根目录（发现: {rel}）"
+            )
         if not list(ws.rglob("Info.plist")):
             issues.append("缺少 Info.plist")
         if not list(ws.rglob("*LaunchScreen*.storyboard")):
@@ -705,9 +748,11 @@ class V3StepRunner:
 
         from batch.native_iap_policy import collect_storekit_violations
         from batch.h5_shell_placeholders import collect_placeholder_violations
+        from batch.native_launch_style import collect_native_launch_ui_violations
 
         issues.extend(collect_storekit_violations(ws))
         issues.extend(collect_placeholder_violations(ws))
+        issues.extend(collect_native_launch_ui_violations(ws))
         issues.extend(self._optional_xcodebuild(ws, ctx.name, runtime))
         return len(issues) == 0, issues
 
@@ -716,12 +761,15 @@ class V3StepRunner:
         import platform
         import subprocess
 
+        from batch.native_shell_apply import find_xcode_projects
+
         if platform.system() != "Darwin":
             return []
-        projects = list(ws.glob("*.xcodeproj"))
-        if not projects:
+        projects = find_xcode_projects(ws)
+        root_projects = [p for p in projects if p.parent.resolve() == ws.resolve()]
+        if not root_projects:
             return []
-        project = projects[0]
+        project = root_projects[0]
         cmd = [
             "xcodebuild",
             "-project",
