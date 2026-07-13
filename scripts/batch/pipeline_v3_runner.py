@@ -274,6 +274,7 @@ class V3StepRunner:
             "csv_iap_block": self.p._csv_iap_block_for(ctx),
             "design_system_block": self.p._design_system_block(ctx),
             "designer_lock_block": self.p._designer_lock_block(ctx),
+            "ambient_canvas_block": self.p._ambient_canvas_block(ctx),
             "naming_transform_block": self.p._naming_transform_block(ctx),
             "dimension_boundary_block": dimension_boundary_block(),
             "p2_product_doc": p2_doc,

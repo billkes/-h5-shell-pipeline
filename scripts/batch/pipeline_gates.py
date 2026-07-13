@@ -8,6 +8,7 @@ from pathlib import Path
 
 # V2 visual blueprint mandatory sections (heading substring match, case-insensitive).
 VISUAL_BLUEPRINT_V2_SECTIONS: tuple[str, ...] = (
+    "Ambient Canvas",
     "Overlay & Feedback",
     "Export Card Composition",
     "Confirmation Dialog Inventory",
@@ -23,6 +24,7 @@ VISUAL_BLUEPRINT_V2_SECTIONS: tuple[str, ...] = (
 )
 
 VISUAL_LOCK_V2_KEYS: tuple[str, ...] = (
+    "ambientCanvas",
     "overlayTokens",
     "exportCards",
     "listRowSpec",
@@ -98,6 +100,34 @@ def _extract_section(text: str, heading_fragment: str) -> str:
     return "\n".join(body)
 
 
+def _verify_ambient_canvas_section(visual_text: str) -> list[str]:
+    """Ambient Canvas Canon depth — theme background, not flat SaaS wash."""
+    issues: list[str] = []
+    if not _section_present(visual_text, "Ambient Canvas"):
+        return issues
+
+    section = _extract_section(visual_text, "Ambient Canvas")
+    if not section.strip():
+        issues.append("视觉蓝图.md Ambient Canvas 章节为空")
+        return issues
+
+    lower = section.lower()
+    if "layer" not in lower and "stack" not in lower:
+        issues.append("视觉蓝图.md Ambient Canvas 须声明 layer stack（base/mesh/grid/motif）")
+    if "scene" not in lower and "route" not in lower:
+        issues.append("视觉蓝图.md Ambient Canvas 须含 scene/route 映射表（≥4 行）")
+    else:
+        rows = re.findall(r"^\s*\|", section, re.M)
+        if len(rows) < 4:
+            issues.append("视觉蓝图.md Ambient Canvas scene 表须 ≥4 数据行")
+    if "ambient" not in lower and "canvas" not in lower:
+        issues.append("视觉蓝图.md Ambient Canvas 须引用 ambient token（--{prefix}-ambient-*）")
+    if "herovisualmotif" not in lower.replace(" ", "") and "hero visual" not in lower:
+        issues.append("视觉蓝图.md Ambient Canvas 须绑定 heroVisualMotif / key_effects")
+
+    return issues
+
+
 def _verify_visual_blueprint_depth(
     visual_text: str,
     spec_text: str = "",
@@ -147,6 +177,7 @@ def _verify_visual_blueprint_depth(
     from batch.welcome_canon import verify_welcome_blueprint_section
 
     issues.extend(verify_welcome_blueprint_section(visual_text))
+    issues.extend(_verify_ambient_canvas_section(visual_text))
 
     return issues
 
@@ -165,6 +196,13 @@ def _verify_visual_lock_depth(data: dict, *, h5_shell: bool = False) -> list[str
         elif key == "overlayTokens":
             if not isinstance(val, dict) or not val:
                 issues.append("本包视觉锁.json overlayTokens 须为非空 object")
+        elif key == "ambientCanvas":
+            if not isinstance(val, dict) or not val:
+                issues.append("本包视觉锁.json ambientCanvas 须为非空 object")
+            elif not val.get("motifKey") or not val.get("scenes"):
+                issues.append(
+                    "本包视觉锁.json ambientCanvas 须含 motifKey + scenes（route→scene 映射）"
+                )
         elif key == "formFieldSpec":
             if isinstance(val, dict) and not val.get("hintUsesSameToken"):
                 issues.append("本包视觉锁.json formFieldSpec.hintUsesSameToken 须为 true")

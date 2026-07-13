@@ -214,6 +214,11 @@ class FlutterPipeline:
 
         return format_design_brief_block(ctx.workspace)
 
+    def _ambient_canvas_block(self, ctx: AppContext) -> str:
+        from batch.skill_adapt import format_ambient_canvas_block
+
+        return format_ambient_canvas_block(ctx.workspace)
+
     def _run_prepare_context(self, ctx: AppContext) -> bool:
         from batch.skill_context import write_skill_input
 
