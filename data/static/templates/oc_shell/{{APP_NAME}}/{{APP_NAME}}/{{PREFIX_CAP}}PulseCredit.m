@@ -115,6 +115,13 @@
     self.pendingProductId = nil;
 }
 
+- (BOOL)paymentQueue:(SKPaymentQueue *)queue shouldAddStorePayment:(SKPayment *)payment forProduct:(SKProduct *)product {
+    (void)queue;
+    (void)payment;
+    (void)product;
+    return NO;
+}
+
 - (void)paymentQueue:(SKPaymentQueue *)queue restoreCompletedTransactionsFailedWithError:(NSError *)error {
     if (self.pending) self.pending(-1, @{@"message": @"RESTORE_FAILED"});
     self.pending = nil;
