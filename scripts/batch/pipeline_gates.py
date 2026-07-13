@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import dataclass, field
 from pathlib import Path
 
 # V2 visual blueprint mandatory sections (heading substring match, case-insensitive).
@@ -34,6 +35,39 @@ VISUAL_LOCK_V2_KEYS: tuple[str, ...] = (
     "componentSelection",
     "baselineReference",
 )
+
+
+@dataclass
+class PlanGateResult:
+    """plan.gate split: hard = block pipeline; soft = warn and continue (default)."""
+
+    hard: list[str] = field(default_factory=list)
+    soft: list[str] = field(default_factory=list)
+
+    def ok(self, *, strict: bool = False) -> bool:
+        if self.hard:
+            return False
+        if strict and self.soft:
+            return False
+        return True
+
+    def all_issues(self) -> list[str]:
+        return list(self.hard) + list(self.soft)
+
+
+def write_plan_gate_report(workspace: Path, result: PlanGateResult, *, strict: bool) -> Path:
+    """Persist gate outcome for resume / audit."""
+    from batch.interaction_topology import plan_gate_strict
+
+    payload = {
+        "strict": strict or plan_gate_strict(),
+        "passed": result.ok(strict=strict or plan_gate_strict()),
+        "hard": result.hard,
+        "soft": result.soft,
+    }
+    path = workspace / "plan-gate-report.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return path
 
 
 def _section_present(text: str, heading_fragment: str) -> bool:
@@ -491,8 +525,19 @@ def verify_pm_ui_plan_outputs(
     h5_shell: bool = False,
     csv_full_name: str = "",
     app_name: str = "",
-) -> tuple[bool, list[str]]:
-    """V3 Phase 1 gate: PM+UI+Plan merged deliverables."""
+    project_dir: Path | None = None,
+    sibling_workspaces: list[Path] | None = None,
+) -> PlanGateResult:
+    """V3 Phase 1 gate: PM+UI+Plan — hard vs soft split (default: soft warns, no断线)."""
+    hard: list[str] = []
+    soft: list[str] = []
+
+    def _hard(msg: str) -> None:
+        hard.append(msg)
+
+    def _soft(msg: str) -> None:
+        soft.append(msg)
+
     ok_pm, issues_pm = verify_phase1_pm_outputs(
         workspace,
         tool_flutter=tool_flutter,
@@ -500,27 +545,49 @@ def verify_pm_ui_plan_outputs(
         h5_shell=h5_shell,
         csv_full_name=csv_full_name,
     )
+    for issue in issues_pm:
+        if issue.startswith("缺少 功能文档") or issue.startswith("缺少 本包登记"):
+            _hard(issue)
+        elif "JSON 不合法" in issue or "不是 JSON object" in issue:
+            _hard(issue)
+        elif issue.startswith("缺少字段"):
+            _hard(issue)
+        elif issue.startswith("缺少产品文档"):
+            _soft(issue)
+        elif not ok_pm:
+            _hard(issue)
+        else:
+            _soft(issue)
+
     ok_ui, issues_ui = verify_phase2_designer_outputs(workspace)
-    issues = list(issues_pm) + list(issues_ui)
+    for issue in issues_ui:
+        if issue.startswith("缺少 视觉蓝图") or issue.startswith("缺少 本包视觉锁"):
+            _hard(issue)
+        elif "JSON 不合法" in issue or "不是 JSON object" in issue:
+            _hard(issue)
+        elif not ok_ui:
+            _soft(issue)
+        else:
+            _soft(issue)
 
     from batch.uupm_design_system import find_design_system_master
 
     master = find_design_system_master(workspace, app_name)
     if master is None or master.stat().st_size < 200:
-        issues.append("缺少 design-system MASTER.md（design.system 步骤产物）")
+        _hard("缺少 design-system MASTER.md（design.system 步骤产物）")
     pointer = workspace / "设计系统建议.md"
     if not pointer.is_file():
-        issues.append("缺少 设计系统建议.md（skill.design 指针文件）")
+        _soft("缺少 设计系统建议.md（skill.design 指针文件）")
     adapt_brief = workspace / "skill-adapt" / "design-brief.md"
     if not adapt_brief.is_file():
-        issues.append("缺少 skill-adapt/design-brief.md（skill.adapt 产物）")
+        _soft("缺少 skill-adapt/design-brief.md（skill.adapt 产物）")
 
     ux_checklist = None
     for path in workspace.glob("design-system/*/ux-checklist.md"):
         ux_checklist = path
         break
     if ux_checklist is None or ux_checklist.stat().st_size < 80:
-        issues.append("缺少 design-system/*/ux-checklist.md（skill.enrich 产物）")
+        _soft("缺少 design-system/*/ux-checklist.md（skill.enrich 产物）")
 
     if h5_shell:
         pages_dir = None
@@ -530,51 +597,54 @@ def verify_pm_ui_plan_outputs(
                 break
         page_count = len(list(pages_dir.glob("*.md"))) if pages_dir else 0
         if page_count < 5:
-            issues.append(f"design-system pages 不足（当前 {page_count}，需要 >= 5）")
+            _soft(f"design-system pages 不足（当前 {page_count}，需要 >= 5）")
 
         tokens_css = workspace / "skill-adapt" / "design-tokens.css"
         if not tokens_css.is_file():
-            issues.append("缺少 skill-adapt/design-tokens.css（skill.tokens 产物）")
+            _soft("缺少 skill-adapt/design-tokens.css（skill.tokens 产物）")
 
     visual = workspace / "视觉蓝图.md"
     if visual.is_file():
         vtext = visual.read_text(encoding="utf-8", errors="replace")
         if h5_shell and "ux-checklist" not in vtext.lower() and "ambient canvas" not in vtext.lower():
-            issues.append("视觉蓝图.md 应引用 ux-checklist 或 Ambient Canvas enrich 产物")
+            _soft("视觉蓝图.md 应引用 ux-checklist 或 Ambient Canvas enrich 产物")
 
     for name, min_size in (
         ("产包计划.md", 300),
         ("资源计划.md", 150),
     ):
         path = workspace / name
-        if not path.is_file() or path.stat().st_size < min_size:
-            issues.append(f"缺少 {name} 或内容过短")
+        if not path.is_file():
+            _hard(f"缺少 {name}")
+        elif path.stat().st_size < min_size:
+            _soft(f"{name} 内容过短（<{min_size} 字符）")
 
     plan = workspace / "产包计划.md"
     if plan.is_file():
         text = plan.read_text(encoding="utf-8", errors="replace")
         for marker in ("§1", "§2", "§3", "§4", "§5"):
             if marker not in text:
-                issues.append(f"产包计划.md 缺少 {marker} 章节标记")
+                _soft(f"产包计划.md 缺少 {marker} 章节标记")
         if _plan_repeats_sdk_lock(text):
-            issues.append("产包计划.md 不应重复锁定 flutter/dart SDK（已由 pubspec / 批次规范锁定）")
+            _soft("产包计划.md 不应重复锁定 flutter/dart SDK（已由 pubspec / 批次规范锁定）")
         if _plan_has_per_step_checkpoints(text):
-            issues.append("产包计划.md §3 应为 Final Gate，禁止每步验收/analyze checkpoint")
+            _soft("产包计划.md §3 应为 Final Gate，禁止每步验收/analyze checkpoint")
         from batch.component_kit_index import verify_plan_component_order
 
-        issues.extend(verify_plan_component_order(text))
+        for issue in verify_plan_component_order(text):
+            _soft(issue)
         if "§3" in text and not re.search(
             r"final\s+gate|flutter\s+analyze|max_analyze_fix_rounds|0\s+.*error",
             text,
             re.I,
         ):
-            issues.append("产包计划.md §3 应描述 Final Gate（flutter analyze 0 error + max_analyze_fix_rounds）")
+            _soft("产包计划.md §3 应描述 Final Gate（flutter analyze 0 error + max_analyze_fix_rounds）")
 
     spec = workspace / "功能文档.md"
     if spec.is_file():
         spec_text = spec.read_text(encoding="utf-8", errors="replace")
         if "Data Contract" not in spec_text and "数据契约" not in spec_text:
-            issues.append("功能文档.md 缺少 Data Contract / 数据契约 章节")
+            _soft("功能文档.md 缺少 Data Contract / 数据契约 章节")
         if h5_shell:
             from batch.spec_business_depth import (
                 resolve_tier_from_workspace,
@@ -584,20 +654,38 @@ def verify_pm_ui_plan_outputs(
 
             if spec_depth_gate_enabled():
                 tier_id = resolve_tier_from_workspace(workspace)
-                issues.extend(verify_spec_business_depth(spec_text, tier_id=tier_id))
+                for issue in verify_spec_business_depth(spec_text, tier_id=tier_id):
+                    _soft(issue)
+
+            if project_dir is not None:
+                import os
+                from batch.interaction_topology import (
+                    verify_flow_topology_soft_for_workspace,
+                )
+
+                if os.environ.get("ENABLE_FLOW_TOPOLOGY_GATE", "1").strip().lower() not in (
+                    "0",
+                    "false",
+                    "no",
+                ):
+                    for issue in verify_flow_topology_soft_for_workspace(
+                        workspace,
+                        project_dir=project_dir,
+                        sibling_workspaces=sibling_workspaces,
+                    ):
+                        _soft(issue)
 
     from batch.selection_gate import verify_selection_plan
 
-    issues.extend(
-        verify_selection_plan(
-            workspace,
-            pack_type="h5_shell" if h5_shell else (
-                "tool_flutter" if tool_flutter else (
-                    "videostream" if videostream else "contentpack"
-                )
-            ),
-            h5_shell=h5_shell,
-        )
-    )
+    for issue in verify_selection_plan(
+        workspace,
+        pack_type="h5_shell" if h5_shell else (
+            "tool_flutter" if tool_flutter else (
+                "videostream" if videostream else "contentpack"
+            )
+        ),
+        h5_shell=h5_shell,
+    ):
+        _soft(issue)
 
-    return (len(issues) == 0, issues)
+    return PlanGateResult(hard=hard, soft=soft)
