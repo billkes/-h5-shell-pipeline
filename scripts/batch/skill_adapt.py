@@ -110,14 +110,6 @@ def designer_selections_from_candidate(
     }
 
 
-def pages_glob_rel_from_master(master_rel: str) -> str:
-    """Workspace-relative glob for page overrides beside MASTER.md."""
-    suffix = "/MASTER.md"
-    if master_rel.endswith(suffix):
-        return f"{master_rel[: -len(suffix)]}/pages/*.md"
-    return "design-system/*/pages/*.md"
-
-
 def _design_brief_md(
     candidate: dict[str, Any],
     *,
@@ -128,7 +120,6 @@ def _design_brief_md(
     style = candidate.get("style") or {}
     colors = candidate.get("colors") or {}
     typo = candidate.get("typography") or {}
-    pages_rel = pages_glob_rel_from_master(master_rel)
     lines = [
         "# Design Brief (skill.adapt)",
         "",
@@ -137,7 +128,6 @@ def _design_brief_md(
         "## Primary Sources",
         f"- `{master_rel}` — full design system (ui-ux-pro-max MASTER)",
         f"- `{stack_rel}` — stack implementation guidelines",
-        f"- `{pages_rel}` — page overrides (welcome, home, store, export)",
         "",
         "## Visual Identity (from selected candidate)",
         f"- **Style:** {style.get('name', '?')} — {style.get('keywords', '')}",
@@ -194,7 +184,6 @@ def write_skill_adapt_outputs(
         if stack_path and stack_path.is_file()
         else ""
     )
-    pages_rel = pages_glob_rel_from_master(master_rel)
     brief = _design_brief_md(
         candidate,
         master_rel=master_rel,
@@ -208,7 +197,7 @@ def write_skill_adapt_outputs(
         "",
         f"Read `{master_rel}` before shared widgets.",
         f"Read `{stack_rel}` for stack-specific rules.",
-        f"Read `{pages_rel}` before implementing matching screens.",
+        "Screen layout comes from 功能文档.md / 视觉蓝图.md — not pre-baked page overrides.",
         "",
         "## designerDeckSelections (for 本包视觉锁.json)",
         json.dumps(designer, ensure_ascii=False, indent=2),

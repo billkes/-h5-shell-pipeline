@@ -75,6 +75,22 @@ def _jaccard(a: set[str], b: set[str]) -> float:
     return len(inter) / len(union) if union else 0.0
 
 
+def ensure_contentpack_registry(registry_path: Path) -> Path:
+    """Create ``{"packages": []}`` if the registry file is missing."""
+    if registry_path.is_file():
+        return registry_path
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
+    registry_path.write_text(
+        json.dumps({"packages": []}, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return registry_path
+
+
+def _package_name(pkg: dict) -> str:
+    return str(pkg.get("name") or pkg.get("appName") or "").strip()
+
+
 def load_registry_packages(registry_path: Path) -> list[dict]:
     if not registry_path.is_file():
         return []
@@ -84,6 +100,35 @@ def load_registry_packages(registry_path: Path) -> list[dict]:
         return [p for p in packages if isinstance(p, dict)]
     except (json.JSONDecodeError, OSError):
         return []
+
+
+def find_package_by_name(registry_path: Path, app_name: str) -> dict | None:
+    target = str(app_name or "").strip()
+    if not target:
+        return None
+    for pkg in load_registry_packages(registry_path):
+        if _package_name(pkg) == target:
+            return pkg
+    return None
+
+
+def audit_registry_duplicate_names(rows: list[object], registry_path: Path) -> list[str]:
+    """Hard block when task.csv 主名称已在 contentpack-registry 登记."""
+    ensure_contentpack_registry(registry_path)
+    issues: list[str] = []
+    for row in rows:
+        name = str(getattr(row, "name", "") or "").strip()
+        if not name:
+            continue
+        existing = find_package_by_name(registry_path, name)
+        if not existing:
+            continue
+        reg_at = str(existing.get("registeredAt") or "?")
+        issues.append(
+            f"「{name}」已在 contentpack-registry 登记（{reg_at}），"
+            "不可重复产包（换主名称或从登记表移除后重试）"
+        )
+    return issues
 
 
 def _similarity_conflicts(new_pkg: dict, existing_pkg: dict) -> list[str]:
@@ -195,7 +240,9 @@ def append_to_registry(
     app_desc: str,
     *,
     batch_id: str = "",
+    upsert: bool = False,
 ) -> bool:
+    ensure_contentpack_registry(registry_path)
     try:
         reg = json.loads(registry_path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
@@ -219,11 +266,13 @@ def append_to_registry(
             pkg["usedAt"] = pkg["registeredAt"]
         except json.JSONDecodeError:
             pass
+    if upsert:
+        packages = [p for p in packages if _package_name(p) != app_name]
     packages.append(pkg)
     reg["packages"] = packages
     registry_path.parent.mkdir(parents=True, exist_ok=True)
     registry_path.write_text(
-        json.dumps(reg, ensure_ascii=False, indent=2),
+        json.dumps(reg, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     print(f">>> 已写入登记表: {app_name}")

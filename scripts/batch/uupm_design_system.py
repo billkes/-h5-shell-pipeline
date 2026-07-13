@@ -31,7 +31,6 @@ MASTER_FILENAME = "MASTER.md"
 POINTER_FILENAME = "设计系统建议.md"
 META_FILENAME = "META.json"
 CANDIDATES_FILENAME = "candidates.json"
-DEFAULT_PAGES: tuple[str, ...] = ("welcome", "home", "store", "export")
 
 
 def _uupm_skill_repo_candidates(cfg: BatchConfig) -> list[Path]:
@@ -245,7 +244,7 @@ def run_skill_design(
     row: CsvTaskRow,
     pack_type: str,
 ) -> Path:
-    """Generate uupm candidates, MASTER (provisional), stack + page overrides.
+    """Generate uupm candidates, MASTER (provisional), and stack guidelines.
     
     Applies the 4-step fallback ladder to avoid registry saturation issues.
     """
@@ -347,10 +346,6 @@ def run_skill_design(
     stack_path.parent.mkdir(parents=True, exist_ok=True)
     stack_path.write_text(_format_stack_md(stack, query, stack_results), encoding="utf-8")
 
-    for page in DEFAULT_PAGES:
-        page_query = f"{query} {page} screen"
-        persist_design_system(primary, page, str(workspace), page_query)
-
     meta = {
         "source": "ui-ux-pro-max-skill",
         "app": row.name,
@@ -372,7 +367,6 @@ def run_skill_design(
     pointer = workspace / POINTER_FILENAME
     rel = master.relative_to(workspace)
     slug = row.name.lower().replace(" ", "-")
-    pages_glob = f"design-system/{slug}/pages/*.md"
     pointer.write_text(
         "\n".join(
             [
@@ -382,11 +376,11 @@ def run_skill_design(
                 "",
                 f"- MASTER: `{rel.as_posix()}`",
                 f"- Stack: `design-system/{slug}/stack-{stack}.md`",
-                f"- Pages: `{pages_glob}`",
                 f"- Candidates: `design-system/{slug}/candidates.json`",
                 f"- Adapt brief: `skill-adapt/design-brief.md`",
                 "",
-                f"Agent Plan 读 skill-adapt/design-brief.md + MASTER；Programmer 读 stack + `{pages_glob}`。",
+                "Agent Plan 读 skill-adapt/design-brief.md + MASTER；Programmer 读 stack。",
+                "页面级 override（design-system/pages/）不再预生成，由 build.agent 按功能文档定义。",
                 "",
             ]
         ),

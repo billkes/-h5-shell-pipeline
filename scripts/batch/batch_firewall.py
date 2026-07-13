@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from batch.config import BatchConfig
-from batch.csv_tasks import CsvTaskRow, load_csv_tasks, load_task_csv_meta
+from batch.csv_tasks import CsvTaskRow, load_csv_tasks, load_task_csv_meta, output_workspace_exists
 from batch.task_audit import (
     audit_dimension_diversity,
     audit_programming_style_batch,
@@ -70,11 +70,12 @@ def validate_batch_firewall(
         code = (row.first_product_code or "").strip()
         if not code:
             continue
-        if (output_dir / row.name).is_dir() or (output_dir / f"{row.name}-Flutter").is_dir():
+        if output_workspace_exists(output_dir, row):
             continue
         for issue in validate_product_code(code):
             issues.append(f"「{row.name}」{issue}")
     issues.extend(_duplicate_values(rows, "full_name", "全称"))
+    issues.extend(_duplicate_values(rows, "name", "应用主名称"))
     issues.extend(_duplicate_values(rows, "theme_cn", COL_THEME_CN))
     issues.extend(_duplicate_values(rows, "core_scene", COL_CORE_SCENE))
 
@@ -90,8 +91,8 @@ def validate_batch_firewall(
             )
 
     issues.extend(audit_dimension_diversity(rows))
-    h5_registry = cfg.registry_dir / "h5-shell-registry.json"
-    issues.extend(audit_task_registry_similarity(rows, h5_registry))
+    ensure_contentpack_registry(cfg.contentpack_registry)
+    issues.extend(audit_task_registry_similarity(rows, cfg.contentpack_registry))
     issues.extend(audit_h5_shell_bridge_filled(rows))
     # Kit 八维列暂未纳入 h5-shell-pipeline task.csv schema
     issues.extend(audit_programming_style_batch(rows))

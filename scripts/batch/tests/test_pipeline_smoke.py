@@ -70,7 +70,7 @@ def test_repo_container_name_native_shell() -> None:
             "https://github.com/example/Buildioo.git",
             pack_type="h5_swift_shell",
         )
-        == "Buildioo-shell"
+        == "Buildioo-Swift"
     )
     assert (
         repo_container_name(
@@ -78,7 +78,7 @@ def test_repo_container_name_native_shell() -> None:
             "",
             pack_type="h5_oc_shell",
         )
-        == "Hathoo-shell"
+        == "Hathoo-OC"
     )
     assert (
         repo_container_name(
@@ -88,3 +88,17 @@ def test_repo_container_name_native_shell() -> None:
         )
         == "Pawioo-Flutter"
     )
+
+
+def test_app_workspace_registry_entry() -> None:
+    sys.path.insert(0, str(SCRIPTS))
+    from batch.csv_tasks import app_workspace_registry_entry
+
+    entry = app_workspace_registry_entry(
+        ROOT / "output",
+        name="Buildioo",
+        pack_type="h5_swift_shell",
+        git_url="https://github.com/example/Buildioo.git",
+    )
+    assert entry["container"] == "Buildioo-Swift"
+    assert entry["workspace"].endswith("/output/Buildioo-Swift/Buildioo")

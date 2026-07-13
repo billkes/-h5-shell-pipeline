@@ -382,6 +382,7 @@ class V3StepRunner:
                 ctx.name,
                 ctx.desc,
                 batch_id=self.p._batch_id(),
+                upsert=self.p.cfg.force_rerun,
             )
         return True
 

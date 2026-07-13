@@ -19,7 +19,7 @@ from batch.batch_log import batch_log_session, make_batch_stamp
 from batch.batch_runs import append_batch_run, batch_runs_path
 from batch.batch_tag import ensure_output_layout, report_paths
 from batch.config import BatchConfig
-from batch.csv_tasks import load_task_csv_meta, load_tasks_for_run
+from batch.csv_tasks import app_workspace_registry_entry, load_task_csv_meta, load_tasks_for_run
 from batch.orchestrator import BatchOrchestrator
 from batch.queue import QueueTask
 from batch.task_schema import TASK_CSV_FILENAME
@@ -220,7 +220,7 @@ def _execute_batch_run(
         f"本次执行: {len(tasks)} 个项目"
         if len(tasks) != 1
         else f"本次执行: {tasks[0].name}（{tasks[0].pack_type}）",
-        f"输出目录: {output}（{{AppName}}-shell 或 -Flutter / {{AppName}}/）",
+        f"输出目录: {output}（{{AppName}}-Swift / -OC / -Flutter / {{AppName}}/）",
         f"报告目录: {log_path.parent}",
     ]
 
@@ -232,6 +232,19 @@ def _execute_batch_run(
         app_names=[t.name for t in tasks],
         output_dir=str(output),
         reports_dir=str(log_path.parent),
+        app_workspaces=[
+            app_workspace_registry_entry(
+                output,
+                name=t.name,
+                pack_type=t.pack_type,
+                git_url=(
+                    (cfg.task_csv_by_name.get(t.name).git_url or "")
+                    if cfg.task_csv_by_name.get(t.name)
+                    else ""
+                ),
+            )
+            for t in tasks
+        ],
     )
 
     orch = BatchOrchestrator(cfg)

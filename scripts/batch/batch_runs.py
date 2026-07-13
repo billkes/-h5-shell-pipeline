@@ -46,10 +46,11 @@ def append_batch_run(
     app_names: list[str],
     output_dir: str,
     reports_dir: str,
+    app_workspaces: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     data = load_batch_runs(path)
     runs = data.setdefault("runs", [])
-    entry = {
+    entry: dict[str, Any] = {
         "batchId": batch_id,
         "stamp": stamp,
         "startedAt": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -60,6 +61,8 @@ def append_batch_run(
         "apps": app_names,
         "runner": "batch-python",
     }
+    if app_workspaces:
+        entry["appWorkspaces"] = app_workspaces
     if isinstance(runs, list):
         runs.append(entry)
     write_batch_runs(path, data)

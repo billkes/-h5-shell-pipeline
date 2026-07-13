@@ -228,13 +228,20 @@ def _load_or_init_manifest(json_path: Path, app: str) -> PromptManifest:
     return PromptManifest(app=app)
 
 
+from batch.csv_tasks import OUTPUT_CONTAINER_SUFFIXES
+
+
 def _find_workspace(batch_dir: Path, app: str) -> tuple[Path, Path] | None:
-    root = batch_dir / f"{app}-Flutter"
-    if not root.is_dir():
-        return None
-    for child in root.iterdir():
-        if child.is_dir() and (child / VISUAL_LOCK_FILE).is_file():
-            return child, child
+    for suffix in OUTPUT_CONTAINER_SUFFIXES:
+        root = batch_dir / f"{app}{suffix}"
+        if not root.is_dir():
+            continue
+        direct = root / app
+        if direct.is_dir():
+            return direct, direct
+        for child in root.iterdir():
+            if child.is_dir() and (child / VISUAL_LOCK_FILE).is_file():
+                return child, child
     return None
 
 
@@ -253,7 +260,7 @@ def main(argv: list[str] | None = None) -> int:
         "--app",
         action="append",
         dest="apps",
-        help="Limit to app name(s); default all *-Flutter dirs",
+        help="Limit to app name(s); default all *-Swift / *-OC / *-Flutter dirs",
     )
     args = parser.parse_args(argv)
 
@@ -262,12 +269,20 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Batch dir not found: {batch_dir}", file=sys.stderr)
         return 1
 
-    app_dirs = sorted(p.name.replace("-Flutter", "") for p in batch_dir.glob("*-Flutter"))
+    app_dirs: set[str] = set()
+    for p in batch_dir.iterdir():
+        if not p.is_dir():
+            continue
+        for suffix in OUTPUT_CONTAINER_SUFFIXES:
+            if p.name.endswith(suffix):
+                app_dirs.add(p.name[: -len(suffix)])
+                break
+    app_dirs_sorted = sorted(app_dirs)
     if args.apps:
-        app_dirs = [a for a in app_dirs if a in set(args.apps)]
+        app_dirs_sorted = [a for a in app_dirs_sorted if a in set(args.apps)]
 
     exit_code = 0
-    for app in app_dirs:
+    for app in app_dirs_sorted:
         found = _find_workspace(batch_dir, app)
         if not found:
             print(f"[{app}] skip — workspace not found")

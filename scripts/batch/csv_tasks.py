@@ -291,30 +291,42 @@ def repo_dir_name_from_git_url(git_url: str) -> str:
     return path
 
 
+from batch.pack_type import H5_FLUTTER_SHELL, H5_SHELL, h5_shell_runtime, is_h5_shell
+
+# Output container suffixes: Mockoo-Swift, Hathoo-OC, Pawioo-Flutter
+OUTPUT_CONTAINER_SUFFIXES: tuple[str, ...] = ("-Swift", "-OC", "-Flutter")
+
+
+def shell_runtime_container_suffix(pack_type: str) -> str:
+    """Map pack_type → container suffix (Swift / OC / Flutter)."""
+    pt = (pack_type or "").strip()
+    if not is_h5_shell(pt):
+        return "Flutter"
+    return {"swift": "Swift", "oc": "OC", "flutter": "Flutter"}[h5_shell_runtime(pt)]
+
+
 def repo_container_name(
     app_name: str,
     git_url: str = "",
     *,
     pack_type: str = "",
 ) -> str:
-    """Output container dir under ``output/`` (e.g. ``Buildioo-shell``).
+    """Output container dir under ``output/`` (e.g. ``Buildioo-Swift``).
 
-    H5 shell pipeline convention:
-    - ``h5_swift_shell`` / ``h5_oc_shell`` → ``{AppName}-shell``
+    H5 shell pipeline convention (aligned with Mockoo-Swift / Hathoo-OC):
+    - ``h5_swift_shell`` → ``{AppName}-Swift``
+    - ``h5_oc_shell`` → ``{AppName}-OC``
     - ``h5_shell`` / ``h5_flutter_shell`` → ``{AppName}-Flutter``
 
-    ``git_url`` basename is used only when it already ends with ``-shell`` or
-    ``-Flutter``; otherwise pack_type suffix wins (avoids bare repo names).
+    ``git_url`` basename is used only when it already ends with a known suffix.
     """
-    from batch.pack_type import H5_FLUTTER_SHELL, H5_SHELL, is_native_ios_runtime
-
     from_git = repo_dir_name_from_git_url(git_url)
-    if from_git.endswith("-shell") or from_git.endswith("-Flutter"):
+    if any(from_git.endswith(suffix) for suffix in OUTPUT_CONTAINER_SUFFIXES):
         return from_git
 
     pt = (pack_type or "").strip()
-    if is_native_ios_runtime(pt):
-        return f"{app_name}-shell"
+    if is_h5_shell(pt):
+        return f"{app_name}-{shell_runtime_container_suffix(pt)}"
     if pt in (H5_SHELL, H5_FLUTTER_SHELL):
         return f"{app_name}-Flutter"
     if from_git:
@@ -325,6 +337,51 @@ def repo_container_name(
 def app_workspace(output_dir: Path, repo_name: str, app_name: str) -> Path:
     container = repo_name or f"{app_name}-Flutter"
     return output_dir / container / app_name
+
+
+def resolve_app_workspace(
+    output_dir: Path,
+    *,
+    name: str,
+    pack_type: str,
+    git_url: str = "",
+) -> Path:
+    """Canonical Agent workspace: ``output/{App}-Swift|OC|Flutter/{App}/``."""
+    from batch.config import safe_dir_name
+
+    container = repo_container_name(name, git_url, pack_type=pack_type)
+    return app_workspace(output_dir, container, safe_dir_name(name))
+
+
+def output_workspace_exists(output_dir: Path, row: CsvTaskRow) -> bool:
+    """True when this app's workspace dir already exists under ``output/``."""
+    pack_type = (row.pack_type or "").strip() or "h5_swift_shell"
+    return resolve_app_workspace(
+        output_dir,
+        name=row.name,
+        pack_type=pack_type,
+        git_url=row.git_url or "",
+    ).is_dir()
+
+
+def app_workspace_registry_entry(
+    output_dir: Path,
+    *,
+    name: str,
+    pack_type: str,
+    git_url: str = "",
+) -> dict[str, str]:
+    """Serializable workspace record for ``batch-runs.json``."""
+    container = repo_container_name(name, git_url, pack_type=pack_type)
+    ws = resolve_app_workspace(
+        output_dir, name=name, pack_type=pack_type, git_url=git_url
+    )
+    return {
+        "name": name,
+        "packType": pack_type,
+        "container": container,
+        "workspace": str(ws.resolve()),
+    }
 
 
 def _validate_headers(fieldnames: list[str] | None) -> None:

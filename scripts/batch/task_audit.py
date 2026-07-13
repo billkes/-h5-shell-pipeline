@@ -10,7 +10,9 @@ from batch.csv_tasks import CsvTaskRow, load_csv_tasks
 from batch.pack_type import is_h5_shell
 from batch.name_rules import audit_subtitle_a_face_diversity
 from batch.registry import (
+    audit_registry_duplicate_names,
     check_package_dict_similarity,
+    ensure_contentpack_registry,
     load_registry_packages,
     registry_probe_from_task_row,
 )
@@ -139,12 +141,18 @@ def audit_task_registry_similarity(
     registry_path: Path,
 ) -> list[str]:
     """Prep-phase hard check: task.csv rows vs historical contentpack registry."""
+    ensure_contentpack_registry(registry_path)
     issues: list[str] = []
+    issues.extend(audit_registry_duplicate_names(rows, registry_path))
     existing = load_registry_packages(registry_path)
 
     for row in rows:
         probe = registry_probe_from_task_row(row)
-        ok, report = check_package_dict_similarity(probe, existing)
+        ok, report = check_package_dict_similarity(
+            probe,
+            existing,
+            skip_names=frozenset({row.name}),
+        )
         if not ok:
             detail = next(
                 (ln.strip() for ln in report.splitlines() if ln.strip().startswith("-")),

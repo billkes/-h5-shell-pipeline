@@ -61,7 +61,7 @@ def cmd_fill(args: argparse.Namespace, cfg: BatchConfig) -> int:
 
 def cmd_audit(args: argparse.Namespace, cfg: BatchConfig) -> int:
     path = _resolve_csv(args.csv, cfg)
-    registry = cfg.registry_dir / "h5-shell-registry.json"
+    registry = cfg.contentpack_registry
     ok, issues, soft = audit_task_csv(path, registry, check_feishu=False)
     if soft:
         print("单维使用分布提示（不阻断）:")
