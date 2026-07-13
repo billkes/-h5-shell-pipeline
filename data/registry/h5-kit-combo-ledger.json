@@ -16,10 +16,28 @@
         "h5RouterPattern": "native-back-bridge",
         "h5ScreenPattern": "functional-render"
       }
+    },
+    "Prompio": {
+      "batchId": "TEST-0714",
+      "hash": "87e31afa2f864d6f",
+      "kit": {
+        "kitAtomSet": "tap/type/mark/cell/bar/veil",
+        "kitCssMethodology": "SUIT",
+        "kitAtomGranularity": "atomic-heavy-30",
+        "kitDomShape": "leading-icon-span",
+        "kitJsPattern": "functional-pipe",
+        "kitJsNamespace": "{Prefix}.ui.*",
+        "kitStorageAdapter": "raw-localStorage",
+        "kitMotionApproach": "transition-only",
+        "h5StateModel": "event-bus-driven",
+        "h5RouterPattern": "modal-stack",
+        "h5ScreenPattern": "functional-render"
+      }
     }
   },
   "hashes": {
-    "64f2b0221f4fc218": "Buildioo"
+    "64f2b0221f4fc218": "Buildioo",
+    "87e31afa2f864d6f": "Prompio"
   },
   "classFingerprints": {}
 }
