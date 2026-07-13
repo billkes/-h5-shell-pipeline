@@ -47,6 +47,10 @@ def test_pipeline_steps_h5_swift() -> None:
 
     steps = steps_for_run(pack_type="h5_swift_shell")
     assert "build.agent" in steps
+    assert "skill.enrich" in steps
+    assert "skill.pages" in steps
+    assert "skill.tokens" in steps
+    assert "dev.h5.gate" in steps
     assert "native.check" in steps
     assert "dev.pubget" not in steps
 
