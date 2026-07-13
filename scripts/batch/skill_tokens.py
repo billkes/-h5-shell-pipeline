@@ -141,6 +141,13 @@ def run_skill_tokens(*, cfg: BatchConfig, workspace: Path) -> Path:
     from batch.skill_brand import run_brand_check
 
     run_brand_check(cfg=cfg, workspace=workspace)
+
+    try:
+        from batch.h5_theme_tokens import sync_h5_global_theme
+
+        sync_h5_global_theme(workspace, write=True)
+    except OSError:
+        pass
     return tokens_path
 
 

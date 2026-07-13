@@ -44,7 +44,7 @@ Read 《H5壳功能文档深度标准.md》 before writing. Shallow headers **fa
 
 Sections in order (include all):
 - **App Theme & Angle** — one paragraph grounded in CSV product flow
-- **Screen Inventory** — table: every H5 route (Splash, Welcome, Legal overlay, business, **Plaza hidden**); shell = WebView + error + launch only
+- **Screen Inventory** — table: **PM-authored complete H5 route list** (no pipeline-default pages; include Splash / Welcome / Legal / Plaza / Store **only when product needs them**); shell = WebView + error + launch only
 - **Interaction Topology** — cite assigned topology id; primary vs secondary module roles; **Explicitly NOT** (forbidden landing patterns)
 - **Domain Model & Data Contract** — entity table (Entity | Fields | Type | Validation | Persistence key); count per tier
 - **Business Rules Engine** — BR-01… numbered rules (trigger · logic · conflict · user feedback)
@@ -60,7 +60,7 @@ Sections in order (include all):
 - **App Store Listing** — Subtitle, Promo, Description, Keywords (English)
 
 [Feature Doc Lock — MANDATORY]
-- Every item listed is **MUST implement** — no "optional" / "may" / "可选项".
+- **Screen Inventory is authoritative**: every route listed is **MUST implement**; routes **not** listed are out of scope — no "optional" / "may" / "可选项" wording inside the inventory.
 
 ---
 
@@ -99,7 +99,7 @@ Sections in order (include all V2 gates plus H5 ambient):
   - CSS token table: --{prefix}-ambient-a … --{prefix}-ambient-scan
   - Card surface rule: semi-opaque cards; canvas visible between/behind surfaces
   - Motion notes (respect prefers-reduced-motion)
-- **Per-screen Layout** — EVERY screen from Screen Inventory
+- **Per-screen Layout** — EVERY screen **listed in Screen Inventory** (and only those)
 - **Overlay & Feedback Specs** — table ≥4 scenarios
 - **Confirmation Dialog Inventory**
 - **Export Card Composition** — layer stack per export flow
@@ -108,8 +108,8 @@ Sections in order (include all V2 gates plus H5 ambient):
 - **Modal Interior Spec**
 - **Form & Input Canon** — hintStyle/style same typography token
 - **Tag & Filter Chip Canon**
-- **IAP Store Layout Canon** — balance hero + grid/promo (no plain ListTile store)
-- **Welcome Gate Canon** — slot table ≥4 rows
+- **IAP Store Layout Canon** — balance hero + grid/promo (**only if** Screen Inventory includes `#/store`)
+- **Welcome Gate Canon** — slot table ≥4 rows (**only if** Screen Inventory includes `#/welcome`)
 - **Motion & Interaction Spec**
 - **Component Selection** + **Package Token Overrides**
 - **Dark Mode Adaptation**

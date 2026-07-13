@@ -5,7 +5,7 @@ Business UI is implemented under `h5/src/`. The pipeline compiles it to a deploy
 ```bash
 cd h5
 npm install
-npm run dev          # http://127.0.0.1:5174 — local dev (shell h5EntryUrlDev)
+npm run dev          # LAN: http://<your-ip>:5174 (also shown as Network URL)
 npm run build:deploy # → ../h5_site/{{PREFIX}}_entry.htm
 ```
 

@@ -25,6 +25,7 @@ from batch.h5_site_paths import (
     vault_dir_path,
 )
 from batch.h5_vite_scaffold import h5_source_dir, scaffold_exists
+from batch.h5_vite_gate import vite_vue_and_ts_text
 from batch.pack_type import is_h5_shell
 
 REGISTER_FILE = "本包登记信息.json"
@@ -284,6 +285,11 @@ def verify_h5_legal_bundled(project: Path) -> list[str]:
     if not is_h5_shell_project(project):
         return issues
 
+    from batch.screen_inventory import project_includes_route
+
+    if not project_includes_route(project, "/legal"):
+        return issues
+
     try:
         expected, _meta = load_expected_legal(project)
     except FileNotFoundError as exc:
@@ -325,28 +331,41 @@ def verify_h5_legal_bundled(project: Path) -> list[str]:
         elif heading not in actual.get("terms", ""):
             issues.append(f"BUNDLED: terms missing required section {heading!r}")
 
-    entry = entry_htm_path(project)
-    if entry.is_file():
-        rel_script = bundled_script_rel(project).as_posix()
-        panels_rel = rel_script.split("/")[-2] + "/" + bundled_script_path(project).name
-        entry_text = entry.read_text(encoding="utf-8", errors="ignore")
-        if bundled.name not in entry_text:
-            issues.append(
-                f"ENTRY: {entry.name} must load {bundled.name} before core.js"
-            )
-        elif panels_rel not in entry_text and rel_script not in entry_text:
-            issues.append(f"ENTRY: script path for {bundled.name} not referenced")
-    else:
-        issues.append(f"MISSING: entry htm at {entry.name if entry else 'bundleEntryPath'}")
+    from batch.h5_vite_scaffold import scaffold_exists
 
-    core = core_js_path(project)
-    if core.is_file():
-        core_text = core.read_text(encoding="utf-8", errors="ignore")
-        if INLINE_LEGAL_RE.search(core_text):
+    if scaffold_exists(project):
+        src_text = vite_vue_and_ts_text(project)
+        if bundled.name not in src_text and "LEGAL" not in src_text:
             issues.append(
-                f"CORE: remove inline NS.ui.LEGAL from {core.relative_to(project)} "
-                "(use generated legal_bundled.js only)"
+                f"VITE: h5/src must import {bundled.name} or reference LEGAL export"
             )
+    else:
+        entry = entry_htm_path(project)
+        if entry.is_file():
+            rel_script = bundled_script_rel(project).as_posix()
+            panels_rel = (
+                rel_script.split("/")[-2] + "/" + bundled_script_path(project).name
+            )
+            entry_text = entry.read_text(encoding="utf-8", errors="ignore")
+            if bundled.name not in entry_text:
+                issues.append(
+                    f"ENTRY: {entry.name} must load {bundled.name} before core.js"
+                )
+            elif panels_rel not in entry_text and rel_script not in entry_text:
+                issues.append(f"ENTRY: script path for {bundled.name} not referenced")
+        else:
+            issues.append(
+                f"MISSING: entry htm at {entry.name if entry else 'bundleEntryPath'}"
+            )
+
+        core = core_js_path(project)
+        if core.is_file():
+            core_text = core.read_text(encoding="utf-8", errors="ignore")
+            if INLINE_LEGAL_RE.search(core_text):
+                issues.append(
+                    f"CORE: remove inline NS.ui.LEGAL from {core.relative_to(project)} "
+                    "(use generated legal_bundled.js only)"
+                )
 
     return issues
 

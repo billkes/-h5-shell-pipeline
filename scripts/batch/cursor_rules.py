@@ -298,6 +298,7 @@ def _h5_deflavor_body(prefix: str, vault_dir: str) -> str:
 - 禁 `<select>`、`<input type="file/color/date">`
 - 禁 `alert` / `confirm` / `prompt`
 - AppBar `position: fixed`，不随内容滚动
+- 顶栏/底栏/`.page-shell` 使用 `global.css` 末尾 **LAYOUT:pipeline** 块（`--{prefix}-page-inset-top/bottom`）；**禁止**手写 `min-height` 顶栏或硬编码 `padding-top: 56px`
 
 ## 交互 pitfalls
 

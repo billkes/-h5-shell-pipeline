@@ -1,12 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syncopate:wght@400;700&display=swap');
+
+/* THEME:pipeline — auto-synced; do not hand-edit */
 :root {
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light dark;
   --{{PREFIX}}-primary: #2563eb;
-  --{{PREFIX}}-bg: #0f172a;
-  --{{PREFIX}}-on-surface: #fff;
-  --{{PREFIX}}-on-muted: #94a3b8;
+  --{{PREFIX}}-secondary: #3b82f6;
+  --{{PREFIX}}-accent: #059669;
+  --{{PREFIX}}-bg: #f5f5f7;
+  --{{PREFIX}}-fg: #0f172a;
+  --{{PREFIX}}-muted: #e8eaed;
+  --{{PREFIX}}-on-muted: #64748b;
+  --{{PREFIX}}-destructive: #dc2626;
+  --{{PREFIX}}-border: rgba(15, 23, 42, 0.12);
+  --{{PREFIX}}-card: rgba(255, 255, 255, 0.94);
+  --{{PREFIX}}-sheet: #ffffff;
+  --{{PREFIX}}-ambient-a: rgba(37, 99, 235, 0.10);
+  --{{PREFIX}}-ambient-b: rgba(59, 130, 246, 0.06);
+  --{{PREFIX}}-ambient-c: rgba(5, 150, 105, 0.08);
+  --{{PREFIX}}-ambient-ring: rgba(37, 99, 235, 0.16);
+  --{{PREFIX}}-ambient-grid: rgba(15, 23, 42, 0.06);
+  --{{PREFIX}}-ambient-scan: rgba(5, 150, 105, 0.25);
+  --{{PREFIX}}-font-display: system-ui, sans-serif;
   --{{PREFIX}}-font-body: system-ui, sans-serif;
+  --{{PREFIX}}-radius-md: 12px;
+  --{{PREFIX}}-radius-lg: 16px;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --{{PREFIX}}-bg: #0f172a;
+    --{{PREFIX}}-fg: #ffffff;
+    --{{PREFIX}}-muted: #201c27;
+    --{{PREFIX}}-on-muted: #94a3b8;
+    --{{PREFIX}}-border: rgba(255, 255, 255, 0.08);
+    --{{PREFIX}}-card: rgba(15, 23, 42, 0.82);
+    --{{PREFIX}}-sheet: rgba(32, 28, 39, 0.88);
+    --{{PREFIX}}-ambient-a: rgba(37, 99, 235, 0.22);
+    --{{PREFIX}}-ambient-b: rgba(59, 130, 246, 0.14);
+    --{{PREFIX}}-ambient-c: rgba(5, 150, 105, 0.10);
+    --{{PREFIX}}-ambient-ring: rgba(37, 99, 235, 0.28);
+    --{{PREFIX}}-ambient-grid: rgba(255, 255, 255, 0.05);
+    --{{PREFIX}}-ambient-scan: rgba(5, 150, 105, 0.35);
+  }
+}
+/* THEME:end */
 
 *,
 *::before,
@@ -20,9 +57,22 @@ body {
   margin: 0;
   min-height: 100%;
   background: var(--{{PREFIX}}-bg);
-  color: var(--{{PREFIX}}-on-surface);
+  color: var(--{{PREFIX}}-fg);
   font-family: var(--{{PREFIX}}-font-body);
   -webkit-tap-highlight-color: transparent;
+}
+
+.h5-app-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
 }
 
 input,
@@ -51,3 +101,93 @@ body:not(input):not(textarea) {
     transition: none !important;
   }
 }
+
+.h5-app-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+/* LAYOUT:pipeline — auto-synced; do not hand-edit */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --{{PREFIX}}-appbar-height: 48px;
+  --{{PREFIX}}-tabbar-height: 56px;
+  --{{PREFIX}}-page-inset-top: calc(var(--{{PREFIX}}-appbar-height) + var(--safe-top));
+  --{{PREFIX}}-page-inset-bottom: calc(var(--{{PREFIX}}-tabbar-height) + var(--safe-bottom));
+}
+
+.c-{{PREFIX}}-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: end;
+  height: var(--{{PREFIX}}-page-inset-top);
+  padding: var(--safe-top) 8px 0;
+  box-sizing: border-box;
+  background: var(--{{PREFIX}}-sheet);
+  border-bottom: 1px solid var(--{{PREFIX}}-border);
+}
+
+.c-{{PREFIX}}-topbar__title {
+  grid-column: 2;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: var(--{{PREFIX}}-appbar-height);
+  max-height: var(--{{PREFIX}}-appbar-height);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.c-{{PREFIX}}-tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: var(--{{PREFIX}}-page-inset-bottom);
+  padding: 0 0 var(--safe-bottom);
+  box-sizing: border-box;
+  background: var(--{{PREFIX}}-sheet);
+  border-top: 1px solid var(--{{PREFIX}}-border);
+}
+
+.c-{{PREFIX}}-tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 64px;
+  min-height: 44px;
+  color: var(--{{PREFIX}}-on-muted);
+  text-decoration: none;
+  font-size: 11px;
+}
+
+.c-{{PREFIX}}-tabbar__item--active {
+  color: var(--{{PREFIX}}-primary);
+}
+
+.page-shell {
+  min-height: 100vh;
+  padding: var(--{{PREFIX}}-page-inset-top) 16px var(--{{PREFIX}}-page-inset-bottom);
+  box-sizing: border-box;
+}
+
+.page-full {
+  min-height: 100vh;
+  padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom));
+  box-sizing: border-box;
+}
+/* LAYOUT:end */

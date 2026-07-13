@@ -215,8 +215,8 @@ H5_PAGE_SPECS: dict[str, dict[str, Any]] = {
         "typography": {"Scale": "Mono-friendly labels for Bridge actions"},
         "colors": {"Strategy": "Neutral diagnostic chrome; status colors for pass/fail"},
         "components": [
-            "Required: route `#/plaza` — never in Tab bar",
-            "Required: entry via Settings long-press version 3s only",
+            "If Screen Inventory lists `#/plaza`: route required — never in Tab bar",
+            "If declared: entry via Settings long-press version 3s only",
             "Avoid: Visible plaza CTA on hub/home in production build",
         ],
         "unique_components": ["shell/bridge_plaza", "shell/bridge_toast", "shell/permission_gate"],
@@ -582,13 +582,19 @@ def sync_pages_from_spec(
 
 
 def format_pages_block(workspace: Path, app_name: str) -> str:
+    from batch.h5_page_scaffold import format_page_scaffold_prompt_block
+
     pages_dir = design_system_dir_for_app(workspace, app_name) / "pages"
+    scaffold_block = format_page_scaffold_prompt_block(workspace, app_name)
     if not pages_dir.is_dir():
-        return ""
+        return scaffold_block
     files = sorted(pages_dir.glob("*.md"))
     if not files:
-        return ""
+        return scaffold_block
     lines = ["[Page Overrides — design-system/pages/]"]
     for path in files:
         lines.append(f"- `{path.relative_to(workspace).as_posix()}`")
+    if scaffold_block:
+        lines.append("")
+        lines.append(scaffold_block)
     return "\n".join(lines)

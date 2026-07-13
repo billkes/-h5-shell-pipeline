@@ -17,6 +17,53 @@ DEFAULT_H5_ENTRY_URL_DEV = f"http://127.0.0.1:{H5_VITE_DEV_PORT}/"
 LAUNCH_PLACEHOLDER_SIZE = "1125x2436"
 
 
+def detect_lan_ip() -> str | None:
+    """Best-effort LAN IPv4 for cross-device Vite dev / native shell h5EntryUrlDev."""
+    import socket
+
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.settimeout(0.25)
+            sock.connect(("8.8.8.8", 80))
+            ip = sock.getsockname()[0]
+            if ip and not ip.startswith("127."):
+                return ip
+    except OSError:
+        pass
+    return None
+
+
+def h5_dev_entry_url(*, port: int | None = None) -> str:
+    port = port or H5_VITE_DEV_PORT
+    ip = detect_lan_ip()
+    if ip:
+        return f"http://{ip}:{port}/"
+    return f"http://127.0.0.1:{port}/"
+
+
+def sync_h5_dev_entry_urls(project: Path, *, port: int | None = None) -> str | None:
+    """Refresh h5EntryUrlDev (and loopback h5EntryUrl) in 本包登记信息.json."""
+    import json
+
+    reg_path = project / "本包登记信息.json"
+    if not reg_path.is_file():
+        return None
+    try:
+        reg = json.loads(reg_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(reg, dict):
+        return None
+
+    dev_url = h5_dev_entry_url(port=port)
+    reg["h5EntryUrlDev"] = dev_url
+    entry = str(reg.get("h5EntryUrl") or "")
+    if not entry or entry.startswith("http://127.0.0.1") or entry.startswith("http://localhost"):
+        reg["h5EntryUrl"] = dev_url
+    reg_path.write_text(json.dumps(reg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return dev_url
+
+
 def app_slug_from_name(app_name: str) -> str:
     """App display name → URL slug (all lowercase, e.g. Gark → gark)."""
     return re.sub(r"[^a-z0-9]+", "", (app_name or "").strip().lower()) or "app"
@@ -85,9 +132,9 @@ def resolve_h5_remote_config(
         "h5SourceRoot": DEFAULT_H5_SOURCE_ROOT,
         "h5BuildCommand": "npm run build:deploy",
         "h5DevServerPort": str(H5_VITE_DEV_PORT),
-        "h5EntryUrlDev": DEFAULT_H5_ENTRY_URL_DEV,
+        "h5EntryUrlDev": h5_dev_entry_url(),
         "h5EntryUrlProd": h5_prod_entry_url(slug, entry_name=entry),
-        "h5EntryUrl": DEFAULT_H5_ENTRY_URL_DEV,
+        "h5EntryUrl": h5_dev_entry_url(),
         "launchPlaceholderAsset": f"assets/{p}_launch/launch_placeholder.png",
         "launchPlaceholderSize": LAUNCH_PLACEHOLDER_SIZE,
         # Legacy keys → per-app deploy dir (not upload root)
@@ -176,7 +223,7 @@ def build_h5_remote_prompt_block(app_name: str, *, prefix: str) -> str:
         f"  - h5SiteRoot: `{cfg['h5SiteRoot']}` (per-app deploy dir)\n"
         f"  - h5SiteEntry: `{cfg['h5SiteEntry']}`\n"
         f"  - bundleEntryPath: `{cfg['bundleEntryPath']}`\n"
-        f"  - h5EntryUrlDev: `{cfg['h5EntryUrlDev']}` (Vite dev — port {cfg['h5DevServerPort']})\n"
+        f"  - h5EntryUrlDev: `{cfg['h5EntryUrlDev']}` (Vite dev — LAN IP + port {cfg['h5DevServerPort']}; run `cd h5 && npm run dev`)\n"
         f"  - h5EntryUrlProd: `{cfg['h5EntryUrlProd']}`\n"
         f"  - h5BuildCommand: `{cfg['h5BuildCommand']}`\n"
         "- **Raster assets** stay in Native `pubspec` / OC assets — not in remote H5 bundle.\n"

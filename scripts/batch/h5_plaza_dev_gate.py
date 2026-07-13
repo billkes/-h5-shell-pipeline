@@ -89,6 +89,11 @@ def verify_h5_plaza_dev_gate(project: Path) -> list[str]:
     if not is_h5_shell_project(project):
         return []
 
+    from batch.screen_inventory import project_includes_route
+
+    if not project_includes_route(project, "/plaza"):
+        return []
+
     from batch.h5_bundle_gate import bundle_entry_path
 
     reg_path = project / "本包登记信息.json"

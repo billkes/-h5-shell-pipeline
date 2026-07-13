@@ -44,7 +44,6 @@
 		C10F80C0940D448DBF98BD94 /* {{PREFIX_CAP}}PulseCredit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = {{PREFIX_CAP}}PulseCredit.h; sourceTree = "<group>"; };
 		E6D7496B5D8E43428F3E734D /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E95E5490C1164F389CF47D23 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		F1A2B3C4D5E6478990ABCDEF /* {{APP_NAME}}IAP.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.storekit; path = {{APP_NAME}}IAP.storekit; sourceTree = "<group>"; };
 		F6D58B6E9EFC4E1F95845CE6 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		FAD3F406C82441D7A5F2B1E6 /* {{PREFIX_CAP}}LaneVault.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = {{PREFIX_CAP}}LaneVault.h; sourceTree = "<group>"; };
 		FCB27194C7794EEB98CD974E /* Photos.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Photos.framework; path = System/Library/Frameworks/Photos.framework; sourceTree = SDKROOT; };
@@ -106,7 +105,6 @@
 				BCD082B93F2744EE803E437C /* register.json */,
 				E95E5490C1164F389CF47D23 /* Assets.xcassets */,
 				E6D7496B5D8E43428F3E734D /* LaunchScreen.storyboard */,
-				F1A2B3C4D5E6478990ABCDEF /* {{APP_NAME}}IAP.storekit */,
 			);
 			path = {{APP_NAME}};
 			sourceTree = "<group>";
@@ -202,7 +200,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = {{TEAM_ID}};
+				DEVELOPMENT_TEAM = "{{TEAM_ID}}";
 				INFOPLIST_FILE = {{APP_NAME}}/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -242,7 +240,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = {{TEAM_ID}};
+				DEVELOPMENT_TEAM = "{{TEAM_ID}}";
 				INFOPLIST_FILE = {{APP_NAME}}/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

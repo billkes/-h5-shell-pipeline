@@ -398,6 +398,10 @@ def main(argv: list[str] | None = None) -> int:
         from batch.template_build import cmd_build_cli
 
         return cmd_build_cli(argv[1:])
+    if argv and argv[0] == "h5-post":
+        from batch.h5_post_delivery import main as h5_post_main
+
+        return h5_post_main(argv[1:])
     if argv and argv[0] == "sync-assets":
         from batch.cli import _sync_assets_main
 

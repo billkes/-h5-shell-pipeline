@@ -500,6 +500,11 @@ def _verify_shell_ready_signal(vault_dir: Path, root: Path) -> list[str]:
 
 def _verify_bridge_plaza(vault_dir: Path, root: Path) -> list[str]:
     """Soft-check hidden Bridge plaza route per H5壳广场页规范."""
+    from batch.screen_inventory import project_includes_route
+
+    if not project_includes_route(root, "/plaza"):
+        return []
+
     warns: list[str] = []
     vault_text = ""
     for child in vault_dir.rglob("*"):
@@ -817,9 +822,11 @@ def verify_h5_bundle_soft(
                 find_plaza_obvious_entrance,
                 verify_no_plaza_dev_entrance,
             )
+            from batch.screen_inventory import project_includes_route
 
-            warnings.extend(verify_no_plaza_dev_entrance(vault_dir, root))
-            warnings.extend(find_plaza_obvious_entrance(vault_dir, root))
+            if project_includes_route(root, "/plaza"):
+                warnings.extend(verify_no_plaza_dev_entrance(vault_dir, root))
+                warnings.extend(find_plaza_obvious_entrance(vault_dir, root))
         except ImportError:
             pass
         from batch.h5_deflavor_audit import verify_h5_deflavor_baseline

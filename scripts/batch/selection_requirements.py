@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import FrozenSet
 
 from batch.pack_type import is_h5_shell
+from batch.screen_inventory import parse_h5_routes
 
 _LIST_CONTAINER_IDS: tuple[str, ...] = (
     "data_display/list_view",
@@ -49,7 +50,7 @@ REQUIRED_COMPONENT_RULES: tuple[RequiredComponentRule, ...] = (
         signal="welcome_gate",
         required_ids=("patterns/welcome_gate", "primitives/checkbox"),
         pack_types=None,
-        message="含 Welcome/首次启动门闸，须选 patterns/welcome_gate + primitives/checkbox",
+        message="Screen Inventory 含 #/welcome，须选 patterns/welcome_gate + primitives/checkbox",
     ),
     RequiredComponentRule(
         signal="list_screens",
@@ -76,18 +77,28 @@ REQUIRED_COMPONENT_RULES: tuple[RequiredComponentRule, ...] = (
         message="Overlay & Feedback 须对应 primitives/snackbar 或 feedback/* 组件（至少其一）",
     ),
     RequiredComponentRule(
-        signal="h5_shell_base",
+        signal="h5_shell_infra",
         required_ids=(
             "shell/webview_host",
             "shell/launch_veil",
-            "shell/legal_modal",
             "shell/bridge_toast",
         ),
         pack_types=frozenset({"h5_shell"}),
         message=(
-            "h5_shell 须选 shell/webview_host、shell/launch_veil、"
-            "shell/legal_modal、shell/bridge_toast"
+            "h5_shell 须选 shell/webview_host、shell/launch_veil、shell/bridge_toast"
         ),
+    ),
+    RequiredComponentRule(
+        signal="h5_legal_modal",
+        required_ids=("shell/legal_modal",),
+        pack_types=frozenset({"h5_shell"}),
+        message="Screen Inventory 含 #/legal，须选 shell/legal_modal",
+    ),
+    RequiredComponentRule(
+        signal="h5_plaza",
+        required_ids=("shell/bridge_plaza",),
+        pack_types=frozenset({"h5_shell"}),
+        message="Screen Inventory 含 #/plaza，须选 shell/bridge_plaza",
     ),
     RequiredComponentRule(
         signal="h5_pick_image",
@@ -139,8 +150,14 @@ def detect_feature_signals(
         re.I,
     ):
         signals.add("iap_store")
-    if re.search(r"welcome|first\s+launch|gate|checkbox.*agree", spec_text, re.I):
+
+    routes = parse_h5_routes(spec_text)
+    if "/welcome" in routes:
         signals.add("welcome_gate")
+    if "/legal" in routes:
+        signals.add("h5_legal_modal")
+    if "/plaza" in routes:
+        signals.add("h5_plaza")
 
     if re.search(
         r"screen inventory|^\s*\|.*\|\s*list|history|feed|archive|saved\s+items",
@@ -166,7 +183,7 @@ def detect_feature_signals(
             signals.add("overlay_feedback")
 
     if is_h5_shell(pack_type):
-        signals.add("h5_shell_base")
+        signals.add("h5_shell_infra")
         caps = register.get("bridgeCapabilities") or []
         if isinstance(caps, list):
             cap_text = " ".join(str(c).lower() for c in caps)

@@ -20,7 +20,7 @@
 │   ├── main.m
 │   ├── Info.plist
 │   ├── Base.lproj/LaunchScreen.storyboard
-│   ├── Assets.xcassets/
+│   ├── Assets.xcassets/          # AppIcon + launch_placeholder（apply 时生成水印占位，非厂包真图）
 │   └── register.json
 ├── {{APP_NAME}}.xcodeproj/
 ├── h5/                              # H5 源码（Vite；dev.h5.build 产出 h5_site/，不提交）

@@ -527,12 +527,28 @@ class V3StepRunner:
             run_h5_vite_build,
         )
         from batch.sync_h5_legal_bundled import sync_h5_legal_bundled
+        from batch.h5_theme_tokens import sync_h5_global_theme
+        from batch.h5_page_scaffold import sync_h5_page_scaffold
 
         ws = ctx.workspace
         try:
             sync_h5_legal_bundled(ws, write=True)
         except (OSError, ValueError) as exc:
             print(f">>> dev.h5.build: legal sync failed: {exc}")
+            return False
+
+        try:
+            theme_path = sync_h5_global_theme(ws, write=True)
+            if theme_path is not None:
+                print(f">>> dev.h5.build: synced system theme → {theme_path.relative_to(ws)}")
+        except OSError as exc:
+            print(f">>> dev.h5.build: theme sync failed: {exc}")
+
+        try:
+            for sp in sync_h5_page_scaffold(ws, app_name=ctx.name, write=True):
+                print(f">>> dev.h5.build: page scaffold → {sp.relative_to(ws)}")
+        except OSError as exc:
+            print(f">>> dev.h5.build: page scaffold sync failed: {exc}")
             return False
 
         for rel in cleanup_stale_h5_site_sources(ws):
@@ -636,7 +652,7 @@ class V3StepRunner:
         if not list(ws.rglob("*LaunchScreen*.storyboard")):
             issues.append("缺少 LaunchScreen.storyboard")
 
-        suffixes = (".swift",) if runtime == "swift" else (".m", ".mm")
+        suffixes = (".swift",) if runtime == "swift" else (".m", ".mm", ".h")
         source_files = [
             p
             for suffix in suffixes
@@ -671,12 +687,27 @@ class V3StepRunner:
                 "WKURLSchemeHandler",
                 "app-callback",
             )
+        oc_token_alts: dict[str, tuple[str, ...]] = {}
+        if runtime == "oc":
+            oc_token_alts = {
+                "WKURLSchemeHandler": (
+                    "WKURLSchemeHandler",
+                    "WKURLSchemeTask",
+                    "startURLSchemeTask",
+                ),
+            }
         for token in required_tokens:
-            if token not in joined:
+            alts = oc_token_alts.get(token, (token,))
+            if not any(alt in joined for alt in alts):
                 issues.append(f"native shell 缺少 Bridge/host token: {token}")
         if "SFSafariViewController" in joined:
             issues.append("禁止主流程使用 SFSafariViewController/browser chrome")
 
+        from batch.native_iap_policy import collect_storekit_violations
+        from batch.h5_shell_placeholders import collect_placeholder_violations
+
+        issues.extend(collect_storekit_violations(ws))
+        issues.extend(collect_placeholder_violations(ws))
         issues.extend(self._optional_xcodebuild(ws, ctx.name, runtime))
         return len(issues) == 0, issues
 

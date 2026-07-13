@@ -8,7 +8,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-from batch.h5_site_paths import app_slug_from_name
+from batch.h5_site_paths import app_slug_from_name, sync_h5_dev_entry_urls
 from batch.pack_type import is_h5_shell
 
 TEMPLATE_ROOT = (
@@ -156,6 +156,26 @@ def _merge_toolchain_only(dst: Path, values: dict[str, str]) -> None:
             )
 
 
+def ensure_vite_lan_server(h5_dir: Path) -> bool:
+    """Ensure vite.config.ts exposes LAN (host: true). Returns True if file changed."""
+    cfg = h5_dir / "vite.config.ts"
+    if not cfg.is_file():
+        return False
+    text = cfg.read_text(encoding="utf-8")
+    if re.search(r"server\s*:\s*\{[^}]*\bhost\s*:", text, re.S):
+        return False
+    updated, n = re.subn(
+        r"(server\s*:\s*\{)",
+        r"\1\n    host: true,",
+        text,
+        count=1,
+    )
+    if n == 0:
+        return False
+    cfg.write_text(updated, encoding="utf-8")
+    return True
+
+
 def apply_h5_vite_scaffold(
     project: Path,
     *,
@@ -182,6 +202,7 @@ def apply_h5_vite_scaffold(
     else:
         _merge_toolchain_only(dst, values)
 
+    ensure_vite_lan_server(dst)
     return dst
 
 
@@ -198,7 +219,10 @@ def ensure_h5_vite_scaffold(
     p = (prefix or "app").strip().lower()
     if not re.fullmatch(r"[a-z]{4,6}", p):
         p = "app"
-    return apply_h5_vite_scaffold(project, app_name=app_name, prefix=p, force=force)
+    dst = apply_h5_vite_scaffold(project, app_name=app_name, prefix=p, force=force)
+    ensure_vite_lan_server(dst)
+    sync_h5_dev_entry_urls(project)
+    return dst
 
 
 def registration_h5_vite_fields() -> dict[str, str]:

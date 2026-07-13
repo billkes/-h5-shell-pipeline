@@ -386,6 +386,28 @@ class FlutterPipeline:
             )
             if path is not None:
                 get_run_log().detail(f"h5_vite scaffold → {path.relative_to(ctx.workspace)}")
+                from batch.h5_site_paths import sync_h5_dev_entry_urls
+                from batch.h5_theme_tokens import sync_h5_global_theme
+
+                dev_url = sync_h5_dev_entry_urls(ctx.workspace)
+                if dev_url:
+                    get_run_log().detail(
+                        f"h5 dev LAN → {dev_url} (`cd h5 && npm run dev` — use Network URL on other devices)"
+                    )
+                theme_path = sync_h5_global_theme(ctx.workspace, write=True)
+                if theme_path is not None:
+                    get_run_log().detail(
+                        f"h5 theme → system light/dark synced ({theme_path.relative_to(ctx.workspace)})"
+                    )
+                from batch.h5_page_scaffold import sync_h5_page_scaffold
+
+                scaffold_paths = sync_h5_page_scaffold(
+                    ctx.workspace, app_name=ctx.name, write=True
+                )
+                for sp in scaffold_paths:
+                    get_run_log().detail(
+                        f"h5 page scaffold → {sp.relative_to(ctx.workspace)}"
+                    )
         write_layout_manifest(ctx.workspace, ctx.dart_name)
         row = self._csv_row_for(ctx)
         if row is not None:

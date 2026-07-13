@@ -6,6 +6,7 @@ import json
 import re
 from pathlib import Path
 
+from batch.h5_vite_gate import find_welcome_view_text, is_h5_vite_project, vite_css_text
 from batch.pack_type import is_h5_shell
 
 WELCOME_LAYOUT_VARIANTS: frozenset[str] = frozenset(
@@ -83,8 +84,17 @@ def _render_js_text(project: Path) -> str:
     return text or ""
 
 
-def verify_welcome_blueprint_section(visual_text: str) -> list[str]:
-    """Plan gate: 视觉蓝图 Welcome Gate Canon depth."""
+def verify_welcome_blueprint_section(
+    visual_text: str,
+    *,
+    spec_text: str = "",
+) -> list[str]:
+    """Plan gate: 视觉蓝图 Welcome Gate Canon depth (only if PM lists Welcome)."""
+    if spec_text:
+        from batch.screen_inventory import parse_h5_routes
+
+        if "/welcome" not in parse_h5_routes(spec_text):
+            return []
     issues: list[str] = []
     if not re.search(r"welcome\s+gate\s+canon", visual_text, re.I):
         issues.append("视觉蓝图.md 缺少 V2 章节: Welcome Gate Canon")
@@ -132,8 +142,17 @@ def verify_welcome_blueprint_section(visual_text: str) -> list[str]:
     return issues
 
 
-def verify_welcome_visual_lock(data: dict) -> list[str]:
-    """Plan gate: 本包视觉锁 welcomeSpec."""
+def verify_welcome_visual_lock(
+    data: dict,
+    *,
+    spec_text: str = "",
+) -> list[str]:
+    """Plan gate: 本包视觉锁 welcomeSpec (only if PM lists Welcome)."""
+    if spec_text:
+        from batch.screen_inventory import parse_h5_routes
+
+        if "/welcome" not in parse_h5_routes(spec_text):
+            return []
     issues: list[str] = []
     spec = data.get("welcomeSpec")
     if not isinstance(spec, dict) or not spec:
@@ -163,6 +182,50 @@ def verify_welcome_visual_lock(data: dict) -> list[str]:
     return issues
 
 
+def _verify_h5_welcome_vite(project: Path) -> list[str]:
+    """Hard audit: WelcomeView.vue checkbox/typography for h5_vite."""
+    issues: list[str] = []
+    welcome = find_welcome_view_text(project)
+    if not welcome:
+        issues.append("MISSING: WelcomeView.vue for welcome audit (h5_vite)")
+        return issues
+
+    if not re.search(
+        r"welcome-title|welcome-intro|c-[\w-]+-welcome-title|<h1",
+        welcome,
+        re.I,
+    ):
+        issues.append("MISSING: welcome brand title slot (welcome-title / h1)")
+
+    trust_li = len(re.findall(r"welcome-trust[\s\S]*?<li", welcome, re.I))
+    plain_li = welcome.count("<li>")
+    if trust_li < 2 and plain_li < 2:
+        issues.append("MISSING: ≥2 trust bullet rows in WelcomeView")
+
+    if 'type="checkbox"' not in welcome:
+        issues.append("MISSING: consent checkbox in WelcomeView")
+
+    if not re.search(r":disabled|disabled.*Continue|Continue.*disabled", welcome, re.I):
+        issues.append("MISSING: disabled Agree CTA until checkbox checked")
+
+    if not re.search(r"#/legal|legal\?doc=|path:\s*['\"]/legal|/legal", welcome, re.I):
+        issues.append("MISSING: Privacy/Terms legal links in WelcomeView")
+
+    if not re.search(r"\b18\b|18\s*\+|older", welcome, re.I):
+        issues.append("MISSING: 18+ age notice in WelcomeView")
+
+    css = vite_css_text(project)
+    if css:
+        if _GLOBAL_INPUT_APPEARANCE_NONE.search(css) and not _CHECKBOX_EXCLUSION.search(css):
+            issues.append(
+                "global.css: input,textarea { appearance:none } 未排除 checkbox/radio"
+            )
+        if _WELCOME_MICRO_FONT.search(css):
+            issues.append("welcome-age/check must not use --font-micro token")
+
+    return issues
+
+
 def verify_h5_welcome_canon(project: Path) -> list[str]:
     """Hard audit: H5 renderWelcome + baseline checkbox/typography."""
     project = project.expanduser().resolve()
@@ -170,6 +233,14 @@ def verify_h5_welcome_canon(project: Path) -> list[str]:
 
     if not is_h5_shell_project(project):
         return issues
+
+    from batch.screen_inventory import project_includes_route
+
+    if not project_includes_route(project, "/welcome"):
+        return issues
+
+    if is_h5_vite_project(project):
+        return _verify_h5_welcome_vite(project)
 
     render_text = _render_js_text(project)
     if not render_text:

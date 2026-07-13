@@ -7,6 +7,12 @@ import re
 from pathlib import Path
 
 from batch.h5_site_paths import site_entry_path, site_root_from_register, vault_dir_path
+from batch.h5_vite_gate import (
+    is_h5_vite_project,
+    vite_css_text,
+    vite_legal_card_present,
+    vite_vue_and_ts_text,
+)
 from batch.pack_type import is_h5_shell
 
 REGISTER_FILE = "本包登记信息.json"
@@ -107,6 +113,10 @@ def extract_inline_css(html: str) -> str:
 
 
 def resolve_vault_js_text(project: Path) -> tuple[str | None, str]:
+    if is_h5_vite_project(project):
+        text = vite_vue_and_ts_text(project)
+        if text.strip():
+            return text, "h5_vite"
     render = find_render_js(project)
     if render is not None:
         return render.read_text(encoding="utf-8", errors="ignore"), "render.js"
@@ -118,6 +128,10 @@ def resolve_vault_js_text(project: Path) -> tuple[str | None, str]:
 
 
 def resolve_vault_css_text(project: Path) -> str | None:
+    if is_h5_vite_project(project):
+        css = vite_css_text(project)
+        if css.strip():
+            return css
     css_path = baseline_css_path(project)
     if css_path is not None:
         return css_path.read_text(encoding="utf-8", errors="ignore")
@@ -139,13 +153,20 @@ def verify_h5_legal_ui(project: Path) -> list[str]:
     if not is_h5_shell_project(project):
         return issues
 
+    from batch.screen_inventory import project_includes_route
+
+    if not project_includes_route(project, "/legal"):
+        return issues
+
     prefix = resolve_prefix(project)
     legal_token = f"{prefix}-legal" if prefix else "legal"
     class_token = f"c-{prefix}-legal" if prefix else "c-legal"
 
     render_text, source = resolve_vault_js_text(project)
     if render_text is None:
-        if is_h5_monolith(project):
+        if is_h5_vite_project(project):
+            issues.append("RENDER: missing h5/src Vue/TS sources for Legal overlay")
+        elif is_h5_monolith(project):
             issues.append("RENDER: missing vault entry.htm for Legal overlay (h5_monolith)")
         else:
             issues.append("RENDER: missing vault *_render.js for Legal overlay")
@@ -162,20 +183,23 @@ def verify_h5_legal_ui(project: Path) -> list[str]:
 
     css = resolve_vault_css_text(project)
     if css is None:
-        if is_h5_monolith(project):
+        if is_h5_vite_project(project):
+            issues.append("CSS: missing h5/src/styles CSS for Legal overlay (h5_vite)")
+        elif is_h5_monolith(project):
             issues.append("CSS: missing inline <style> legal rules in entry.htm (h5_monolith)")
         else:
             issues.append("CSS: missing vault *_baseline.css")
     else:
         card_key = f"{class_token}-card"
         scroll_key = f"{class_token}-scroll"
-        if card_key not in css:
-            issues.append(f"CSS: missing .{card_key}")
+        if not vite_legal_card_present(render_text, css, class_token, prefix=prefix):
+            issues.append(f"CSS: missing .{card_key} (or dialog flex card with min(90vw, 340px))")
         if scroll_key not in css:
             issues.append(f"CSS: missing .{scroll_key}")
         if card_key in css and "flex-direction" not in css.split(card_key, 1)[-1][:400]:
             issues.append(f"CSS: .{card_key} should use flex column layout")
-        if "340px" not in css and "90vw" not in css:
+        width_surface = css if not is_h5_vite_project(project) else f"{render_text}\n{css}"
+        if "340px" not in width_surface and "90vw" not in width_surface:
             issues.append("CSS: legal card width should use min(90vw, 340px) per blueprint")
         if VISIBLE_SCROLLBAR_RE.search(css) or SCROLLBAR_THUMB_RE.search(css):
             issues.append(

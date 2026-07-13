@@ -144,7 +144,11 @@ def _extract_section(text: str, heading_fragment: str) -> str:
     return "\n".join(body)
 
 
-def _verify_ambient_canvas_section(visual_text: str) -> list[str]:
+def _verify_ambient_canvas_section(
+    visual_text: str,
+    *,
+    min_scene_rows: int = 4,
+) -> list[str]:
     """Ambient Canvas Canon depth — theme background, not flat SaaS wash."""
     issues: list[str] = []
     if not _section_present(visual_text, "Ambient Canvas"):
@@ -159,11 +163,15 @@ def _verify_ambient_canvas_section(visual_text: str) -> list[str]:
     if "layer" not in lower and "stack" not in lower:
         issues.append("视觉蓝图.md Ambient Canvas 须声明 layer stack（base/mesh/grid/motif）")
     if "scene" not in lower and "route" not in lower:
-        issues.append("视觉蓝图.md Ambient Canvas 须含 scene/route 映射表（≥4 行）")
+        issues.append(
+            f"视觉蓝图.md Ambient Canvas 须含 scene/route 映射表（≥{min_scene_rows} 行）"
+        )
     else:
         rows = re.findall(r"^\s*\|", section, re.M)
-        if len(rows) < 4:
-            issues.append("视觉蓝图.md Ambient Canvas scene 表须 ≥4 数据行")
+        if len(rows) < min_scene_rows:
+            issues.append(
+                f"视觉蓝图.md Ambient Canvas scene 表须 ≥{min_scene_rows} 数据行"
+            )
     if "ambient" not in lower and "canvas" not in lower:
         issues.append("视觉蓝图.md Ambient Canvas 须引用 ambient token（--{prefix}-ambient-*）")
     if "herovisualmotif" not in lower.replace(" ", "") and "hero visual" not in lower:
@@ -177,11 +185,20 @@ def _verify_visual_blueprint_depth(
     spec_text: str = "",
 ) -> list[str]:
     """V2 depth gate for 视觉蓝图.md."""
+    from batch.screen_inventory import (
+        ambient_scene_min_rows,
+        filter_blueprint_v2_sections,
+        parse_h5_routes,
+    )
+
     issues: list[str] = []
     if len(visual_text.strip()) < 800:
         issues.append("视觉蓝图.md 内容过短（V2 深度模板要求 ≥800 字符）")
 
-    for section in VISUAL_BLUEPRINT_V2_SECTIONS:
+    routes = parse_h5_routes(spec_text)
+    sections = filter_blueprint_v2_sections(VISUAL_BLUEPRINT_V2_SECTIONS, routes)
+
+    for section in sections:
         if not _section_present(visual_text, section):
             issues.append(f"视觉蓝图.md 缺少 V2 章节: {section}")
 
@@ -220,16 +237,32 @@ def _verify_visual_blueprint_depth(
 
     from batch.welcome_canon import verify_welcome_blueprint_section
 
-    issues.extend(verify_welcome_blueprint_section(visual_text))
-    issues.extend(_verify_ambient_canvas_section(visual_text))
+    issues.extend(verify_welcome_blueprint_section(visual_text, spec_text=spec_text))
+    issues.extend(
+        _verify_ambient_canvas_section(
+            visual_text,
+            min_scene_rows=ambient_scene_min_rows(routes),
+        )
+    )
 
     return issues
 
 
-def _verify_visual_lock_depth(data: dict, *, h5_shell: bool = False) -> list[str]:
+def _verify_visual_lock_depth(
+    data: dict,
+    *,
+    h5_shell: bool = False,
+    spec_text: str = "",
+) -> list[str]:
     """V2 depth gate for 本包视觉锁.json extended keys."""
+    from batch.screen_inventory import filter_visual_lock_v2_keys, parse_h5_routes
+
     issues: list[str] = []
-    for key in VISUAL_LOCK_V2_KEYS:
+    lock_keys = filter_visual_lock_v2_keys(
+        VISUAL_LOCK_V2_KEYS,
+        parse_h5_routes(spec_text),
+    )
+    for key in lock_keys:
         if key not in data:
             issues.append(f"本包视觉锁.json 缺少 V2 字段: {key}")
             continue
@@ -303,7 +336,7 @@ def _verify_visual_lock_depth(data: dict, *, h5_shell: bool = False) -> list[str
 
     from batch.welcome_canon import verify_welcome_visual_lock
 
-    issues.extend(verify_welcome_visual_lock(data))
+    issues.extend(verify_welcome_visual_lock(data, spec_text=spec_text))
     return issues
 
 
@@ -523,7 +556,9 @@ def verify_phase2_designer_outputs(workspace: Path) -> tuple[bool, list[str]]:
                     issues.append("本包视觉锁.json 缺少 designerDeckSelections")
                 if not data.get("colorTokens"):
                     issues.append("本包视觉锁.json 缺少 colorTokens")
-                issues.extend(_verify_visual_lock_depth(data, h5_shell=h5))
+                issues.extend(
+                    _verify_visual_lock_depth(data, h5_shell=h5, spec_text=spec_text)
+                )
         except json.JSONDecodeError:
             issues.append("本包视觉锁.json JSON 不合法")
     return (len(issues) == 0, issues)

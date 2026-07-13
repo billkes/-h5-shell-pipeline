@@ -4,7 +4,7 @@
   - `h5_shell` / `h5_flutter_shell` → **shellRuntime: flutter** (Flutter WebView 壳)
   - `h5_swift_shell` → **shellRuntime: swift** (Swift WKWebView 壳)
   - `h5_oc_shell` → **shellRuntime: oc** (Objective-C WKWebView 壳)
-- **All visible UI in remote H5:** Splash, Welcome gate, legal modal/page, business SPA, IAP UI, hidden Bridge plaza — deployable site under `h5SiteRoot` (default `h5_site/`).
+- **All visible UI in H5**: implement **only** routes listed in 功能文档.md **Screen Inventory**; no fixed Splash/Welcome/Legal/Plaza unless PM declares them.
 - **Native shells (swift/oc):** NO Flutter project required; shell = pure iOS WKWebView + Bridge. Bridge 七维来自 **h5-native-shell-deck**（非 Flutter deck）。
 - **Flutter shell:** Flutter is **container + Bridge + bundled raster assets only** (single fullscreen WebView host).
 - **h5EntryUrl:** PM registers `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd` in 本包登记信息.json. Prod pattern: `https://<H5_PROD_HOST>/{appSlug}/` (app name all lowercase).
@@ -36,10 +36,10 @@
 - Implement Vue views under `h5/src/views/`; router hash mode per kit draw.
 - Vite dev: `cd h5 && npm run dev` (port 5174). Deploy: pipeline `dev.h5.build` → `h5_site/{prefix}_entry.htm`.
 - `boot()` / splash: double `requestAnimationFrame` then `bridge.call('shellReady',{})`.
-- Implement `#/plaza` per 《H5壳广场页规范.md》 + kit `shell/bridge_plaza`.
+- Implement `#/plaza` **only if** Screen Inventory lists `#/plaza` — per 《H5壳广场页规范.md》; production entry = Settings long-press version label 3s when declared.
 
 [PM deliverables]
-- **功能文档.md:** Full depth per 《H5壳功能文档深度标准.md》 (tier in context.json) + Screen Inventory (all H5 routes). Flutter inventory = WebView host + error fallback + launch placeholder only.
+- **功能文档.md:** Full depth per 《H5壳功能文档深度标准.md》 (tier in context.json) + **Screen Inventory** (PM-authored route list — sole source of required H5 pages). Flutter inventory = WebView host + error fallback + launch placeholder only.
 - **本包登记信息.json:** `shellRuntime`, `packType`, `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd`, `h5SiteRoot`, `h5SiteEntry`, `launchPlaceholderAsset`, `h5VaultPattern`, `h5VaultLayout`, `bridgeDeckSelections`, `bridgeCapabilities`, `kitDeckSelections` (11 kit dims from CSV).
 - **bridgeDeckSelections** MUST copy all 7 Bridge CSV columns verbatim; **shellRuntime** MUST match pack type (flutter/swift/oc).
 - **产包计划.md:** P2-Shell → P2-H5 (`h5/` Vite source) → **dev.h5.build** → **manual deploy gate** (upload h5_site, switch h5EntryUrl to prod).
@@ -67,7 +67,7 @@
 - 视觉蓝图.md MUST include **§Ambient Canvas Canon** immediately after Navigation Pattern:
   - **Motif binding** — cite `heroVisualMotif`, `key_effects`, `navigationPattern` from designerDeckSelections / MASTER.
   - **Layer stack table** — Layer | DOM class | z-index | opacity rule | notes (base, mesh, grid, motif-specific SVG/div).
-  - **Scene map table** — Route/screen | `data-{prefix}-scene` value | ambient-a/b/c emphasis | motif variant (≥4 rows: splash, welcome, tab roots, detail/export).
+  - **Scene map table** — Route/screen | `data-{prefix}-scene` value | ambient-a/b/c emphasis | motif variant (≥ rows matching Screen Inventory H5 routes, min 2, max 4).
   - **CSS token table** — `--{prefix}-ambient-a` … `--{prefix}-ambient-scan` with rgba derived from color tokens.
   - **Card surface rule** — business cards/sheets use semi-opaque surfaces so canvas remains visible (anti flat-SaaS).
 - 本包视觉锁.json MUST include `ambientCanvas` object (copy seed from skill-adapt/impl-ui-input.md; refine scenes to match Screen Inventory).

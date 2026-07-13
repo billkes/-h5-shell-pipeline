@@ -30,10 +30,10 @@ ${ICON_MANIFEST_BLOCK}
 1. Write **Vue source** under **`h5SourceRoot`** (`h5/src/` from 本包登记信息.json). **Do NOT** hand-edit `h5_site/{prefix}_entry.htm` — it is Vite build output.
 2. **DO NOT** add `h5SiteRoot` to Flutter `pubspec.yaml` assets — site is deployed online / Vite dev server.
 3. **Follow h5VaultPattern** from 本包登记信息.json (monolith = vite-plugin-singlefile output).
-4. **All visible UI in H5**: Splash → Welcome gate → business SPA routes per PM deck.
-5. **Bridge Plaza (MANDATORY)**: route `#/plaza` per 《H5壳广场页规范.md》; production entry = Settings long-press version label 3s; semi-hardcoded buttons per `bridgeCapabilities`. For dev convenience, add an **obvious** temporary entrance (e.g., visible Settings button or FAB) wrapped in `H5_PLAZA_DEV_ENTRANCE_START` / `H5_PLAZA_DEV_ENTRANCE_END` markers so the pipeline can strip it before deployment.
-6. **Legal / Privacy / Terms**: kit from `data/static/h5_legal_kit/` + `sync_h5_legal_bundled.py` → `h5/src/legal/{prefix}_legal_bundled.ts`.
-7. IAP store UI in H5; call Bridge `purchase` only.
+4. **All visible UI in H5**: implement routes **only** from 功能文档.md **Screen Inventory** (PM decides pages; no pipeline-default Splash/Welcome/Legal/Plaza).
+5. **Bridge Plaza (if in Screen Inventory)**: route `#/plaza` per 《H5壳广场页规范.md》; production entry = Settings long-press version label 3s; semi-hardcoded buttons per `bridgeCapabilities`. For dev convenience, add an **obvious** temporary entrance wrapped in `H5_PLAZA_DEV_ENTRANCE_START` / `H5_PLAZA_DEV_ENTRANCE_END` markers so the pipeline can strip it before deployment.
+6. **Legal / Privacy / Terms (if in Screen Inventory)**: kit from `data/static/h5_legal_kit/` + `sync_h5_legal_bundled.py` → `h5/src/legal/{prefix}_legal_bundled.ts`.
+7. IAP store UI in H5 when Screen Inventory includes `#/store`; call Bridge `purchase` only.
 8. Media: relative paths + Bridge `mediaServe` for shell-bundled rasters — **no base64** large images.
 9. After implementation, pipeline runs **`dev.h5.build`** (`cd h5 && npm run build:deploy`). Local dev: `npm run dev` on port **5174**.
 
@@ -43,24 +43,26 @@ ${ICON_MANIFEST_BLOCK}
 [Must-have quality — implement BEFORE finishing]
 1. Export WYSIWYG shared builder; shell raster via mediaServe when needed.
 2. Store purchase barrier during `purchase` Bridge call.
-3. Filter chips with explicit light+dark tokens.
+3. Filter chips with explicit light+dark tokens; **`global.css` MUST use `color-scheme: light dark` + `@media (prefers-color-scheme: dark)`** — never hardcode dark-only `:root`.
 4. Business data in `localStorage` (or Bridge storage).
 5. Forms: spellcheck=false; placeholder/value same token.
 6. Index Grid Home rules unchanged.
 7. Image fallbacks via `data-fallback-mark` delegation.
-8. **Startup splash signal (MANDATORY):** double rAF then `bridge.call('shellReady', {})`.
-9. **Welcome Gate Canon (MANDATORY).**
+8. **Startup splash signal (if Screen Inventory includes `#/splash`):** double rAF then `bridge.call('shellReady', {})`. If no splash route, call `shellReady` from the PM-declared entry route after first paint.
+9. **Welcome Gate Canon (if Screen Inventory includes `#/welcome`).**
 10. **Ambient Canvas (MANDATORY):** read `skill-adapt/ambient-canvas-brief.md` + 视觉蓝图 §Ambient Canvas Canon. Ship `u-{prefix}-ambient` fixed layer in entry.htm (`aria-hidden`, behind content, scene attr on `html`). Cards/sheets semi-opaque — never full-viewport flat white over empty `--bg`.
-11. **Legal modal kit (MANDATORY).**
-12. **Overlay router stack (MANDATORY when applicable).**
+11. **Fixed AppBar / TabBar layout (MANDATORY when Screen Inventory uses top tabs or page titles):** use scaffold `TopBar.vue` + `TabBar.vue` + `.page-shell` from `h5/src/styles/global.css` **LAYOUT:pipeline** block. **Do NOT** redefine `.c-{prefix}-topbar`, `.c-{prefix}-tabbar`, `.page-shell` heights/padding — pipeline `sync_h5_layout_contract` overwrites at build. Content pages wrap body in `<div class="page-shell">` so fixed chrome never covers primary UI.
+12. **Tab-root scaffold (MANDATORY):** `sync_h5_page_scaffold` generates Hub / Runs / Settings `<template>` — **DO NOT rewrite**. Implement business in `views/*View.logic.ts` only. Wizard / Live / Export remain full Agent ownership.
+13. **Legal modal kit (if Screen Inventory includes `#/legal`).**
+14. **Overlay router stack (MANDATORY when Screen Inventory includes hash overlays).**
 
 [Forbidden]
 - Flutter Dart UI changes except shell constants for h5EntryUrl if missing
 - Bundling site into Flutter assets
 - External legal URLs as primary display
 - `<input type="file">`, system `<select>`, `alert/confirm`
-- Exposing plaza in Tab bar or home hub
-- Leaving an obvious plaza entrance in production code without `H5_PLAZA_DEV_ENTRANCE_*` markers
+- Exposing plaza in Tab bar or home hub (when `#/plaza` is declared)
+- Leaving an obvious plaza entrance in production code without `H5_PLAZA_DEV_ENTRANCE_*` markers (when `#/plaza` is declared)
 
 [Output]
 Complete Vue source under `h5/src/`; `dev.h5.build` will compile to `h5SiteRoot`. One sentence summary of screens implemented.

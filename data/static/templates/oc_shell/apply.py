@@ -63,6 +63,16 @@ def rename_path(path: Path, values: dict[str, str]) -> Path:
     return new_path
 
 
+def _sanitize_pbxproj_team(text: str, team_id: str) -> str:
+    """pbxproj must not contain `DEVELOPMENT_TEAM = ;` (invalid when team id empty)."""
+    tid = (team_id or "").strip()
+    if tid:
+        return text
+    import re
+
+    return re.sub(r"\t\t\t\tDEVELOPMENT_TEAM = \"\";\n", "", text)
+
+
 def apply_template(src: Path, dst: Path | None, values: dict[str, str]) -> Path:
     if dst is None:
         dst = src.with_name(values["{{APP_NAME}}"])
@@ -83,7 +93,43 @@ def apply_template(src: Path, dst: Path | None, values: dict[str, str]) -> Path:
                 pass
         rename_path(path, values)
     rename_path(dst, values)
+    team_id = values.get("{{TEAM_ID}}", "")
+    for pbx in dst.rglob("project.pbxproj"):
+        try:
+            raw = pbx.read_text(encoding="utf-8")
+            cleaned = _sanitize_pbxproj_team(raw, team_id)
+            if cleaned != raw:
+                pbx.write_text(cleaned, encoding="utf-8")
+        except OSError:
+            pass
+    _enforce_no_storekit(dst)
+    _apply_shell_placeholders(dst, values)
     return dst
+
+
+def _apply_shell_placeholders(dst: Path, values: dict[str, str]) -> None:
+    root = Path(__file__).resolve().parents[4]
+    scripts = root / "scripts"
+    if str(scripts) not in sys.path:
+        sys.path.insert(0, str(scripts))
+    from batch.h5_shell_placeholders import apply_shell_placeholders
+
+    prefix = values.get("{{PREFIX}}", "")
+    changed = apply_shell_placeholders(dst, prefix=prefix, force=True)
+    for rel in changed:
+        print(f"  >>> Shell placeholder: {rel}")
+
+
+def _enforce_no_storekit(dst: Path) -> None:
+    root = Path(__file__).resolve().parents[4]
+    scripts = root / "scripts"
+    if str(scripts) not in sys.path:
+        sys.path.insert(0, str(scripts))
+    from batch.native_iap_policy import enforce_no_storekit
+
+    changed = enforce_no_storekit(dst)
+    for rel in changed:
+        print(f"  >>> IAP policy: removed/forbidden StoreKit artifact: {rel}")
 
 
 def main() -> int:

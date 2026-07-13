@@ -102,7 +102,21 @@ def apply_template(src: Path, dst: Path | None, values: dict[str, str]) -> Path:
         rename_path(path, values)
 
     rename_path(dst, values)
+    _apply_shell_placeholders(dst, values)
     return dst
+
+
+def _apply_shell_placeholders(dst: Path, values: dict[str, str]) -> None:
+    root = Path(__file__).resolve().parents[4]
+    scripts = root / "scripts"
+    if str(scripts) not in sys.path:
+        sys.path.insert(0, str(scripts))
+    from batch.h5_shell_placeholders import apply_shell_placeholders
+
+    prefix = values.get("{{PREFIX}}", "")
+    changed = apply_shell_placeholders(dst, prefix=prefix, force=True)
+    for rel in changed:
+        print(f"  >>> Shell placeholder: {rel}")
 
 
 def main() -> int:

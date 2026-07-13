@@ -271,6 +271,8 @@ def iap_source_truth_block(workspace: Path | None = None) -> str:
         "- Layout / interaction: workspace `ios-iap-page-schemes.md` "
         "(compliance + dual-section layout rules).",
         "- DO NOT use legacy IDs (311400, 324001, 32408, …) or prices from old docs.",
+        "- FORBIDDEN: `**/*.storekit` and `StoreKitConfigurationFileReference` in "
+        "any `*.xcscheme` — IAP uses App Store Connect / sandbox only.",
         "- `内购项列表参考.md` is consumable compliance only, not a product list.",
         "- In 功能文档.md include an **IAP Catalog** section mirroring "
         f"`{_CATALOG_MD_NAME}` tables (all productIds, coins, prices, tags).",

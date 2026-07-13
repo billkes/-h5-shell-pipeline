@@ -19,6 +19,9 @@ def test_apply_h5_vite_scaffold(tmp_path: Path) -> None:
     assert "export const LEGAL" in text
     pkg = (dst / "package.json").read_text(encoding="utf-8")
     assert "vite-plugin-singlefile" in pkg
+    vite_cfg = (dst / "vite.config.ts").read_text(encoding="utf-8")
+    assert "host: true" in vite_cfg
+    assert '"dev": "vite --host"' in pkg or "'dev': 'vite --host'" in pkg
     copy_script = (dst / "scripts" / "copy-to-h5-site.mjs").read_text(encoding="utf-8")
     assert "h5_site" in copy_script
     assert "H5_APP_SLUG" in copy_script

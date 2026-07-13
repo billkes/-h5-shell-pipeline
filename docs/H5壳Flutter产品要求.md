@@ -62,7 +62,7 @@
 | **协议** | H5 弹窗/页展示英文协议；**禁止**外链 HTTPS |
 | **Bridge** | task.csv 七维组合 |
 | **媒体** | **禁止 base64**；按 `mediaServe` 维度 |
-| **隐私** | Welcome + Settings 只读入口 |
+| **隐私** | 若 Screen Inventory 含 Welcome/Settings，提供协议只读入口 |
 | **差异化** | `dartCodePrefix`、架构文件夹、命名混淆、编程人设 |
 
 ---
@@ -86,7 +86,7 @@ PM 在 `功能文档.md` 须达到 **businessDepthTier**（默认 L2）：
 
 ### 4.2 其它 PM 产出
 
-- **功能文档.md**：Screen Inventory（全 H5 路由）、Export/Save、IAP & Free Tier、§H5 Architecture、App Store 英文文案
+- **功能文档.md**：Screen Inventory（**PM 决定的 H5 路由全集**）、Export/Save、IAP & Free Tier、§H5 Architecture、App Store 英文文案
 - **本包登记信息.json**：`themeAngle`、`appSlug`、`h5EntryUrl*`、`h5SiteRoot/Entry`、`h5VaultPattern/Layout`、`bridgeCapabilities`、`bridgeDeckSelections`、`kitDeckSelections`、`codeAntiCorrelation`
 - **产包计划.md**：P2-Shell → P2-H5 → **人工部署门**
 - **不强制**：`tab1Name`/`tab2Name`/`tab3Name`；**不生成** `默认内容列表.json`
@@ -130,7 +130,8 @@ CSV `状态管理` / `架构模式` 仅约束 **壳**；H5 以 Kit 三维为准�
 
 ```
 冷启动 → LaunchScreen → LaunchVeil → loadRequest(h5EntryUrl)
-      → H5 Splash → shellReady → 撤 Veil → Welcome → 业务 SPA
+      → H5 首屏（由 Screen Inventory 决定，常见：Splash → Welcome → 业务 SPA）
+      → shellReady → 撤 Veil
 ```
 
 主 WebView 导航 **全部由 H5 负责**。
@@ -150,10 +151,10 @@ CSV `状态管理` / `架构模式` 仅约束 **壳**；H5 以 Kit 三维为准�
 
 ## 9. 审核路径（A 面）
 
-审核员可见：商店元数据 + Welcome 合规 + **在线 H5 首屏**。B 面叙事写在 H5 内，不在 Flutter 功能文档展开。
+审核员可见：商店元数据 + **Screen Inventory 中声明的合规入口**（常见 Welcome）+ **在线 H5 首屏**。B 面叙事写在 H5 内，不在 Flutter 功能文档展开。
 
-- **Welcome Gate Canon**：视觉蓝图 + welcomeSpec
-- **Bridge 广场页**：Settings 长按版本 3s → `#/plaza`
+- **Welcome Gate Canon**：仅当 Screen Inventory 含 `#/welcome`（视觉蓝图 + welcomeSpec）
+- **Bridge 广场页**：仅当 Screen Inventory 含 `#/plaza`（Settings 长按版本 3s → `#/plaza`）
 
 ---
 
@@ -170,7 +171,7 @@ CSV `状态管理` / `架构模式` 仅约束 **壳**；H5 以 Kit 三维为准�
 | 子步骤 | Agent | 产出 |
 |--------|-------|------|
 | P2-Shell | Shell Programmer | WebView + Bridge + analyze 0 error |
-| P2-H5 | H5 Implementer | 可部署 H5 站点 + Plaza |
+| P2-H5 | H5 Implementer | 可部署 H5 站点（Screen Inventory 声明的路由） |
 | 人工部署 | 人工 | 上传 → `h5EntryUrlProd` |
 
 Implementer **必须**按 `功能文档.md` 的 BR-xx 与 Primary Workflow 步骤实现，不得省略 State & Empty Matrix 中的态。
