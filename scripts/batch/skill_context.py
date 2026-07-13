@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -11,8 +12,17 @@ from batch.design_diversity import (
     enrich_anti_collision_with_visuals,
     theme_search_query_from_row,
 )
-from batch.pack_type import h5_shell_runtime, is_flutter_runtime, is_h5_shell
+from batch.pack_type import (
+    H5_FLUTTER_SHELL,
+    H5_OC_SHELL,
+    H5_SHELL,
+    H5_SWIFT_SHELL,
+    h5_shell_runtime,
+    is_flutter_runtime,
+    is_h5_shell,
+)
 from batch.registry import format_already_used_block
+from batch.spec_business_depth import resolve_business_depth_tier
 
 if TYPE_CHECKING:
     from batch.config import BatchConfig
@@ -25,11 +35,87 @@ CONSTRAINTS_FILE = "constraints.md"
 
 
 def stack_for_pack_type(pack_type: str) -> str:
+    """Primary UI stack for design-system generation (H5 site uses html-tailwind)."""
     if is_h5_shell(pack_type):
         return "html-tailwind"
     if is_flutter_runtime(pack_type):
         return "flutter"
-    return "flutter"
+    return "html-tailwind"
+
+
+def native_stack_for_pack_type(pack_type: str) -> str | None:
+    """Optional native shell stack brief (Swift/Flutter)."""
+    text = (pack_type or "").strip()
+    if text == H5_SWIFT_SHELL:
+        return "swiftui"
+    if text in (H5_SHELL, H5_FLUTTER_SHELL):
+        return "flutter"
+    return None
+
+
+_DESIGNER_SEED_POOL: tuple[dict[str, str], ...] = (
+    {
+        "colorTemperature": "warm approachable pastels",
+        "shapeLanguage": "soft rounded cards",
+        "typographyPersonality": "friendly humanist sans",
+        "navigationPattern": "bottom tab hub",
+        "heroVisualMotif": "layered ambient mesh",
+        "interactionFlavor": "subtle fade transitions",
+        "iconStyle": "outlined 2px stroke SVG",
+    },
+    {
+        "colorTemperature": "cool professional blue-gray",
+        "shapeLanguage": "sharp rectangular panels",
+        "typographyPersonality": "geometric display + neutral body",
+        "navigationPattern": "index grid home",
+        "heroVisualMotif": "data band grid",
+        "interactionFlavor": "standard 200ms ease",
+        "iconStyle": "sharp outlined SVG",
+    },
+    {
+        "colorTemperature": "vibrant accent on neutral base",
+        "shapeLanguage": "pill chips and squircles",
+        "typographyPersonality": "rounded playful pairing",
+        "navigationPattern": "hero-first drill-down",
+        "heroVisualMotif": "organic blob parallax",
+        "interactionFlavor": "spring-like micro-motion",
+        "iconStyle": "rounded outlined SVG",
+    },
+)
+
+
+def designer_seeds_from_row(row: CsvTaskRow) -> dict[str, str]:
+    """Stable designer seed phrases from CSV row (pre skill.adapt)."""
+    blob = " ".join(
+        filter(
+            None,
+            [
+                row.name,
+                row.theme_angle,
+                row.track,
+                row.audience,
+                row.core_scene,
+                row.local_feature,
+                row.product_flow,
+            ],
+        )
+    )
+    digest = hashlib.sha256(blob.encode("utf-8")).hexdigest()
+    idx = int(digest[:8], 16) % len(_DESIGNER_SEED_POOL)
+    return dict(_DESIGNER_SEED_POOL[idx])
+
+
+def update_context_designer_seeds(workspace: Path, designer: dict[str, str]) -> None:
+    """After skill.adapt — persist resolved designerDeckSelections into context.json."""
+    ctx_path = workspace / SKILL_INPUT_DIR / CONTEXT_FILE
+    if not ctx_path.is_file():
+        return
+    try:
+        ctx = json.loads(ctx_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return
+    ctx["designerSeeds"] = designer
+    ctx_path.write_text(json.dumps(ctx, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def _same_batch_summaries(
@@ -84,6 +170,13 @@ def build_context_payload(
     batch_id: str = "",
 ) -> dict[str, Any]:
     _ = cfg
+    seeds = designer_seeds_from_row(row)
+    depth_tier = resolve_business_depth_tier(
+        core_scene=row.core_scene or "",
+        local_feature=row.local_feature or "",
+        product_flow=row.product_flow or "",
+        theme_angle=row.theme_angle or "",
+    )
     return {
         "app": {
             "name": row.name,
@@ -93,6 +186,7 @@ def build_context_payload(
             "runtime": h5_shell_runtime(pack_type) if is_h5_shell(pack_type) else "flutter",
             "stack": stack_for_pack_type(pack_type),
         },
+        "designerSeeds": seeds,
         "product": {
             "themeAngle": row.theme_angle or "",
             "track": row.track or "",
@@ -107,6 +201,7 @@ def build_context_payload(
             "noLogin": True,
             "noFeed": pack_type == "tool_flutter",
             "iapRequired": True,
+            "businessDepthTier": depth_tier if is_h5_shell(pack_type) else "",
             "batchId": batch_id,
         },
     }
@@ -152,6 +247,9 @@ def _constraints_markdown(pack_type: str) -> str:
         lines.append("- Tool app: exactly 3 tabs, no Feed / community / publish stream.")
     if is_h5_shell(pack_type):
         lines.append("- H5 shell: vault + Bridge contract; legal kit + deflavor rules apply.")
+        lines.append(
+            "- 功能文档.md MUST meet 《H5壳功能文档深度标准.md》 (businessDepthTier in context.json)."
+        )
     lines.extend(
         [
             "",

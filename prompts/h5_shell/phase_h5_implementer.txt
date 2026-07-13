@@ -5,8 +5,10 @@ Prefix: ${FLUTTER_DART_PREFIX}
 
 [Required Reading]
 - `.cursor/rules/*.mdc` — **seven** iron rules for h5_shell
-- 功能文档.md — Screen Inventory (ALL screens are H5), PM deck mapping, Bridge plaza matrix
+- 功能文档.md — **BR-xx rules + Primary Workflow steps** (MUST implement all); Screen Inventory; Bridge plaza matrix
 - 视觉蓝图.md · 本包视觉锁.json — H5 visual tokens
+- design-system/*/pages/*.md · stack-h5-vanilla.md · ux-checklist.md
+- skill-adapt/design-tokens.css · css-motion-brief.md · icon-sprite-manifest.json
 - 本包登记信息.json — `h5SiteRoot`, `h5SiteEntry`, `h5EntryUrl*`, `appSlug`, Bridge capabilities
 - data/static/component_kit/ — including **`shell/bridge_plaza`**
 - 《H5壳广场页规范.md》 · 《H5去风味规范.md》 · 《H5壳业务流程文字版.md》
@@ -14,6 +16,11 @@ Prefix: ${FLUTTER_DART_PREFIX}
 
 [Hard Constraints]
 ${H5_SHELL_BLOCK}
+${UX_CHECKLIST_BLOCK}
+${PAGE_OVERRIDES_BLOCK}
+${TOKEN_IMPL_BLOCK}
+${CSS_MOTION_BLOCK}
+${ICON_MANIFEST_BLOCK}
 
 [H5 site — MANDATORY]
 1. Write files under **`h5SiteRoot`** only (from 本包登记信息.json, default `h5_site/`). Entry `{prefix}_entry.htm` — **never** `index.html`.

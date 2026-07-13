@@ -15,16 +15,20 @@ from batch.design_diversity import (
     register_design_selection,
     theme_search_query_from_row,
 )
-from batch.skill_context import avoid_query_suffix, stack_for_pack_type
 from batch.candidate_similarity import (
     run_fallback_ladder,
     candidate_similarity,
     anti_style_search,
+    load_registry_packages,
+    extract_candidate_registry_entry,
     SimilarityResult,
     THRESHOLD_WARN,
     THRESHOLD_FAIL,
     MAX_RETRIES,
 )
+from batch.pack_type import is_h5_shell
+from batch.skill_context import avoid_query_suffix, native_stack_for_pack_type, stack_for_pack_type
+from batch.skill_resolve import inject_uupm_scripts, resolve_uupm_package_dir, resolve_skill_repo_root
 
 if TYPE_CHECKING:
     from batch.config import BatchConfig
@@ -95,34 +99,19 @@ def _scripts_dir_from_root(root: Path) -> Path | None:
 
 def resolve_uupm_scripts_dir(cfg: BatchConfig) -> Path:
     """Locate ui-ux-pro-max ``scripts/`` (config → env → sibling repo)."""
-    for root in _uupm_skill_repo_candidates(cfg):
-        scripts = _scripts_dir_from_root(root)
-        if scripts is not None:
-            return scripts
+    from batch.skill_resolve import resolve_uupm_scripts_dir as _resolve
 
-    raise RuntimeError(
-        "找不到 ui-ux-pro-max-skill：请设置 config.yaml → uupm.skill_dir "
-        "或环境变量 UUPM_SKILL_DIR（指向 ui-ux-pro-max-skill 仓库根目录）"
-    )
+    return _resolve(cfg)
 
 
 def resolve_uupm_package_dir(cfg: BatchConfig) -> Path:
-    """Locate ui-ux-pro-max package root (contains ``scripts/`` + ``data/``)."""
-    scripts = resolve_uupm_scripts_dir(cfg)
-    if scripts.name == "scripts" and scripts.parent.is_dir():
-        return scripts.parent
-    return scripts
+    from batch.skill_resolve import resolve_uupm_package_dir as _resolve
+
+    return _resolve(cfg)
 
 
 def resolve_uupm_skill_repo_root(cfg: BatchConfig) -> Path | None:
-    """Best-effort skill git repo root (for bundled SKILL.md)."""
-    pkg = resolve_uupm_package_dir(cfg)
-    if pkg.name == "ui-ux-pro-max" and pkg.parent.name == "src":
-        return pkg.parent.parent
-    for root in _uupm_skill_repo_candidates(cfg):
-        if _scripts_dir_from_root(root) is not None:
-            return root
-    return None
+    return resolve_skill_repo_root(cfg)
 
 
 def _inject_scripts(scripts_dir: Path) -> None:
@@ -277,7 +266,7 @@ def run_skill_design(
     base_dials = designer_dials_from_row(row)
 
     scripts_dir = resolve_uupm_scripts_dir(cfg)
-    _inject_scripts(scripts_dir)
+    inject_uupm_scripts(cfg)
     from design_system import DesignSystemGenerator, persist_design_system  # type: ignore[import-not-found]
     from core import search_stack  # type: ignore[import-not-found]
 
@@ -318,21 +307,44 @@ def run_skill_design(
         print(f"[SIMILARITY] {log_msg}")
 
     if sim_result.status == "FAIL":
-        # Anti-style search result — try to force a different style
-        anti_styles = anti_style_search(
-            [candidate_similarity.__globals__.get("registry_entries", [])],
-            styles_csv_path,
-            max_results=3,
-        )
+        registry_pkgs = load_registry_packages(registry_path)
+        registry_entries = [extract_candidate_registry_entry(p) for p in registry_pkgs]
+        anti_styles = anti_style_search(registry_entries, styles_csv_path, max_results=3)
         if anti_styles:
-            print(f"[SIMILARITY] Falling back to anti-styles: {[s.get('Style Category', '') for s in anti_styles]}")
-            # Regenerate with anti-style priority
+            print(
+                f"[SIMILARITY] Falling back to anti-styles: "
+                f"{[s.get('Style Category', '') for s in anti_styles]}"
+            )
             for anti_style in anti_styles:
-                style_name = anti_style.get("Style Category", "")
-                if style_name:
-                    print(f"[SIMILARITY] Trying style override: {style_name}")
-                    # TODO: Implement style_priority injection into generator.generate()
-                    # For now, use the first candidate as-is with a warning
+                style_name = str(anti_style.get("Style Category", "")).strip()
+                keywords = str(anti_style.get("Keywords", "")).strip()
+                if not style_name:
+                    continue
+                anti_query = f"{base_query} {style_name} {keywords} differentiated visual style"
+                print(f"[SIMILARITY] Trying style override query: {anti_query[:120]}...")
+                regenerated: list[dict[str, Any]] = []
+                for cid, dials in _dial_variants(base_dials):
+                    ds = generator.generate(
+                        anti_query,
+                        row.name,
+                        variance=dials["variance"],
+                        motion=dials["motion"],
+                        density=dials["density"],
+                    )
+                    ds["id"] = cid
+                    regenerated.append(ds)
+                retry = run_fallback_ladder(
+                    candidates=regenerated,
+                    registry_path=registry_path,
+                    base_query=anti_query,
+                    base_dials=base_dials,
+                    styles_csv_path=styles_csv_path,
+                    generator_fn=generator_fn,
+                )
+                if retry.selected_candidate and retry.status in ("PASS", "WARN"):
+                    selected_candidate = retry.selected_candidate
+                    sim_result = retry
+                    candidates_out = regenerated
                     break
 
         # If still failing, fall back to best available
@@ -363,6 +375,21 @@ def run_skill_design(
     stack_path.parent.mkdir(parents=True, exist_ok=True)
     stack_path.write_text(_format_stack_md(stack, query, stack_results), encoding="utf-8")
 
+    native_stack = native_stack_for_pack_type(pack_type)
+    if native_stack and native_stack != stack:
+        native_result = search_stack(query, native_stack, 6)
+        native_results = native_result.get("results") or []
+        native_path = stack_guidelines_path(workspace, row.name, native_stack)
+        native_path.write_text(
+            _format_stack_md(native_stack, query, native_results),
+            encoding="utf-8",
+        )
+
+    if is_h5_shell(pack_type):
+        from batch.skill_stack_brief import write_h5_vanilla_brief
+
+        write_h5_vanilla_brief(workspace, row.name)
+
     meta = {
         "source": "ui-ux-pro-max-skill",
         "app": row.name,
@@ -384,20 +411,25 @@ def run_skill_design(
     pointer = workspace / POINTER_FILENAME
     rel = master.relative_to(workspace)
     slug = row.name.lower().replace(" ", "-")
+    pages_glob = f"design-system/{slug}/pages/*.md"
     pointer.write_text(
         "\n".join(
             [
                 "# 设计系统建议",
                 "",
-                "由流水线 `skill.design` + `skill.adapt` 调用 **ui-ux-pro-max** 生成。",
+                "由流水线 `skill.design` + `skill.enrich` + `skill.adapt` + `skill.pages` 调用 **ui-ux-pro-max** 生成。",
                 "",
                 f"- MASTER: `{rel.as_posix()}`",
                 f"- Stack: `design-system/{slug}/stack-{stack}.md`",
+                f"- H5 vanilla: `design-system/{slug}/stack-h5-vanilla.md`",
+                f"- Enrich: `design-system/{slug}/ux-checklist.md` · `icon-brief.md` · `h5-interface-brief.md`",
+                f"- Pages: `{pages_glob}`",
                 f"- Candidates: `design-system/{slug}/candidates.json`",
-                f"- Adapt brief: `skill-adapt/design-brief.md`",
+                f"- Adapt: `skill-adapt/design-brief.md` · `design-tokens.css`",
                 "",
-                "Agent Plan 读 skill-adapt/design-brief.md + MASTER；Programmer 读 stack。",
-                "页面级 override（design-system/pages/）不再预生成，由 build.agent 按功能文档定义。",
+                "Cursor skills: `.cursor/skills/ui-ux-pro-max` + `brand` · `design-system` · `design` · `ui-styling`",
+                "",
+                "Agent Plan 读 skill-adapt/design-brief.md + MASTER + pages；Implementer 读 stack-h5-vanilla + ux-checklist。",
                 "",
             ]
         ),
@@ -440,13 +472,18 @@ def run_skill_adapt_step(*, workspace: Path, row: CsvTaskRow) -> Path:
 
     scripts_dir = None
     try:
-        scripts_dir = resolve_uupm_scripts_dir(cfg)
-        _inject_scripts(scripts_dir)
+        inject_uupm_scripts(cfg)
         from design_system import persist_design_system  # type: ignore[import-not-found]
 
         persist_design_system(selected, None, str(workspace), design_query_from_context(ctx, anti, row=row))
     except Exception:
         pass
+
+    from batch.skill_context import update_context_designer_seeds
+    from batch.skill_adapt import designer_selections_from_candidate
+
+    designer = designer_selections_from_candidate(selected, seeds)
+    update_context_designer_seeds(workspace, designer)
 
     try:
         register_design_selection(
@@ -454,6 +491,7 @@ def run_skill_adapt_step(*, workspace: Path, row: CsvTaskRow) -> Path:
             app=row.name,
             batch_id=str((ctx.get("constraints") or {}).get("batchId") or cfg.batch_id or ""),
             candidate=selected,
+            workspace=workspace,
         )
     except Exception:
         pass

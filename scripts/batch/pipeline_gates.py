@@ -515,6 +515,33 @@ def verify_pm_ui_plan_outputs(
     if not adapt_brief.is_file():
         issues.append("缺少 skill-adapt/design-brief.md（skill.adapt 产物）")
 
+    ux_checklist = None
+    for path in workspace.glob("design-system/*/ux-checklist.md"):
+        ux_checklist = path
+        break
+    if ux_checklist is None or ux_checklist.stat().st_size < 80:
+        issues.append("缺少 design-system/*/ux-checklist.md（skill.enrich 产物）")
+
+    if h5_shell:
+        pages_dir = None
+        for path in workspace.glob("design-system/*/pages"):
+            if path.is_dir():
+                pages_dir = path
+                break
+        page_count = len(list(pages_dir.glob("*.md"))) if pages_dir else 0
+        if page_count < 5:
+            issues.append(f"design-system pages 不足（当前 {page_count}，需要 >= 5）")
+
+        tokens_css = workspace / "skill-adapt" / "design-tokens.css"
+        if not tokens_css.is_file():
+            issues.append("缺少 skill-adapt/design-tokens.css（skill.tokens 产物）")
+
+    visual = workspace / "视觉蓝图.md"
+    if visual.is_file():
+        vtext = visual.read_text(encoding="utf-8", errors="replace")
+        if h5_shell and "ux-checklist" not in vtext.lower() and "ambient canvas" not in vtext.lower():
+            issues.append("视觉蓝图.md 应引用 ux-checklist 或 Ambient Canvas enrich 产物")
+
     for name, min_size in (
         ("产包计划.md", 300),
         ("资源计划.md", 150),
@@ -548,6 +575,16 @@ def verify_pm_ui_plan_outputs(
         spec_text = spec.read_text(encoding="utf-8", errors="replace")
         if "Data Contract" not in spec_text and "数据契约" not in spec_text:
             issues.append("功能文档.md 缺少 Data Contract / 数据契约 章节")
+        if h5_shell:
+            from batch.spec_business_depth import (
+                resolve_tier_from_workspace,
+                spec_depth_gate_enabled,
+                verify_spec_business_depth,
+            )
+
+            if spec_depth_gate_enabled():
+                tier_id = resolve_tier_from_workspace(workspace)
+                issues.extend(verify_spec_business_depth(spec_text, tier_id=tier_id))
 
     from batch.selection_gate import verify_selection_plan
 

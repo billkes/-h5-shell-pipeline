@@ -285,6 +285,7 @@ def register_design_selection(
     app: str,
     batch_id: str,
     candidate: dict[str, Any],
+    workspace: Path | None = None,
 ) -> str:
     ledger = _load_ledger(ledger_path)
     fp = visual_fingerprint(candidate)
@@ -294,7 +295,7 @@ def register_design_selection(
     for k in stale:
         ledger["fingerprints"].pop(k, None)
 
-    ledger.setdefault("apps", {})[app] = {
+    entry: dict[str, Any] = {
         "batchId": batch_id,
         "fingerprintKey": key,
         "visualFingerprint": fp,
@@ -302,6 +303,29 @@ def register_design_selection(
         "style": (candidate.get("style") or {}).get("name", ""),
         "category": candidate.get("category", ""),
     }
+    if workspace is not None:
+        for meta_path in workspace.glob("design-system/*/enrich-meta.json"):
+            try:
+                meta = json.loads(meta_path.read_text(encoding="utf-8"))
+                entry["uxDomainsUsed"] = meta.get("domains") or []
+            except json.JSONDecodeError:
+                pass
+            break
+        pages_dir = next(workspace.glob("design-system/*/pages"), None)
+        entry["pageOverrideCount"] = len(list(pages_dir.glob("*.md"))) if pages_dir else 0
+        manifest = workspace / "skill-adapt" / "icon-sprite-manifest.json"
+        if manifest.is_file():
+            try:
+                data = json.loads(manifest.read_text(encoding="utf-8"))
+                libs = {i.get("source") for i in data.get("icons") or [] if i.get("source")}
+                entry["iconLibrary"] = sorted(libs)
+            except json.JSONDecodeError:
+                pass
+        tok = workspace / "skill-adapt" / "design-tokens.json"
+        if tok.is_file():
+            entry["tokenHash"] = hashlib.sha256(tok.read_bytes()).hexdigest()[:16]
+
+    ledger.setdefault("apps", {})[app] = entry
     ledger.setdefault("fingerprints", {})[key] = app
     _save_ledger(ledger_path, ledger)
     return key

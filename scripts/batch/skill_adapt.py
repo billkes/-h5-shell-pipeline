@@ -13,6 +13,8 @@ SELECTED_DESIGNER = "selected-designer.json"
 DESIGN_BRIEF = "design-brief.md"
 IMPL_UI_INPUT = "impl-ui-input.md"
 AMBIENT_CANVAS_BRIEF = "ambient-canvas-brief.md"
+CSS_MOTION_BRIEF = "css-motion-brief.md"
+ICON_SPRITE_MANIFEST = "icon-sprite-manifest.json"
 
 
 def _tokenize(text: str) -> set[str]:
@@ -153,7 +155,7 @@ def designer_selections_from_candidate(
     navigation = pattern.get("name") or seeds.get("navigationPattern") or ""
     hero = style.get("best_for") or seeds.get("heroVisualMotif") or ""
     motion_label = dials.get("motion_label") or seeds.get("interactionFlavor") or ""
-    icon = seeds.get("iconStyle") or "uupm-aligned icon set"
+    icon = seeds.get("iconStyle") or "outlined inline SVG sprite (unified H5 kit)"
 
     return {
         "colorTemperature": str(color_temp)[:120],
@@ -164,6 +166,120 @@ def designer_selections_from_candidate(
         "interactionFlavor": str(motion_label)[:120],
         "iconStyle": str(icon)[:120],
     }
+
+
+def _build_css_motion_brief(candidate: dict[str, Any]) -> str:
+    dials = candidate.get("dials") or {}
+    motion_snippet = candidate.get("motion_snippet") or {}
+    tier = motion_snippet.get("Intensity Tier") or dials.get("motion_label") or "Standard"
+    duration = motion_snippet.get("Duration") or "200ms"
+    easing = motion_snippet.get("Easing") or "ease-out"
+    trigger = motion_snippet.get("Trigger") or "on mount / on reveal"
+    gsap = motion_snippet.get("GSAP Snippet") or ""
+
+    lines = [
+        "# CSS Motion Brief (skill.adapt)",
+        "",
+        f"**Intensity:** {tier} (dial {dials.get('motion', '?')}/10)",
+        "",
+        "## CSS equivalents (H5 monolith — no GSAP)",
+        "",
+        "```css",
+        "@media (prefers-reduced-motion: no-preference) {",
+        "  .u-motion-fade {",
+        f"    transition: opacity {duration} {easing}, transform {duration} {easing};",
+        "  }",
+        "  .u-motion-rise {",
+        f"    animation: u-rise {duration} {easing} both;",
+        "  }",
+        "}",
+        "@media (prefers-reduced-motion: reduce) {",
+        "  .u-motion-fade, .u-motion-rise { transition: none; animation: none; }",
+        "}",
+        "@keyframes u-rise {",
+        "  from { opacity: 0; transform: translateY(8px); }",
+        "  to { opacity: 1; transform: translateY(0); }",
+        "}",
+        "```",
+        "",
+        f"- **Trigger:** {trigger}",
+        f"- **Reference (GSAP source):** {gsap[:200]}{'...' if len(str(gsap)) > 200 else ''}",
+        "",
+        "## Rules",
+        "- Micro-interactions: 150–300ms; decorative ambient: up to 1.2s.",
+        "- Always provide reduced-motion off switch.",
+        "- Prefer `transform` + `opacity` — avoid layout-thrashing properties.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def _build_icon_sprite_manifest(workspace: Path, candidate: dict[str, Any], designer: dict[str, str]) -> dict[str, Any]:
+    from batch.skill_icons import (
+        CANONICAL_ICON_SLUGS,
+        FORBIDDEN_ICON_LIBRARIES,
+        h5_symbol_id,
+        parse_icon_names_from_brief,
+    )
+    from batch.workspace import dart_prefix
+
+    prefix = dart_prefix(workspace)
+    symbols: list[dict[str, str]] = []
+    icon_brief = None
+    for path in workspace.glob("design-system/*/icon-brief.md"):
+        icon_brief = path
+        break
+    if icon_brief and icon_brief.is_file():
+        text = icon_brief.read_text(encoding="utf-8", errors="replace")
+        for slug in parse_icon_names_from_brief(text):
+            symbols.append(
+                {
+                    "slug": slug,
+                    "symbolId": h5_symbol_id(prefix, slug),
+                    "source": "uupm-icons",
+                }
+            )
+    seen = {s["slug"] for s in symbols}
+    for slug in CANONICAL_ICON_SLUGS:
+        if slug not in seen:
+            symbols.append(
+                {
+                    "slug": slug,
+                    "symbolId": h5_symbol_id(prefix, slug),
+                    "source": "canonical",
+                }
+            )
+            seen.add(slug)
+    symbols = symbols[:20]
+    return {
+        "prefix": prefix,
+        "delivery": "inline-svg-sprite",
+        "strokeWidth": "2",
+        "viewBox": "0 0 24 24",
+        "style": "outlined inline SVG sprite (unified H5 kit — no per-pack icon libraries)",
+        "forbiddenLibraries": list(FORBIDDEN_ICON_LIBRARIES),
+        "symbols": symbols,
+        # Legacy field for design_diversity ledger readers.
+        "icons": [{"name": s["slug"], "source": s["source"]} for s in symbols],
+    }
+
+
+def format_css_motion_block(workspace: Path) -> str:
+    path = workspace / SKILL_ADAPT_DIR / CSS_MOTION_BRIEF
+    if not path.is_file():
+        return ""
+    rel = path.relative_to(workspace).as_posix()
+    return f"[CSS Motion — read `{rel}` for H5 animation canon]"
+
+
+def format_icon_manifest_block(workspace: Path) -> str:
+    from batch.workspace import dart_prefix
+
+    path = workspace / SKILL_ADAPT_DIR / ICON_SPRITE_MANIFEST
+    if not path.is_file():
+        return ""
+    rel = path.relative_to(workspace).as_posix()
+    return f"[Icon Sprite Manifest — read `{rel}`; embed `{dart_prefix(workspace)}-mark-*` symbol IDs in entry.htm — NO icon font libraries]"
 
 
 def _ambient_canvas_lock_seed(
@@ -214,6 +330,9 @@ def _design_brief_md(
         "## Primary Sources",
         f"- `{master_rel}` — full design system (ui-ux-pro-max MASTER)",
         f"- `{stack_rel}` — stack implementation guidelines",
+        "- `design-system/*/pages/*.md` — per-screen overrides (override MASTER)",
+        "- `design-system/*/ux-checklist.md` — UX/a11y acceptance checklist",
+        "- `design-system/*/h5-interface-brief.md` — H5 monolith Do/Don't",
         "",
         "## Visual Identity (from selected candidate)",
         f"- **Style:** {style.get('name', '?')} — {style.get('keywords', '')}",
@@ -287,13 +406,30 @@ def write_skill_adapt_outputs(
     ambient = build_ambient_canvas_brief(candidate, designer=designer)
     (root / AMBIENT_CANVAS_BRIEF).write_text(ambient, encoding="utf-8")
 
+    from batch.skill_resolve import integration_enabled
+    from batch.config import BatchConfig
+
+    cfg = BatchConfig.from_env()
+    if integration_enabled(cfg, "motion_css"):
+        (root / CSS_MOTION_BRIEF).write_text(_build_css_motion_brief(candidate), encoding="utf-8")
+
+    if integration_enabled(cfg, "icon_brief"):
+        manifest = _build_icon_sprite_manifest(workspace, candidate, designer)
+        (root / ICON_SPRITE_MANIFEST).write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
     impl_lines = [
         "# Implementation UI Input (skill.adapt)",
         "",
         f"Read `{master_rel}` before shared widgets.",
         f"Read `{stack_rel}` for stack-specific rules.",
         f"Read `skill-adapt/{AMBIENT_CANVAS_BRIEF}` — implement `u-{{prefix}}-ambient` in entry.htm.",
-        "Screen layout comes from 功能文档.md / 视觉蓝图.md — not pre-baked page overrides.",
+        "Read `design-system/*/pages/<screen>.md` before implementing each route.",
+        "Read `skill-adapt/css-motion-brief.md` for animation canon.",
+        "Read `skill-adapt/design-tokens.css` for :root variables.",
+        "Read `skill-adapt/icon-sprite-manifest.json` — embed listed `symbolId` values as inline SVG sprites.",
         "",
         "## designerDeckSelections (for 本包视觉锁.json)",
         json.dumps(designer, ensure_ascii=False, indent=2),
@@ -358,11 +494,32 @@ def format_design_brief_block(workspace: Path) -> str:
     ambient_path = workspace / SKILL_ADAPT_DIR / AMBIENT_CANVAS_BRIEF
     if ambient_path.is_file():
         ambient_hint = f"\nAmbient canvas: `skill-adapt/{AMBIENT_CANVAS_BRIEF}`"
+    enrich_hint = ""
+    try:
+        from batch.skill_enrich import format_enrich_summary_block
+
+        name = workspace.name
+        enrich_hint = format_enrich_summary_block(workspace, name)
+        if enrich_hint:
+            enrich_hint = "\n" + enrich_hint
+    except Exception:
+        pass
+    pages_hint = ""
+    try:
+        from batch.skill_pages import format_pages_block
+
+        pages_hint = format_pages_block(workspace, workspace.name)
+        if pages_hint:
+            pages_hint = "\n" + pages_hint
+    except Exception:
+        pass
     return (
         "[Design System — ui-ux-pro-max via skill.design + skill.adapt]\n"
         + text
         + master_hint
         + ambient_hint
+        + enrich_hint
+        + pages_hint
         + "\n\nUse skill-adapt/impl-ui-input.md during Programmer phase."
     )
 

@@ -15,6 +15,12 @@
 - Read 《H5壳广场页规范.md》 — hidden `#/plaza` + Settings long-press version 3s; dev-only obvious entrance must be wrapped in `H5_PLAZA_DEV_ENTRANCE_START` / `H5_PLAZA_DEV_ENTRANCE_END` markers for deployment stripping.
 - Read 《H5去风味规范.md》 — H5 ships polish baseline; AppBar `position:fixed` in H5.
 - 功能文档.md MUST include **「4.2 Native Offset」** (≥3 Bridge/native capabilities).
+- Read 《**H5壳功能文档深度标准.md**》 — Domain Model · Business Rules · Primary/Secondary Workflow · State Matrix · Professional Surface; tier from `skill-input/context.json`.
+
+[PM — Business depth]
+- **功能文档.md** MUST pass plan.gate `SPEC-xxx` (see BUSINESS_DEPTH_BLOCK above).
+- Complexity = H5 domain rules + Bridge; **NO** login / cloud sync / native Tab business.
+- **signature H5 interaction** MUST bind a Primary Workflow step (not decorative-only).
 
 [Online-first — h5_shell]
 - Shell loads **remote URL** (`h5EntryUrl`). Offline is **not** a product requirement.
@@ -33,7 +39,7 @@
 - Implement `#/plaza` per 《H5壳广场页规范.md》 + kit `shell/bridge_plaza`.
 
 [PM deliverables]
-- **功能文档.md:** Screen Inventory = **all H5 routes** (Splash, Welcome, legal overlay, business, **Plaza hidden**). Flutter inventory = WebView host + error fallback + launch placeholder only.
+- **功能文档.md:** Full depth per 《H5壳功能文档深度标准.md》 (tier in context.json) + Screen Inventory (all H5 routes). Flutter inventory = WebView host + error fallback + launch placeholder only.
 - **本包登记信息.json:** `shellRuntime`, `packType`, `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd`, `h5SiteRoot`, `h5SiteEntry`, `launchPlaceholderAsset`, `h5VaultPattern`, `h5VaultLayout`, `bridgeDeckSelections`, `bridgeCapabilities`, `kitDeckSelections` (11 kit dims from CSV).
 - **bridgeDeckSelections** MUST copy all 7 Bridge CSV columns verbatim; **shellRuntime** MUST match pack type (flutter/swift/oc).
 - **产包计划.md:** P2-Shell → P2-H5 (site) → **manual deploy gate** (upload site, switch h5EntryUrl to prod).

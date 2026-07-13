@@ -8,6 +8,7 @@ ${CSV_FULL_NAME_BLOCK}
 [Required Reading — this workspace]
 - 《${PRODUCT_REQ_DOC}》 — product contract
 - skill-adapt/design-brief.md · skill-adapt/ambient-canvas-brief.md · design-system/*/MASTER.md — ui-ux-pro-max (**primary UI source**)
+- design-system/*/pages/*.md · ux-checklist.md · h5-interface-brief.md — skill.enrich + skill.pages
 - data/static/component_kit/README.md · baseline.md · tokens.md
 - `.cursor/rules/*.mdc` — iron rules (h5_shell: iron-1..5 + vault-compliance + h5-deflavor)
 
@@ -23,8 +24,40 @@ ${CSV_IAP_BLOCK}
 ${DESIGN_SYSTEM_BLOCK}
 ${DESIGNER_LOCK_BLOCK}
 ${AMBIENT_CANVAS_BLOCK}
+${UX_CHECKLIST_BLOCK}
+${PAGE_OVERRIDES_BLOCK}
+${TOKEN_IMPL_BLOCK}
+${CSS_MOTION_BLOCK}
+${ICON_MANIFEST_BLOCK}
 ${FREE_TIER_BLOCK}
+${BUSINESS_DEPTH_BLOCK}
 ${H5_SHELL_BLOCK}
+
+---
+
+## Deliverable 1) 功能文档.md (PM — English, no code)
+
+**Depth standard:** Must pass plan.gate `SPEC-xxx` checks per `skill-input/context.json` → `businessDepthTier`.
+Read 《H5壳功能文档深度标准.md》 before writing. Shallow headers **fail Plan gate**.
+
+Sections in order (include all):
+- **App Theme & Angle** — one paragraph grounded in CSV product flow
+- **Screen Inventory** — table: every H5 route (Splash, Welcome, Legal overlay, business, **Plaza hidden**); shell = WebView + error + launch only
+- **Domain Model & Data Contract** — entity table (Entity | Fields | Type | Validation | Persistence key); count per tier
+- **Business Rules Engine** — BR-01… numbered rules (trigger · logic · conflict · user feedback)
+- **Primary Workflow** — numbered steps (UI action + data change + success/failure); count per tier
+- **Secondary Workflows** — ≥ tier count; each ≥ tier steps (edit/archive, filter/review, etc.)
+- **State & Empty Matrix** — table per main screen: Loading | Empty | Error | Permission-denied | Offline-retry (domain copy, no generic "No data")
+- **Professional Surface** — Domain Glossary table + Metrics & Reports (field, definition, period) + **signature H5 interaction** bound to a Primary Workflow step
+- **4.2 Native Offset** — ≥3 Bridge/native capabilities mapped to workflow steps
+- **Bridge Capability Matrix** — capability | workflow step | in | out | fail UX (Bxx refs)
+- **Export / Save Flow** — per content type if app produces output
+- **IAP Catalog & Free Tier** — mirror `iap-catalog.generated.md`; gated actions
+- **§H5 Architecture** — `h5StateModel` / `h5RouterPattern` / `h5ScreenPattern` file map
+- **App Store Listing** — Subtitle, Promo, Description, Keywords (English)
+
+[Feature Doc Lock — MANDATORY]
+- Every item listed is **MUST implement** — no "optional" / "may" / "可选项".
 
 ---
 
