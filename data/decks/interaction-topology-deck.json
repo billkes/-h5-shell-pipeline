@@ -1,0 +1,56 @@
+{
+  "deckName": "interaction-topology-deck",
+  "version": "1",
+  "description": "H5 shell 交互拓扑牌组 — 批内去重，打破 chip→list→detail→export 默认链",
+  "cooldownDays": 60,
+  "cards": [
+    {
+      "id": "T1_dashboard",
+      "label": "Dashboard-first",
+      "forbiddenLanding": ["category chip list", "filter chip browse"],
+      "modules": { "form": "secondary", "list": "secondary", "detail": "drill-down", "export": "snapshot" }
+    },
+    {
+      "id": "T2_capture_first",
+      "label": "Capture-first",
+      "forbiddenLanding": ["browse list home", "chip filter landing"],
+      "modules": { "form": "inline-capture", "list": "archive", "detail": "card-preview", "export": "collage" }
+    },
+    {
+      "id": "T3_timeline",
+      "label": "Timeline journey",
+      "forbiddenLanding": ["data table list", "chip filter grid"],
+      "modules": { "form": "chapter-note", "list": "timeline", "detail": "chapter", "export": "range-summary" }
+    },
+    {
+      "id": "T4_wizard",
+      "label": "Wizard pipeline",
+      "forbiddenLanding": ["open list first", "free browse"],
+      "modules": { "form": "wizard-steps", "list": "results-only", "detail": "step-review", "export": "final-artifact" }
+    },
+    {
+      "id": "T5_workspace",
+      "label": "Single workspace",
+      "forbiddenLanding": ["list landing", "master-detail stack"],
+      "modules": { "form": "canvas", "list": "none", "detail": "inline", "export": "canvas-card" }
+    },
+    {
+      "id": "T6_checklist_session",
+      "label": "Checklist session",
+      "forbiddenLanding": ["browse catalog", "chip filter home"],
+      "modules": { "form": "checklist-line", "list": "session-history", "detail": "line-item", "export": "session-report" }
+    },
+    {
+      "id": "T7_compare_board",
+      "label": "Compare board",
+      "forbiddenLanding": ["single list browse", "chip taxonomy home"],
+      "modules": { "form": "pair-pick", "list": "none", "detail": "dual-pane", "export": "compare-card" }
+    },
+    {
+      "id": "T8_reminder_ring",
+      "label": "Reminder ring",
+      "forbiddenLanding": ["tag filter list home", "category chip browse"],
+      "modules": { "form": "quick-capture", "list": "calendar-ring", "detail": "day-agenda", "export": "period-reminder-card" }
+    }
+  ]
+}
