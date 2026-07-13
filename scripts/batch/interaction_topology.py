@@ -190,6 +190,50 @@ def assign_topology_for_row(
     return cards[idx]
 
 
+def ensure_topology_for_app(
+    project_dir: Path,
+    *,
+    app_name: str,
+    batch_id: str,
+    theme_code: str = "",
+    core_scene: str = "",
+    local_feature: str = "",
+    theme_cn: str = "",
+) -> TopologyCard | None:
+    """Assign topology to ledger when missing (prepare.context)."""
+    cards = load_deck(project_dir)
+    if not cards:
+        return None
+    existing_id = topology_for_app(project_dir, app_name, batch_id=batch_id)
+    if existing_id:
+        return card_by_id(cards, existing_id)
+
+    ledger = _load_ledger(project_dir)
+    apps: dict[str, Any] = ledger.setdefault("apps", {})
+    batch_usage: dict[str, list[str]] = ledger.setdefault("batchUsage", {})
+    used: set[str] = set(batch_usage.get(batch_id) or [])
+
+    card = assign_topology_for_row(
+        app_name=app_name,
+        batch_id=batch_id,
+        theme_code=theme_code or app_name,
+        cards=cards,
+        used_in_batch=used,
+        core_scene=core_scene,
+        local_feature=local_feature,
+        theme_cn=theme_cn,
+    )
+    used.add(card.topology_id)
+    apps[app_name] = {
+        "topologyId": card.topology_id,
+        "label": card.label,
+        "batchId": batch_id,
+    }
+    batch_usage[batch_id] = sorted(used)
+    _save_ledger(project_dir, ledger)
+    return card
+
+
 def draw_topology_for_batch(
     csv_path: Path,
     project_dir: Path,

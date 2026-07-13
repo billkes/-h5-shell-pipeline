@@ -107,6 +107,49 @@ def test_pick_candidate_rejects_sibling_visual_clone() -> None:
     assert "garamond" in rationale.lower() or "c2" in rationale
 
 
+def test_pick_candidate_prefers_theme_fit_over_collision() -> None:
+    anti = {
+        "sameBatchUsed": [],
+        "sameBatchVisualFingerprints": [],
+        "historicalAvoid": [],
+    }
+    product = (
+        "back-to-school checklist budget spending tracker parent school preparation "
+        "inventory finance control"
+    )
+    candidates = [
+        {
+            "id": "c1",
+            "category": "Finance",
+            "style": {
+                "name": "Financial Dashboard",
+                "keywords": "budget tracking financial ratios portfolio",
+            },
+            "colors": {"primary": "#059669", "notes": "green finance"},
+            "typography": {"heading": "Inter", "mood": "professional clear"},
+            "pattern": {"name": "Dashboard"},
+        },
+        {
+            "id": "c3",
+            "style": {
+                "name": "Predictive Analytics",
+                "keywords": "forecast AI anomaly detection visualization",
+            },
+            "colors": {"primary": "#EC4899"},
+            "typography": {"heading": "Fredoka", "mood": "playful friendly"},
+            "pattern": {"name": "Hero + Features + CTA"},
+        },
+    ]
+    picked, rationale = pick_candidate(
+        candidates,
+        anti,
+        product_text=product,
+        audience="陪读家长",
+    )
+    assert picked["id"] == "c1"
+    assert "theme-fit" in rationale or "combined" in rationale
+
+
 def test_diversify_candidates_spreads_tokens(tmp_path: Path) -> None:
     try:
         from batch.config import BatchConfig

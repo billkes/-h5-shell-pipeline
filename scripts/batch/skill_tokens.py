@@ -73,6 +73,15 @@ def _css_from_tokens(tokens: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _css_has_declarations(text: str) -> bool:
+    """True when CSS contains at least one custom property assignment."""
+    return bool(re.search(r"--[\w-]+:\s*[^;}\s][^;]*;", text))
+
+
+def _write_token_css(css_path: Path, tokens: dict[str, Any]) -> None:
+    css_path.write_text(_css_from_tokens(tokens), encoding="utf-8")
+
+
 def _try_node_generate(cfg: BatchConfig, tokens_path: Path, css_path: Path) -> bool:
     sub = resolve_subskill_dir(cfg, "design-system")
     if sub is None:
@@ -110,8 +119,12 @@ def run_skill_tokens(*, cfg: BatchConfig, workspace: Path) -> Path:
     tokens_path.write_text(json.dumps(tokens, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     css_path = root / "design-tokens.css"
-    if not _try_node_generate(cfg, tokens_path, css_path):
-        css_path.write_text(_css_from_tokens(tokens), encoding="utf-8")
+    if _try_node_generate(cfg, tokens_path, css_path):
+        generated = css_path.read_text(encoding="utf-8")
+        if not _css_has_declarations(generated):
+            _write_token_css(css_path, tokens)
+    else:
+        _write_token_css(css_path, tokens)
 
     impl_lines = [
         "# Token Implementation Block (skill.tokens)",

@@ -374,6 +374,13 @@ class FlutterPipeline:
             from batch.skill_logo import maybe_write_logo_brief
 
             maybe_write_logo_brief(cfg=self.cfg, workspace=ctx.workspace, row=row)
+            from batch.skill_adapt import refresh_icon_sprite_manifest_prefix
+
+            if refresh_icon_sprite_manifest_prefix(ctx.workspace):
+                print(">>> icon-sprite-manifest: 已同步 dartCodePrefix")
+            from batch.skill_tokens import run_skill_tokens
+
+            run_skill_tokens(cfg=self.cfg, workspace=ctx.workspace)
         return True
 
     def _run_design_system_step(self, ctx: AppContext) -> bool:

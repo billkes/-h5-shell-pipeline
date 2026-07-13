@@ -93,9 +93,57 @@ def collision_score(candidate: dict[str, Any], anti: dict[str, Any]) -> float:
     return min(1.0, visual * 0.72 + text_avg * 0.28)
 
 
+def theme_fit_score(candidate: dict[str, Any], product_text: str) -> float:
+    """Higher is better — overlap between candidate semantics and product brief."""
+    product_tokens = _tokenize(product_text)
+    if not product_tokens:
+        return 0.5
+    cand_tokens = _tokenize(_candidate_blob(candidate))
+    cand_tokens |= _tokenize(str(candidate.get("category") or ""))
+    inter = len(cand_tokens & product_tokens)
+    union = len(cand_tokens | product_tokens)
+    return inter / union if union else 0.0
+
+
+def audience_mismatch_penalty(candidate: dict[str, Any], audience: str) -> float:
+    """Penalty 0–0.4 added to combined score when typography mood clashes with audience."""
+    mood = str((candidate.get("typography") or {}).get("mood") or "").lower()
+    aud = (audience or "").lower()
+    if not mood or not aud:
+        return 0.0
+    adult_markers = ("大学生", "university", "student", "adult", "成年人", "职场")
+    kid_markers = ("kids", "child", "toddler", "幼儿", "幼教", "kindergarten")
+    if any(m in aud for m in adult_markers) and any(m in mood for m in kid_markers):
+        return 0.35
+    parent_markers = ("家长", "parent", "陪读", "亲子")
+    bi_markers = ("forecast", "anomaly detection", "predictive analytics", "ai-driven insights")
+    style_name = str((candidate.get("style") or {}).get("name") or "").lower()
+    if any(m in aud for m in parent_markers):
+        blob = f"{style_name} {mood}"
+        if any(m in blob for m in bi_markers):
+            return 0.2
+    return 0.0
+
+
+def _combined_pick_score(
+    candidate: dict[str, Any],
+    anti: dict[str, Any],
+    *,
+    product_text: str,
+    audience: str,
+) -> float:
+    collision = collision_score(candidate, anti)
+    theme = theme_fit_score(candidate, product_text)
+    penalty = audience_mismatch_penalty(candidate, audience)
+    return collision * 0.55 + (1.0 - theme) * 0.35 + penalty
+
+
 def pick_candidate(
     candidates: list[dict[str, Any]],
     anti: dict[str, Any],
+    *,
+    product_text: str = "",
+    audience: str = "",
 ) -> tuple[dict[str, Any], str]:
     if not candidates:
         raise RuntimeError("skill.adapt: candidates.json 为空")
@@ -105,7 +153,12 @@ def pick_candidate(
     sibling_fps = _sibling_visual_fingerprints(anti)
     scored: list[tuple[float, dict[str, Any]]] = []
     for cand in candidates:
-        score = collision_score(cand, anti)
+        score = _combined_pick_score(
+            cand,
+            anti,
+            product_text=product_text,
+            audience=audience,
+        )
         scored.append((score, cand))
     scored.sort(key=lambda x: x[0])
 
@@ -124,7 +177,8 @@ def pick_candidate(
                 break
 
     rationale = (
-        f"Selected lowest collision score {best_score:.3f} among {len(candidates)} candidate(s)."
+        f"Selected combined score {best_score:.3f} among {len(candidates)} candidate(s)"
+        f" (collision + theme-fit + audience)."
     )
     if rejected:
         rationale += " " + "; ".join(rejected)
@@ -262,6 +316,30 @@ def _build_icon_sprite_manifest(workspace: Path, candidate: dict[str, Any], desi
         # Legacy field for design_diversity ledger readers.
         "icons": [{"name": s["slug"], "source": s["source"]} for s in symbols],
     }
+
+
+def refresh_icon_sprite_manifest_prefix(workspace: Path) -> bool:
+    """Rewrite symbolId entries after lock.dimensions assigns dartCodePrefix."""
+    path = workspace / SKILL_ADAPT_DIR / ICON_SPRITE_MANIFEST
+    if not path.is_file():
+        return False
+    from batch.skill_icons import h5_symbol_id
+    from batch.workspace import dart_prefix
+
+    prefix = dart_prefix(workspace)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    old_prefix = str(data.get("prefix") or "").strip()
+    if old_prefix == prefix:
+        return False
+    data["prefix"] = prefix
+    for entry in data.get("symbols") or []:
+        if not isinstance(entry, dict):
+            continue
+        slug = str(entry.get("slug") or "").strip()
+        if slug:
+            entry["symbolId"] = h5_symbol_id(prefix, slug)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return True
 
 
 def format_css_motion_block(workspace: Path) -> str:

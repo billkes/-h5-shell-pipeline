@@ -178,8 +178,27 @@ def build_context_payload(
         product_flow=row.product_flow or "",
         theme_angle=row.theme_angle or "",
     )
-    topo_id = topology_for_app(cfg.project_dir, row.name, batch_id=batch_id)
-    topo_card = card_by_id(load_deck(cfg.project_dir), topo_id) if topo_id else None
+    topo_id = ""
+    topo_card = None
+    if is_h5_shell(pack_type):
+        from batch.interaction_topology import card_by_id, ensure_topology_for_app, load_deck, topology_for_app
+
+        topo_id = topology_for_app(cfg.project_dir, row.name, batch_id=batch_id)
+        if not topo_id:
+            assigned = ensure_topology_for_app(
+                cfg.project_dir,
+                app_name=row.name,
+                batch_id=batch_id,
+                theme_code=getattr(row, "theme_code", "") or row.name,
+                core_scene=row.core_scene or "",
+                local_feature=row.local_feature or "",
+                theme_cn=row.theme_cn or "",
+            )
+            if assigned:
+                topo_id = assigned.topology_id
+                topo_card = assigned
+        if topo_card is None and topo_id:
+            topo_card = card_by_id(load_deck(cfg.project_dir), topo_id)
     return {
         "app": {
             "name": row.name,

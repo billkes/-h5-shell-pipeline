@@ -8,8 +8,10 @@ from batch.interaction_topology import (
     assign_topology_for_row,
     audit_batch_topology_duplicates,
     draw_topology_for_batch,
+    ensure_topology_for_app,
     generate_product_flow_for_topology,
     load_deck,
+    topology_for_app,
 )
 
 
@@ -73,3 +75,24 @@ def test_audit_duplicate_topology(tmp_path: Path) -> None:
     )
     issues = audit_batch_topology_duplicates(project, ["A", "B"], batch_id="B1")
     assert any("重复" in i for i in issues)
+
+
+def test_ensure_topology_for_app_assigns_from_brief(tmp_path: Path) -> None:
+    project = tmp_path / "proj"
+    deck_src = Path(__file__).resolve().parents[3] / "data" / "decks" / "interaction-topology-deck.json"
+    (project / "data" / "decks").mkdir(parents=True)
+    (project / "data" / "registry").mkdir(parents=True)
+    (project / "data" / "decks" / "interaction-topology-deck.json").write_text(
+        deck_src.read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    card = ensure_topology_for_app(
+        project,
+        app_name="Buildioo",
+        batch_id="TEST-0714",
+        core_scene="开学物品准备清单与采购预算控制",
+        local_feature="到期提醒记录本",
+        theme_cn="陪读家长开学清单",
+    )
+    assert card is not None
+    assert topology_for_app(project, "Buildioo", batch_id="TEST-0714") == card.topology_id

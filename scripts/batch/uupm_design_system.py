@@ -468,7 +468,12 @@ def run_skill_adapt_step(*, workspace: Path, row: CsvTaskRow) -> Path:
         output_dir=cfg.project_dir / "output",
     )
 
-    selected, rationale = pick_candidate(candidates, anti)
+    selected, rationale = pick_candidate(
+        candidates,
+        anti,
+        product_text=theme_search_query_from_row(row),
+        audience=row.audience or "",
+    )
 
     scripts_dir = None
     try:

@@ -15,7 +15,14 @@
       },
       "candidateId": "c3",
       "style": "Predictive Analytics",
-      "category": "Mood Tracker"
+      "category": "Mood Tracker",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web",
+        "chart"
+      ],
+      "pageOverrideCount": 0
     },
     "Prompio": {
       "batchId": "TEST-0714",
@@ -32,7 +39,13 @@
       },
       "candidateId": "c2",
       "style": "Inclusive Design",
-      "category": "Research Lab / University Department"
+      "category": "Research Lab / University Department",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web"
+      ],
+      "pageOverrideCount": 0
     }
   },
   "fingerprints": {
