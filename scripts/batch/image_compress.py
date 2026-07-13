@@ -70,6 +70,11 @@ def discover_workspace_images(workspace: Path) -> list[Path]:
     ):
         if candidate.is_dir():
             asset_dirs.append(candidate)
+    from batch.native_bundled_media import native_bundled_img_dir
+
+    native_img = native_bundled_img_dir(root)
+    if native_img and native_img.is_dir():
+        asset_dirs.append(native_img)
     asset_dirs.extend(
         p
         for p in root.glob("**/assets/images")

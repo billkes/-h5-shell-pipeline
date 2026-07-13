@@ -8,11 +8,16 @@ from pathlib import Path
 from batch.h5_shell_placeholders import prefix_from_workspace
 from batch.h5_vite_gate import h5_src_dir, is_h5_vite_project
 from batch.h5_vite_scaffold import TEMPLATE_ROOT, resolve_prefix, substitute_text, template_values
+from batch.native_bundled_media import (
+    collect_native_bundled_media_violations,
+    native_bundled_img_dir,
+    requires_native_bundled_media,
+)
 from batch.screen_inventory import read_spec_text
 
 _BOOTSTRAP_CALL_RE = re.compile(r"\bensureBootstrapData\s*\(|\bbootstrapSeed\s*\(")
 _VAULT_REF_RE = re.compile(
-    r"""vaultAssetPath\s*\(\s*['"]([^'"]+)['"]\s*\)|assets/[a-z0-9]+_vault/([^'"\s]+)""",
+    r"""vaultAssetPath\s*\(\s*['"]([^'"]+)['"]\s*\)|assets/img/([^'"\s]+)|assets/[a-z0-9]+_vault/([^'"\s]+)""",
     re.I,
 )
 _DEMO_DATA_MARKERS = (
@@ -142,16 +147,23 @@ def collect_h5_default_seed_violations(project: Path) -> list[str]:
             )
 
     prefix = prefix_from_workspace(project) or resolve_prefix(project) or "app"
-    vault_dir = project / "h5" / "assets" / f"{prefix}_vault"
+    ws = project.resolve()
+    vault_dir = native_bundled_img_dir(ws) if requires_native_bundled_media(ws) else (
+        ws / "h5" / "assets" / f"{prefix}_vault"
+    )
+    vault_label = (
+        str(vault_dir.relative_to(ws))
+        if vault_dir is not None and vault_dir.is_relative_to(ws)
+        else f"h5/assets/{prefix}_vault"
+    )
     for match in _VAULT_REF_RE.finditer(seed_text):
-        fname = (match.group(1) or match.group(2) or "").strip()
-        if fname and not (vault_dir / fname).is_file():
-            issues.append(
-                f"defaultSeed 引用 bundled 配图缺失: h5/assets/{prefix}_vault/{fname}"
-            )
+        fname = (match.group(1) or match.group(2) or match.group(3) or "").strip()
+        if fname and vault_dir is not None and not (vault_dir / fname).is_file():
+            issues.append(f"defaultSeed 引用 bundled 配图缺失: {vault_label}/{fname}")
+
+    issues.extend(collect_native_bundled_media_violations(project))
 
     return issues
-
 
 def sync_default_seed_stub(
     project: Path,

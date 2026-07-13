@@ -1,17 +1,18 @@
-/** Resolve bundled vault paths and native Documents paths for <img src>. */
+/** Resolve native bundle paths (mediaServe) and Documents paths for <img src>. */
 
-const MEDIA_SCHEME = 'uhfnfasset';
+const MEDIA_SCHEME = '{{PREFIX}}asset';
 const MEDIA_HOST = 'local';
+const NATIVE_BUNDLE_IMG_PREFIX = 'assets/img/';
 
-export function isBundledVaultPath(path: string): boolean {
-  return path.startsWith('assets/') || path.startsWith('/assets/');
+export function isNativeBundleImgPath(path: string): boolean {
+  return path.startsWith(NATIVE_BUNDLE_IMG_PREFIX) || path.startsWith(`/${NATIVE_BUNDLE_IMG_PREFIX}`);
 }
 
 export function isNativeMediaPath(path: string): boolean {
   if (!path) return false;
   if (path.startsWith(`${MEDIA_SCHEME}://`)) return true;
   if (/^(https?:|data:|blob:)/i.test(path)) return false;
-  if (isBundledVaultPath(path)) return false;
+  if (isNativeBundleImgPath(path)) return false;
   return true;
 }
 
@@ -23,21 +24,26 @@ function pageBasePath(): string {
   return `${pathname.slice(0, slash + 1)}`;
 }
 
-/** Resolve a bundled vault path or native Documents path for <img src>. */
+/** Resolve a native bundle path or Documents path for <img src>. */
 export function resolveVaultAssetUrl(path: string): string {
   if (!path) return '';
   if (/^(https?:|data:|blob:)/i.test(path)) return path;
   if (path.startsWith(`${MEDIA_SCHEME}://`)) return path;
-  if (isBundledVaultPath(path)) {
-    const rel = path.replace(/^\//, '');
-    const base = pageBasePath();
-    const prefix = base.endsWith('/') ? base : `${base}/`;
-    return `${window.location.origin}${prefix}${rel}`;
-  }
+
   const rel = path.replace(/^\/+/, '');
+  if (isNativeBundleImgPath(rel)) {
+    if (import.meta.env.DEV) {
+      const base = pageBasePath();
+      const prefix = base.endsWith('/') ? base : `${base}/`;
+      return `${window.location.origin}${prefix}${rel}`;
+    }
+    return `${MEDIA_SCHEME}://${MEDIA_HOST}/${rel}`;
+  }
+
   return `${MEDIA_SCHEME}://${MEDIA_HOST}/${rel}`;
 }
 
+/** Seed / export raster paths under Native app bundle (OC/Swift mediaServe). */
 export function vaultAssetPath(filename: string): string {
-  return `assets/{{PREFIX}}_vault/${filename}`;
+  return `${NATIVE_BUNDLE_IMG_PREFIX}${filename}`;
 }
