@@ -332,6 +332,7 @@ class PromptBuilder:
         h5_shell_block: str = "",
         required_selection_block: str = "",
         business_depth_block: str = "",
+        topology_block: str = "",
         resume: bool = False,
         include_intro: bool = True,
         **_: object,
@@ -377,6 +378,7 @@ class PromptBuilder:
                 "COMPONENT_KIT_BLOCK": self.component_kit_pointer_block(),
                 "REQUIRED_SELECTION_BLOCK": required_selection_block,
                 "BUSINESS_DEPTH_BLOCK": business_depth_block,
+                "TOPOLOGY_BLOCK": topology_block,
             },
         )
         return intro + "\n\n" + plan_body

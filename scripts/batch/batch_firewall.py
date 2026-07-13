@@ -97,6 +97,39 @@ def validate_batch_firewall(
     # Kit 八维列暂未纳入 h5-shell-pipeline task.csv schema
     issues.extend(audit_programming_style_batch(rows))
 
+    h5_names = [r.name for r in rows if is_h5_shell(r.pack_type) and r.name]
+    if h5_names:
+        from batch.interaction_topology import audit_batch_topology_duplicates
+
+        issues.extend(
+            audit_batch_topology_duplicates(
+                cfg.project_dir,
+                h5_names,
+                batch_id=batch_id,
+            )
+        )
+
+    from batch.theme_audit import audit_theme_rows, format_theme_audit_failure
+
+    theme_failures: list[str] = []
+    for row_index, row_name, result in audit_theme_rows(rows):
+        if not result.ok:
+            theme_failures.append(
+                format_theme_audit_failure(
+                    row_index,
+                    row_name,
+                    result,
+                    csv_path=str(csv_path),
+                )
+            )
+    if theme_failures:
+        print("自拟主题叙事校验未通过:")
+        for block in theme_failures:
+            print(block)
+            print("")
+        print("")
+        return False
+
     required = (
         ("state_management", "状态管理"),
         ("architecture_pattern", "架构模式"),

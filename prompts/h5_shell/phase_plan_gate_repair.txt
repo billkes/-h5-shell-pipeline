@@ -1,0 +1,36 @@
+# plan.gate targeted repair (single issue, minimal diff)
+
+You are repairing **one** plan.gate issue for **{name}** — do NOT rewrite unrelated deliverables.
+
+## Issue
+{ISSUE}
+
+## Fix focus
+{FOCUS}
+
+## Constraints
+{CONSTRAINTS}
+
+## Allowed files (ONLY touch these)
+{TARGET_FILES}
+
+## Current snippets
+{FILE_SNIPPETS}
+
+---
+
+{TOPOLOGY_BLOCK}
+
+{BUSINESS_DEPTH_BLOCK}
+
+---
+
+## Rules
+1. Fix **only** the issue above; keep other sections/files intact.
+2. English for 功能文档.md / 视觉蓝图.md / 产包计划.md body.
+3. No optional/may/可选项 wording — wrote it = MUST implement.
+4. Do not delete existing valid content; extend or patch minimally.
+5. After edit, each target file must exist and meet gate minimum size.
+
+## App context
+{desc}

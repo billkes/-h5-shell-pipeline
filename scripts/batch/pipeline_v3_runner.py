@@ -17,7 +17,7 @@ from batch.flutter_ops import (
     run_pub_get,
 )
 from batch.pack_type import h5_shell_runtime, is_flutter_runtime, is_h5_shell, is_native_ios_runtime
-from batch.pipeline_gates import verify_pm_ui_plan_outputs
+from batch.pipeline_gates import verify_pm_ui_plan_outputs, write_plan_gate_report
 from batch.pipeline_steps import (
     ANALYZE,
     BUILD_AGENT,
@@ -260,9 +260,13 @@ class V3StepRunner:
         h5_block = self.p._h5_shell_block_for(ctx)
         from batch.selection_requirements import format_required_selection_block
         from batch.spec_business_depth import format_business_depth_block
+        from batch.interaction_topology import format_topology_block
 
         business_depth_block = (
             format_business_depth_block(ws) if h5 else ""
+        )
+        topology_block = (
+            format_topology_block(ws, self.p.cfg.project_dir) if h5 else ""
         )
 
         return {
@@ -301,6 +305,7 @@ class V3StepRunner:
                 ws, pack_type=ctx.pack_type
             ),
             "business_depth_block": business_depth_block,
+            "topology_block": topology_block,
         }
 
     def _step_prepare_context(self, ctx: AppContext) -> bool:
@@ -367,32 +372,114 @@ class V3StepRunner:
             and self._step_lock_dimensions(ctx)
         )
 
-    def _step_plan_gate(self, ctx: AppContext) -> bool:
+    def _run_plan_gate_with_repair(self, ctx: AppContext) -> tuple[bool, object]:
+        """Verify PM+UI+Plan outputs; optional targeted repair rounds."""
         ws = ctx.workspace
         tool = ctx.pack_type == "tool_flutter"
         video = ctx.pack_type == "videostream"
         h5 = is_h5_shell(ctx.pack_type)
 
         from batch.selection_sync import sync_selection_artifacts
+        from batch.interaction_topology import plan_gate_strict
 
-        sync_changes = sync_selection_artifacts(ws, pack_type=ctx.pack_type)
-        if sync_changes:
-            print(">>> Selection 产物同步（plan.gate 前）:")
-            for line in sync_changes:
-                print(f"       {line}")
+        sibling_ws: list[Path] = []
+        output_root = self.p.cfg.output_dir
+        if output_root.is_dir():
+            for pack_dir in output_root.iterdir():
+                if not pack_dir.is_dir():
+                    continue
+                for app_dir in pack_dir.iterdir():
+                    if not app_dir.is_dir() or app_dir.resolve() == ws.resolve():
+                        continue
+                    if (app_dir / "功能文档.md").is_file() or (app_dir / "skill-input").is_dir():
+                        sibling_ws.append(app_dir)
 
-        gate_ok, gate_issues = verify_pm_ui_plan_outputs(
-            ws,
-            tool_flutter=tool,
-            videostream=video,
-            h5_shell=h5,
-            csv_full_name=self.p._csv_full_name_for(ctx),
-            app_name=ctx.name,
+        def _verify():
+            sync_changes = sync_selection_artifacts(ws, pack_type=ctx.pack_type)
+            if sync_changes:
+                print(">>> Selection 产物同步（plan.gate 前）:")
+                for line in sync_changes:
+                    print(f"       {line}")
+            return verify_pm_ui_plan_outputs(
+                ws,
+                tool_flutter=tool,
+                videostream=video,
+                h5_shell=h5,
+                csv_full_name=self.p._csv_full_name_for(ctx),
+                app_name=ctx.name,
+                project_dir=self.p.cfg.project_dir,
+                sibling_workspaces=sibling_ws,
+            )
+
+        strict = plan_gate_strict()
+        gate_result = _verify()
+        write_plan_gate_report(ws, gate_result, strict=strict)
+
+        from batch.plan_gate_repair import (
+            append_repair_history,
+            build_repair_prompt,
+            plan_gate_repair_enabled,
+            plan_gate_repair_max_rounds,
+            pick_repair_target,
         )
-        if not gate_ok:
-            print(">>> PM+UI+Plan 产出物校验未通过:")
-            for issue in gate_issues:
+
+        max_rounds = plan_gate_repair_max_rounds()
+        if plan_gate_repair_enabled() and max_rounds > 0:
+            for round_no in range(1, max_rounds + 1):
+                if gate_result.ok(strict=strict):
+                    break
+                target = pick_repair_target(hard=gate_result.hard, soft=gate_result.soft)
+                if target is None:
+                    break
+                print(
+                    f">>> plan.gate repair 轮次 {round_no}/{max_rounds} "
+                    f"({target.category}): {target.issue}"
+                )
+                kw = self._agent_pack_context(ctx)
+                prompt = build_repair_prompt(
+                    ws,
+                    target,
+                    app_name=ctx.name,
+                    desc=ctx.desc,
+                    topology_block=kw.get("topology_block", ""),
+                    business_depth_block=kw.get("business_depth_block", ""),
+                    project_dir=self.p.cfg.project_dir,
+                )
+                from batch.cursor_runner import run_agent
+
+                agent_ok = run_agent(
+                    self.p.cfg,
+                    ws,
+                    prompt,
+                    log_section_title=f"{ctx.name} · Plan Gate Repair · 轮次 {round_no}",
+                )
+                append_repair_history(ws, round_no=round_no, target=target, ok=agent_ok)
+                gate_result = _verify()
+                write_plan_gate_report(ws, gate_result, strict=strict)
+
+        return gate_result.ok(strict=strict), gate_result
+
+    def _step_plan_gate(self, ctx: AppContext) -> bool:
+        ws = ctx.workspace
+        h5 = is_h5_shell(ctx.pack_type)
+        from batch.interaction_topology import plan_gate_strict
+
+        ok, gate_result = self._run_plan_gate_with_repair(ctx)
+        strict = plan_gate_strict()
+
+        if gate_result.soft:
+            print(">>> PM+UI+Plan 产出物软警告（默认续跑，见 plan-gate-report.json）:")
+            for issue in gate_result.soft:
+                print(f"       [WARN] {issue}")
+
+        if not ok:
+            print(">>> PM+UI+Plan 产出物校验未通过（硬错误）:")
+            for issue in gate_result.hard:
                 print(f"       {issue}")
+            if strict and gate_result.soft:
+                print(">>> STRICT_PLAN_GATE=1 时软警告亦阻断:")
+                for issue in gate_result.soft:
+                    print(f"       {issue}")
             return False
 
         from batch.skill_brand import brand_check_warnings

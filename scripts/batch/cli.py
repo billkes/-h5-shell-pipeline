@@ -408,7 +408,7 @@ def main(argv: list[str] | None = None) -> int:
         return _fetch_assets_main(argv[1:])
     if argv and argv[0] in (
         "task-init", "task-add", "task-validate", "task-list",
-        "task-ready", "task-fill-flow", "task-show", "build-all",
+        "task-ready", "task-fill-flow", "task-show", "task-compose-theme", "build-all",
     ):
         from batch.legacy_cli import main as legacy_main
 

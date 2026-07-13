@@ -10,6 +10,7 @@ from batch.config import BatchConfig
 from batch.csv_tasks import init_empty_task_csv, load_task_csv_meta
 from batch.task_add import run_task_fill_simple
 from batch.task_audit import audit_task_csv
+from batch.task_compose_theme import cmd_compose_theme
 from batch.task_schema import TASK_CSV_FILENAME, task_csv_path
 
 
@@ -159,6 +160,14 @@ def main(argv: list[str] | None = None) -> int:
     p_list = sub.add_parser("list", help="列出任务")
     p_list.set_defaults(func=cmd_list)
 
+    p_compose = sub.add_parser("compose-theme", help="一句话自拟主题 → CSV 列")
+    p_compose.add_argument("--row", type=int, required=True, help="task.csv 行号（1-based）")
+    p_compose.add_argument("--text", default="", help="一句话主题 brief")
+    p_compose.add_argument("--file", type=Path, default=None, help="批量 brief 文件（每行一条）")
+    p_compose.add_argument("--check", action="store_true", help="仅校验不写 CSV")
+    p_compose.add_argument("--no-overwrite", action="store_true", help="不覆盖已有列")
+    p_compose.set_defaults(func=cmd_compose_theme)
+
     # Legacy hyphen aliases
     for name, target in (
         ("task-init", "init"),
@@ -168,6 +177,7 @@ def main(argv: list[str] | None = None) -> int:
         ("task-ready", "ready"),
         ("task-validate", "validate"),
         ("task-list", "list"),
+        ("task-compose-theme", "compose-theme"),
     ):
         p = sub.add_parser(name, help=f"alias for {target}")
         if target == "init":
@@ -180,7 +190,15 @@ def main(argv: list[str] | None = None) -> int:
         elif target == "fill":
             p.add_argument("--batch-id", default="")
             p.add_argument("--force", action="store_true")
-        p.set_defaults(func=globals()[f"cmd_{target}"])
+        elif target == "compose-theme":
+            p.add_argument("--row", type=int, required=True)
+            p.add_argument("--text", default="")
+            p.add_argument("--file", type=Path, default=None)
+            p.add_argument("--check", action="store_true")
+            p.add_argument("--no-overwrite", action="store_true")
+            p.set_defaults(func=cmd_compose_theme)
+        else:
+            p.set_defaults(func=globals()[f"cmd_{target}"])
 
     args = parser.parse_args(argv)
     if hasattr(args, "rows") and args.command in ("task-add", "add"):

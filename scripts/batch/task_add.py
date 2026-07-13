@@ -28,4 +28,13 @@ def run_task_fill_simple(
         draw_h5_kit_to_csv(path, cfg.project_dir, batch_id=bid, force=force)
     except (OSError, ValueError, FileNotFoundError):
         pass
-    fill_product_flow_to_csv(path)
+    from batch.interaction_topology import draw_topology_for_batch
+    from batch.csv_tasks import refresh_product_flows_for_topology
+
+    topo = draw_topology_for_batch(path, cfg.project_dir, batch_id=bid, force=force)
+    if topo:
+        print(f"  interactionTopology 已分配: {', '.join(topo)}")
+    refresh_product_flows_for_topology(
+        path, project_dir=cfg.project_dir, force=force or bool(topo)
+    )
+    fill_product_flow_to_csv(path, project_dir=cfg.project_dir)

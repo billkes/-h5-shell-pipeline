@@ -47,14 +47,23 @@ def _code_from_theme(theme: dict[str, str], rng: random.Random, index: int) -> s
     return f"00{word}"
 
 
-def _product_flow_from_theme(theme: dict[str, str]) -> str:
+def _product_flow_from_theme(
+    theme: dict[str, str],
+    *,
+    topology_id: str = "",
+    project_dir: Path | None = None,
+) -> str:
+    from batch.interaction_topology import generate_product_flow_for_topology
+
     audience = theme.get("audience") or "users"
     scene = theme.get("core_scene") or "daily tasks"
     feature = theme.get("local_feature") or "journal"
-    return (
-        f"Pick a category chip to browse {scene}, save entries in a {feature}, "
-        f"log notes for {audience}, attach reference photos per item, "
-        f"export a weekly summary card, and review saved items by tag or date"
+    return generate_product_flow_for_topology(
+        audience=audience,
+        scene=scene,
+        feature=feature,
+        topology_id=topology_id or "T6_checklist_session",
+        project_dir=project_dir,
     )
 
 

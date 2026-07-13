@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 
@@ -14,20 +15,28 @@ def _attr(row: Any, name: str) -> str:
     return ""
 
 
-def generate_product_flow(row: Any) -> str:
-    """Template-based English productFlow from theme fields.
+def generate_product_flow(row: Any, *, project_dir: Path | None = None) -> str:
+    """Topology-aware English productFlow from theme fields + interaction ledger."""
+    from batch.interaction_topology import (
+        generate_product_flow_for_topology,
+        topology_for_app,
+    )
 
-    Mirrors the fallback logic of ``_product_flow_from_theme`` in the legacy
-    cursor-ios-batch pipeline: builds a Browse/save/log/export tool-flow string
-    from ``audience``, ``core_scene`` and ``local_feature``.
-    """
     audience = _attr(row, "audience") or "users"
     scene = _attr(row, "core_scene") or "daily tasks"
     feature = _attr(row, "local_feature") or "journal"
-    return (
-        f"Pick a category chip to browse {scene}, save entries in a {feature}, "
-        f"log notes for {audience}, attach reference photos per item, "
-        f"export a weekly summary card, and review saved items by tag or date"
+    name = _attr(row, "name")
+    topology_id = ""
+    if project_dir is not None and name:
+        topology_id = topology_for_app(project_dir, name)
+    if not topology_id:
+        topology_id = "T6_checklist_session"
+    return generate_product_flow_for_topology(
+        audience=audience,
+        scene=scene,
+        feature=feature,
+        topology_id=topology_id,
+        project_dir=project_dir,
     )
 
 

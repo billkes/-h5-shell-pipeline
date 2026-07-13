@@ -59,13 +59,23 @@ def write_plan_gate_report(workspace: Path, result: PlanGateResult, *, strict: b
     """Persist gate outcome for resume / audit."""
     from batch.interaction_topology import plan_gate_strict
 
+    path = workspace / "plan-gate-report.json"
+    repair_history: list = []
+    if path.is_file():
+        try:
+            prev = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(prev, dict) and isinstance(prev.get("repairHistory"), list):
+                repair_history = prev["repairHistory"]
+        except json.JSONDecodeError:
+            pass
+
     payload = {
         "strict": strict or plan_gate_strict(),
         "passed": result.ok(strict=strict or plan_gate_strict()),
         "hard": result.hard,
         "soft": result.soft,
+        "repairHistory": repair_history,
     }
-    path = workspace / "plan-gate-report.json"
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return path
 

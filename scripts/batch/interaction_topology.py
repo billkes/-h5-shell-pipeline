@@ -110,6 +110,36 @@ def card_by_id(cards: list[TopologyCard], topology_id: str) -> TopologyCard | No
     return None
 
 
+_TOPOLOGY_KEYWORD_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("T4_wizard", ("提词", "演讲", "语速", "presentation", "课堂", "wizard", "向导")),
+    ("T5_workspace", ("画布", "workspace", "单页", "canvas", "提词器")),
+    ("T6_checklist_session", ("清单", "勾选", "会话", "checklist", "自测", "边界")),
+    ("T7_compare_board", ("对比", "适配", "compare", "双栏", "side by side")),
+    ("T8_reminder_ring", ("提醒", "到期", "周期", "ring", "日历", "掉色", "补色")),
+    ("T3_timeline", ("时间轴", "timeline", "日记线", "节奏")),
+    ("T2_capture_first", ("拍照", "档案", "attach", "photo", "capture")),
+    ("T1_dashboard", ("看板", "dashboard", "kpi", "指标")),
+)
+
+
+def recommend_topology_ids(
+    *,
+    core_scene: str = "",
+    local_feature: str = "",
+    theme_cn: str = "",
+    extra: str = "",
+) -> list[str]:
+    """Rank topology ids by brief keyword fit (higher = better match)."""
+    blob = f"{core_scene} {local_feature} {theme_cn} {extra}".lower()
+    scores: dict[str, int] = {}
+    for tid, keywords in _TOPOLOGY_KEYWORD_RULES:
+        for kw in keywords:
+            if kw.lower() in blob:
+                scores[tid] = scores.get(tid, 0) + 2
+    ordered = sorted(scores.items(), key=lambda x: (-x[1], x[0]))
+    return [tid for tid, sc in ordered if sc > 0]
+
+
 def _pick_index(seed: str, n: int, *, exclude: set[int]) -> int:
     if n <= 0:
         return 0
@@ -131,14 +161,30 @@ def assign_topology_for_row(
     theme_code: str,
     cards: list[TopologyCard],
     used_in_batch: set[str],
+    core_scene: str = "",
+    local_feature: str = "",
+    theme_cn: str = "",
 ) -> TopologyCard:
-    """Pick topology card — batch-unique when possible."""
+    """Pick topology card — prefer brief keyword fit, batch-unique when possible."""
     if not cards:
         raise ValueError("interaction-topology-deck 为空")
     exclude: set[int] = set()
     for i, card in enumerate(cards):
         if card.topology_id in used_in_batch:
             exclude.add(i)
+
+    preferred = recommend_topology_ids(
+        core_scene=core_scene,
+        local_feature=local_feature,
+        theme_cn=theme_cn,
+    )
+    for tid in preferred:
+        if tid in used_in_batch:
+            continue
+        for i, card in enumerate(cards):
+            if card.topology_id == tid and i not in exclude:
+                return card
+
     seed = f"{batch_id}:{app_name}:{theme_code}"
     idx = _pick_index(seed, len(cards), exclude=exclude)
     return cards[idx]
@@ -153,7 +199,13 @@ def draw_topology_for_batch(
 ) -> list[str]:
     """Assign interactionTopology per task.csv row; return filled app names."""
     from batch.csv_tasks import load_task_csv_meta, load_task_csv_raw, write_task_csv_rows
-    from batch.task_schema import COL_NAME, COL_THEME_CODE
+    from batch.task_schema import (
+        COL_CORE_SCENE,
+        COL_LOCAL_FEATURE,
+        COL_NAME,
+        COL_THEME_CN,
+        COL_THEME_CODE,
+    )
 
     cards = load_deck(project_dir)
     if not cards:
@@ -189,6 +241,9 @@ def draw_topology_for_batch(
             theme_code=theme_code,
             cards=cards,
             used_in_batch=used,
+            core_scene=(raw.get(COL_CORE_SCENE) or "").strip(),
+            local_feature=(raw.get(COL_LOCAL_FEATURE) or "").strip(),
+            theme_cn=(raw.get(COL_THEME_CN) or "").strip(),
         )
         used.add(card.topology_id)
         apps[name] = {

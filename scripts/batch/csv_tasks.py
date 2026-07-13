@@ -843,11 +843,12 @@ def init_empty_task_csv(path: Path, *, batch_id: str, row_count: int) -> None:
     write_task_csv_rows(path, meta, rows)
 
 
-def fill_product_flow_to_csv(csv_path: Path) -> list[str]:
-    """Fill empty productFlow cells from theme fields."""
+def fill_product_flow_to_csv(csv_path: Path, *, project_dir: Path | None = None) -> list[str]:
+    """Fill productFlow cells from theme fields + interaction topology."""
     from batch.theme_fields import generate_product_flow
 
     meta, rows_raw, fieldnames = load_task_csv_raw(csv_path)
+    root = project_dir or csv_path.resolve().parent.parent
     filled: list[str] = []
     for raw in rows_raw:
         name = (raw.get(COL_NAME) or "").strip()
@@ -861,8 +862,33 @@ def fill_product_flow_to_csv(csv_path: Path) -> list[str]:
         if not (audience or scene or feature):
             continue
         row = _row_from_raw(raw, name)
-        raw[COL_PRODUCT_FLOW] = generate_product_flow(row)
+        raw[COL_PRODUCT_FLOW] = generate_product_flow(row, project_dir=root)
         filled.append(name)
     if filled:
         write_task_csv_rows(csv_path, meta, rows_raw, fieldnames=fieldnames)
     return filled
+
+
+def refresh_product_flows_for_topology(
+    csv_path: Path,
+    *,
+    project_dir: Path,
+    force: bool = False,
+) -> list[str]:
+    """Rewrite productFlow after topology assignment."""
+    from batch.theme_fields import generate_product_flow
+
+    meta, rows_raw, fieldnames = load_task_csv_raw(csv_path)
+    updated: list[str] = []
+    for raw in rows_raw:
+        name = (raw.get(COL_NAME) or "").strip()
+        if not name:
+            continue
+        if (raw.get(COL_PRODUCT_FLOW) or "").strip() and not force:
+            continue
+        row = _row_from_raw(raw, name)
+        raw[COL_PRODUCT_FLOW] = generate_product_flow(row, project_dir=project_dir)
+        updated.append(name)
+    if updated:
+        write_task_csv_rows(csv_path, meta, rows_raw, fieldnames=fieldnames)
+    return updated

@@ -1,7 +1,17 @@
 # H5 壳交互拓扑与 Plan Gate 策略
 
-> **版本**：2026-07-13 · **状态**：实施中  
+> **版本**：2026-07-13 · **状态**：Phase 2 已落地；批前主题策略见 **《H5壳批前准备总计划-自拟主题版.md》v2**  
 > 配套：《H5壳功能文档深度标准.md》· `interaction_topology.py` · `spec_business_depth.py`
+
+---
+
+## 0. 前置变更（自拟主题）
+
+**主题库抽题将从批前移除**（iOS 加强后库内主题不可用）。新链路：
+
+`task compose-theme（自拟）` → `task name` → `task fill（topology+productFlow）` → `task ready（叙事硬拒）`
+
+本文件的 topology / soft plan.gate **仍然有效**，但 productFlow 的上游改为**自拟 brief**，不再依赖 `主题编号` + 主题库 6 列。
 
 ---
 
@@ -75,6 +85,8 @@ flowchart LR
 | 变量 | 默认 | 说明 |
 |------|------|------|
 | `STRICT_PLAN_GATE` | `0` | `1` 恢复全硬拒 |
+| `ENABLE_PLAN_GATE_REPAIR` | `1` | `0` 关闭定向 repair |
+| `PLAN_GATE_REPAIR_MAX_ROUNDS` | `2` | repair 最大轮次 |
 | `ENABLE_SPEC_DEPTH_GATE` | `1` | `0` 关闭 SPEC 检查 |
 | `ENABLE_FLOW_TOPOLOGY_GATE` | `1` | `0` 关闭 FLOW 检查 |
 

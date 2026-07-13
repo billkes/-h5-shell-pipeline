@@ -7,7 +7,16 @@ from argparse import Namespace
 
 from batch.config import BatchConfig
 from batch.csv_tasks import load_task_csv_meta, load_tasks_for_run
-from batch.task_cli import cmd_add, cmd_audit, cmd_fill, cmd_init, cmd_list, cmd_ready, cmd_validate
+from batch.task_cli import (
+    cmd_add,
+    cmd_audit,
+    cmd_compose_theme,
+    cmd_fill,
+    cmd_init,
+    cmd_list,
+    cmd_ready,
+    cmd_validate,
+)
 
 
 def _require_tty() -> bool:
@@ -141,8 +150,21 @@ def _prep_list(cfg: BatchConfig) -> int:
     return cmd_list(_ns(), cfg)
 
 
+def _prep_compose_theme(cfg: BatchConfig) -> int:
+    if not cfg.task_csv.is_file():
+        print("错误: task.csv 不存在")
+        return 1
+    row = _input_int("行号", minimum=1)
+    print("粘贴一句话主题（回车结束）:")
+    text = input().strip()
+    if not text:
+        print("错误: 内容为空")
+        return 1
+    return cmd_compose_theme(_ns(row=row, text=text, file=None, check=False, no_overwrite=False), cfg)
+
+
 def _prep_standard_chain(cfg: BatchConfig) -> int:
-    print("\n── 标准准备链：fill → audit → ready")
+    print("\n── 标准准备链：compose-theme → fill → audit → ready")
     if not cfg.task_csv.is_file():
         print("错误: task.csv 不存在")
         return 1
@@ -179,13 +201,14 @@ def interactive_prep_menu(cfg: BatchConfig) -> None:
     actions: dict[str, tuple[str, object]] = {
         "1": ("初始化 (init)", _prep_init),
         "2": ("追加空行 (add)", _prep_add),
-        "3": ("抽卡填维 (fill)", _prep_fill),
-        "4": ("批内审计 (audit)", _prep_audit),
-        "5": ("产包前验签 (ready)", _prep_ready),
-        "6": ("格式校验 (validate)", _prep_validate),
-        "7": ("列出任务 (list)", _prep_list),
-        "8": ("标准准备链", _prep_standard_chain),
-        "9": ("模板构建 (build-all)", _prep_template_build),
+        "3": ("自拟主题 (compose-theme)", _prep_compose_theme),
+        "4": ("抽卡填维 (fill)", _prep_fill),
+        "5": ("批内审计 (audit)", _prep_audit),
+        "6": ("产包前验签 (ready)", _prep_ready),
+        "7": ("格式校验 (validate)", _prep_validate),
+        "8": ("列出任务 (list)", _prep_list),
+        "9": ("标准准备链", _prep_standard_chain),
+        "10": ("模板构建 (build-all)", _prep_template_build),
     }
     while True:
         _print_banner("批次准备 · task.csv")

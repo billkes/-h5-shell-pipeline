@@ -31,6 +31,7 @@ ${CSS_MOTION_BLOCK}
 ${ICON_MANIFEST_BLOCK}
 ${FREE_TIER_BLOCK}
 ${BUSINESS_DEPTH_BLOCK}
+${TOPOLOGY_BLOCK}
 ${H5_SHELL_BLOCK}
 
 ---
@@ -43,6 +44,7 @@ Read 《H5壳功能文档深度标准.md》 before writing. Shallow headers **fa
 Sections in order (include all):
 - **App Theme & Angle** — one paragraph grounded in CSV product flow
 - **Screen Inventory** — table: every H5 route (Splash, Welcome, Legal overlay, business, **Plaza hidden**); shell = WebView + error + launch only
+- **Interaction Topology** — cite assigned topology id; primary vs secondary module roles; **Explicitly NOT** (forbidden landing patterns)
 - **Domain Model & Data Contract** — entity table (Entity | Fields | Type | Validation | Persistence key); count per tier
 - **Business Rules Engine** — BR-01… numbered rules (trigger · logic · conflict · user feedback)
 - **Primary Workflow** — numbered steps (UI action + data change + success/failure); count per tier

@@ -23,6 +23,7 @@ from batch.pack_type import (
 )
 from batch.registry import format_already_used_block
 from batch.spec_business_depth import resolve_business_depth_tier
+from batch.interaction_topology import card_by_id, load_deck, topology_for_app
 
 if TYPE_CHECKING:
     from batch.config import BatchConfig
@@ -177,6 +178,8 @@ def build_context_payload(
         product_flow=row.product_flow or "",
         theme_angle=row.theme_angle or "",
     )
+    topo_id = topology_for_app(cfg.project_dir, row.name, batch_id=batch_id)
+    topo_card = card_by_id(load_deck(cfg.project_dir), topo_id) if topo_id else None
     return {
         "app": {
             "name": row.name,
@@ -202,6 +205,10 @@ def build_context_payload(
             "noFeed": pack_type == "tool_flutter",
             "iapRequired": True,
             "businessDepthTier": depth_tier if is_h5_shell(pack_type) else "",
+            "interactionTopology": topo_id if is_h5_shell(pack_type) else "",
+            "interactionTopologyLabel": (
+                topo_card.label if topo_card and is_h5_shell(pack_type) else ""
+            ),
             "batchId": batch_id,
         },
     }
@@ -249,6 +256,9 @@ def _constraints_markdown(pack_type: str) -> str:
         lines.append("- H5 shell: vault + Bridge contract; legal kit + deflavor rules apply.")
         lines.append(
             "- 功能文档.md MUST meet 《H5壳功能文档深度标准.md》 (businessDepthTier in context.json)."
+        )
+        lines.append(
+            "- Interaction topology in context.json — do NOT default to chip→list→detail→export."
         )
     lines.extend(
         [
