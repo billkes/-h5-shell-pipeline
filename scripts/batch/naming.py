@@ -1,31 +1,25 @@
-"""Per-name functional naming generator.
+"""Per-name dynamic naming generator (v2).
 
-Every namable (folder/file/class/method/field/param/local) is transformed
-independently by a pure function:
+Every namable is transformed independently:
 
     transform_identifier(
         rule_key=...,
-        meta=...,             # namingRuleMeta from 本包维度锁.json
-        entity=...,           # "folder" | "file" | "class" | "method" | ...
-        semantic=...,         # e.g. "feed_coordinator" or "FeedCoordinator"
-        salt=...,             # optional disambiguator
-    ) -> name
+        meta=...,             # seeds only — no pre-baked affix keys
+        entity=...,
+        semantic=...,
+        salt=...,
+    ) -> str
 
-The function is deterministic given (rule_key, meta, entity, semantic, salt),
-so the scaffold step and Agent self-check produce the exact same name.
-
-Each rule chooses where to splice its signature token (e.g.
-``variableMiddleInsert``, ``embedSegment``, ``classSuffix``) onto the
-semantic chunks of the requested entity; **no rule simply concatenates a
-global prefix**. The package-level ``dartCodePrefix`` is treated as a
-package seed that anchors LIB root names only.
+Affix keys are derived at transform time via ``derive_key()`` (length within a
+rule-specific range). Join style (camel / pascal / snake / compact / dot /
+hyphen) is chosen per entity.
 """
 
 from __future__ import annotations
 
 import hashlib
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 Entity = Literal[
@@ -40,13 +34,100 @@ Entity = Literal[
     "enum_value",
 ]
 
+AffixKind = Literal["prefix", "suffix", "infix", "mirror"]
+JoinStyle = Literal["camel", "pascal", "snake", "compact", "dot", "hyphen"]
+
 _PATTERN_PASCAL_SPLIT = re.compile(r"(?<!^)(?=[A-Z])")
 _PATTERN_NON_ALNUM = re.compile(r"[^a-zA-Z0-9]+")
 _PATTERN_SNAKE = re.compile(r"[_\s]+")
 
+_ALPHABET = "abcdefghijklmnopqrstuvwxyz"
+
+_DEFAULT_JOIN_BY_ENTITY: dict[str, JoinStyle] = {
+    "class": "pascal",
+    "record": "pascal",
+    "method": "camel",
+    "field": "camel",
+    "param": "camel",
+    "local": "camel",
+    "enum_value": "camel",
+    "file": "snake",
+    "folder": "snake",
+}
+
+# Featured four + full CSV rule set profiles.
+RULE_PROFILES: dict[str, dict[str, object]] = {
+    "consonant_core": {
+        "affix": "prefix",
+        "length_range": (2, 4),
+        "join_styles": dict(_DEFAULT_JOIN_BY_ENTITY),
+    },
+    "reverse_initials": {
+        "affix": "suffix",
+        "length_range": (2, 3),
+        "join_styles": dict(_DEFAULT_JOIN_BY_ENTITY),
+    },
+    "single_initial_triple": {
+        "affix": "infix",
+        "length_range": (2, 5),
+        "join_styles": dict(_DEFAULT_JOIN_BY_ENTITY),
+    },
+    "mirror_random": {
+        "affix": "mirror",
+        "length_range": (2, 3),
+        "mirror_length_range": (2, 3),
+        "join_styles": {
+            **_DEFAULT_JOIN_BY_ENTITY,
+            "file": "snake",
+            "folder": "snake",
+            "local": "compact",
+            "field": "compact",
+            "method": "compact",
+            "param": "compact",
+        },
+    },
+    "dual_random_head": {
+        "affix": "prefix",
+        "length_range": (2, 4),
+        "join_styles": dict(_DEFAULT_JOIN_BY_ENTITY),
+    },
+    "vowel_bridge": {
+        "affix": "infix",
+        "length_range": (2, 3),
+        "alphabet": "aeiou",
+        "join_styles": dict(_DEFAULT_JOIN_BY_ENTITY),
+    },
+    "batch_initial_embed": {
+        "affix": "infix",
+        "length_range": (2, 4),
+        "join_styles": dict(_DEFAULT_JOIN_BY_ENTITY),
+    },
+    "cv_pseudoword": {
+        "affix": "prefix",
+        "length_range": (3, 5),
+        "join_styles": dict(_DEFAULT_JOIN_BY_ENTITY),
+    },
+    "appname_split_insert": {
+        "affix": "infix",
+        "length_range": (2, 4),
+        "join_styles": dict(_DEFAULT_JOIN_BY_ENTITY),
+    },
+    "hash_domain": {
+        "affix": "prefix",
+        "length_range": (3, 5),
+        "join_styles": dict(_DEFAULT_JOIN_BY_ENTITY),
+    },
+}
+
+FEATURED_RULE_KEYS: tuple[str, ...] = (
+    "consonant_core",
+    "reverse_initials",
+    "single_initial_triple",
+    "mirror_random",
+)
+
 
 def _normalize_chunks(semantic: str) -> list[str]:
-    """Return lowercase semantic chunks split on case + underscore boundaries."""
     cleaned = semantic.strip()
     if not cleaned:
         return []
@@ -75,97 +156,192 @@ def _snake(chunks: list[str]) -> str:
     return "_".join(chunks)
 
 
-def _stable_token(seed: tuple[str, ...], alphabet: str, n: int) -> str:
-    joined = "\x1f".join(seed).encode("utf-8")
+def derive_key(
+    *,
+    rule_key: str,
+    package_seed: str,
+    entity: Entity,
+    semantic: str,
+    role: str,
+    length_range: tuple[int, int],
+    salt: str = "",
+    extra: str = "",
+    alphabet: str = _ALPHABET,
+) -> str:
+    """Deterministic affix key; length varies within ``length_range``."""
+    min_len, max_len = length_range
+    joined = "\x1f".join(
+        (rule_key, package_seed, entity, semantic, role, salt, extra)
+    ).encode("utf-8")
     digest = hashlib.sha256(joined).digest()
-    return "".join(alphabet[b % len(alphabet)] for b in digest[:n])
+    span = max_len - min_len + 1
+    length = min_len + (digest[0] % span)
+    return "".join(alphabet[digest[i + 1] % len(alphabet)] for i in range(length))
+
+
+def build_rule_meta(
+    rule_key: str,
+    package_seed: str,
+    *,
+    batch_id: str = "",
+) -> dict[str, object]:
+    """Build v2 namingRuleMeta (seeds only, no affix keys)."""
+    profile = RULE_PROFILES.get(rule_key, RULE_PROFILES["consonant_core"])
+    meta: dict[str, object] = {
+        "ruleKey": rule_key,
+        "packageSeed": package_seed,
+        "affix": profile["affix"],
+        "lengthRange": list(profile["length_range"]),
+        "joinStyles": dict(profile.get("join_styles") or {}),
+    }
+    if profile.get("mirror_length_range"):
+        meta["mirrorLengthRange"] = list(profile["mirror_length_range"])
+    if batch_id:
+        meta["batchId"] = batch_id
+    if profile.get("alphabet"):
+        meta["alphabet"] = profile["alphabet"]
+    return meta
 
 
 @dataclass(frozen=True)
 class NamingMeta:
-    """Subset of ``namingRuleMeta`` needed by ``transform_identifier``."""
+    """Seeds for ``transform_identifier`` — no pre-baked affix tokens."""
 
     rule_key: str
-    insert_token: str = ""
-    class_suffix: str = ""
-    left_random: str = ""
-    right_random: str = ""
-    infix: str = ""
-    batch_domain2: str = ""
-    pseudoword: str = ""
-    opaque: str = ""
-    app_initials2: str = ""
-    pivot_initial: str = ""
+    package_seed: str = ""
+    affix: AffixKind = "infix"
+    length_range: tuple[int, int] = (2, 4)
+    mirror_length_range: tuple[int, int] = (2, 3)
+    join_styles: dict[str, str] = field(default_factory=dict)
+    batch_id: str = ""
+    alphabet: str = _ALPHABET
 
 
-def _resolve_insert(meta: NamingMeta, entity: Entity, semantic: str) -> str:
-    """Return the per-rule token spliced into the identifier."""
-    rk = meta.rule_key
-    if rk == "single_initial_triple":
-        return meta.insert_token or "xxx"
-    if rk == "vowel_bridge":
-        return meta.insert_token or "ae"
-    if rk == "appname_split_insert":
-        return meta.infix or "xx"
-    if rk == "batch_initial_embed":
-        return meta.batch_domain2 or "xx"
-    if rk == "reverse_initials":
-        return ""
-    if rk in {"mirror_random"}:
-        return ""
-    if rk in {"dual_random_head", "consonant_core"}:
-        return ""
-    if rk in {"cv_pseudoword", "hash_domain"}:
-        return _stable_token((rk, semantic), "abcdefghijklmnopqrstuvwxyz", 3)
-    return ""
+def _profile_for(rule_key: str) -> dict[str, object]:
+    return RULE_PROFILES.get(rule_key, RULE_PROFILES["consonant_core"])
 
 
-def _splice_pascal(chunks: list[str], insert: str) -> str:
-    if not insert:
+def _resolve_join_style(entity: Entity, meta: NamingMeta) -> JoinStyle:
+    styles = meta.join_styles or {}
+    if entity in styles:
+        return styles[entity]  # type: ignore[return-value]
+    profile = _profile_for(meta.rule_key)
+    profile_styles = profile.get("join_styles") or {}
+    if entity in profile_styles:
+        return profile_styles[entity]  # type: ignore[return-value]
+    return _DEFAULT_JOIN_BY_ENTITY.get(entity, "camel")  # type: ignore[return-value]
+
+
+def _format_base(chunks: list[str], join_style: JoinStyle) -> str:
+    if join_style == "pascal":
         return _pascal(chunks)
-    if len(chunks) <= 1:
-        return _pascal(chunks) + insert.capitalize()
-    head = _pascal(chunks[:1])
-    tail = _pascal(chunks[1:])
-    return f"{head}{insert.lower()}{tail}"
-
-
-def _splice_camel(chunks: list[str], insert: str) -> str:
-    if not insert:
+    if join_style == "camel":
         return _camel(chunks)
-    if len(chunks) <= 1:
-        return (chunks[0] if chunks else "") + insert.lower()
-    head = chunks[0]
-    tail = _pascal(chunks[1:])
-    return f"{head}{insert.lower()}{tail}"
-
-
-def _splice_snake(chunks: list[str], insert: str) -> str:
-    if not insert:
+    if join_style == "snake":
         return _snake(chunks)
+    if join_style == "compact":
+        return "".join(chunks)
+    if join_style == "dot":
+        return ".".join(chunks)
+    if join_style == "hyphen":
+        return "-".join(chunks)
+    return _camel(chunks)
+
+
+def _join_affix(
+    parts: list[str],
+    join_style: JoinStyle,
+) -> str:
+    filtered = [p for p in parts if p]
+    if not filtered:
+        return ""
+    if join_style == "pascal":
+        return "".join(p[:1].upper() + p[1:] for p in filtered)
+    if join_style == "camel":
+        head = filtered[0]
+        tail = "".join(p[:1].upper() + p[1:] for p in filtered[1:])
+        return head + tail
+    if join_style == "snake":
+        return "_".join(filtered)
+    if join_style == "compact":
+        return "".join(filtered)
+    if join_style == "dot":
+        return ".".join(filtered)
+    if join_style == "hyphen":
+        return "-".join(filtered)
+    return "".join(filtered)
+
+
+def _apply_prefix(
+    chunks: list[str],
+    key: str,
+    join_style: JoinStyle,
+) -> str:
+    base = _format_base(chunks, join_style)
+    if join_style == "pascal":
+        return key[:1].upper() + key[1:] + base
+    if join_style in {"camel", "compact"}:
+        return key.lower() + base
+    return _join_affix([key.lower(), base], join_style)
+
+
+def _apply_suffix(
+    chunks: list[str],
+    key: str,
+    join_style: JoinStyle,
+) -> str:
+    base = _format_base(chunks, join_style)
+    if join_style == "pascal":
+        return base + key[:1].upper() + key[1:]
+    if join_style in {"camel", "compact"}:
+        return base + key.lower()
+    return _join_affix([base, key.lower()], join_style)
+
+
+def _apply_infix(
+    chunks: list[str],
+    key: str,
+    join_style: JoinStyle,
+) -> str:
+    if not chunks:
+        chunks = ["anon"]
     if len(chunks) <= 1:
-        return _snake(chunks) + "_" + insert.lower()
-    head = chunks[0]
-    tail = "_".join(chunks[1:])
-    return f"{head}_{insert.lower()}_{tail}"
+        word = chunks[0]
+        if join_style == "pascal":
+            return _pascal([word]) + key[:1].upper() + key[1:]
+        if join_style in {"camel", "compact"}:
+            return word + key.lower()
+        return _join_affix([word, key.lower()], join_style)
+
+    head, *tail = chunks
+    if join_style == "pascal":
+        return _pascal([head]) + key.lower() + _pascal(tail)
+    if join_style == "camel":
+        return head + key.lower() + _pascal(tail)
+    if join_style == "compact":
+        return head + key.lower() + "".join(tail)
+    if join_style == "snake":
+        return _join_affix([head, key.lower(), _snake(tail)], "snake")
+    if join_style == "dot":
+        return _join_affix([head, key.lower(), ".".join(tail)], "dot")
+    if join_style == "hyphen":
+        return _join_affix([head, key.lower(), "-".join(tail)], "hyphen")
+    return head + key.lower() + _pascal(tail)
 
 
-def _mirror_wrap(name: str, meta: NamingMeta, snake: bool) -> str:
-    left = meta.left_random
-    right = meta.right_random
-    if not left and not right:
-        return name
-    if snake:
-        parts = [p for p in (left, name, right) if p]
-        return "_".join(parts)
-    capped = name[:1].upper() + name[1:] if name else name
-    return f"{left}{capped}{right}".rstrip()
-
-
-def _suffix_class(name: str, meta: NamingMeta) -> str:
-    if meta.rule_key == "reverse_initials" and meta.class_suffix:
-        return f"{name}{meta.class_suffix.capitalize()}"
-    return name
+def _apply_mirror(
+    chunks: list[str],
+    left: str,
+    right: str,
+    join_style: JoinStyle,
+) -> str:
+    base = _format_base(chunks, join_style)
+    if join_style in {"snake", "dot", "hyphen"}:
+        return _join_affix([left.lower(), base, right.lower()], join_style)
+    if join_style == "pascal":
+        mid = base[:1].upper() + base[1:] if base else ""
+        return left.lower() + mid + right.lower()
+    return left.lower() + base + right.lower()
 
 
 def transform_identifier(
@@ -176,96 +352,180 @@ def transform_identifier(
     semantic: str,
     salt: str = "",
 ) -> str:
-    """Independently apply the rule to one identifier and return its final name.
+    """Apply dynamic affix naming to one identifier."""
+    profile = _profile_for(rule_key)
+    affix: AffixKind = meta.affix or profile["affix"]  # type: ignore[assignment]
+    length_range = meta.length_range or profile["length_range"]  # type: ignore[assignment]
+    join_style = _resolve_join_style(entity, meta)
+    alphabet = meta.alphabet or str(profile.get("alphabet") or _ALPHABET)
 
-    Per the doc: this is the only entry the scaffold/Agent should use; there
-    is no global ``{prefix}_{semantic}`` shortcut.
-    """
     chunks = _normalize_chunks(semantic)
     if salt:
-        salted = _stable_token((rule_key, salt), "abcdefghijklmnopqrstuvwxyz", 2)
-        chunks.append(salted)
+        chunks = chunks + [
+            derive_key(
+                rule_key=rule_key,
+                package_seed=meta.package_seed,
+                entity=entity,
+                semantic=semantic,
+                role="salt",
+                length_range=(2, 2),
+                salt=salt,
+            )
+        ]
     if not chunks:
         chunks = ["anon"]
 
-    bound = NamingMeta(
+    extra = meta.batch_id if rule_key in {"batch_initial_embed", "hash_domain"} else ""
+
+    if affix == "prefix":
+        key = derive_key(
+            rule_key=rule_key,
+            package_seed=meta.package_seed,
+            entity=entity,
+            semantic=semantic,
+            role="pre",
+            length_range=length_range,
+            salt=salt,
+            extra=extra,
+            alphabet=alphabet,
+        )
+        return _apply_prefix(chunks, key, join_style)
+
+    if affix == "suffix":
+        key = derive_key(
+            rule_key=rule_key,
+            package_seed=meta.package_seed,
+            entity=entity,
+            semantic=semantic,
+            role="suf",
+            length_range=length_range,
+            salt=salt,
+            extra=extra,
+            alphabet=alphabet,
+        )
+        return _apply_suffix(chunks, key, join_style)
+
+    if affix == "infix":
+        key = derive_key(
+            rule_key=rule_key,
+            package_seed=meta.package_seed,
+            entity=entity,
+            semantic=semantic,
+            role="mid",
+            length_range=length_range,
+            salt=salt,
+            extra=extra,
+            alphabet=alphabet,
+        )
+        return _apply_infix(chunks, key, join_style)
+
+    if affix == "mirror":
+        mirror_range = meta.mirror_length_range or profile.get(
+            "mirror_length_range", (2, 3)
+        )
+        left = derive_key(
+            rule_key=rule_key,
+            package_seed=meta.package_seed,
+            entity=entity,
+            semantic=semantic,
+            role="L",
+            length_range=mirror_range,  # type: ignore[arg-type]
+            salt=salt,
+            extra=extra,
+            alphabet=alphabet,
+        )
+        right = derive_key(
+            rule_key=rule_key,
+            package_seed=meta.package_seed,
+            entity=entity,
+            semantic=semantic,
+            role="R",
+            length_range=mirror_range,  # type: ignore[arg-type]
+            salt=salt,
+            extra=extra,
+            alphabet=alphabet,
+        )
+        return _apply_mirror(chunks, left, right, join_style)
+
+    key = derive_key(
         rule_key=rule_key,
-        insert_token=meta.insert_token,
-        class_suffix=meta.class_suffix,
-        left_random=meta.left_random,
-        right_random=meta.right_random,
-        infix=meta.infix,
-        batch_domain2=meta.batch_domain2,
-        pseudoword=meta.pseudoword,
-        opaque=meta.opaque,
-        app_initials2=meta.app_initials2,
-        pivot_initial=meta.pivot_initial,
+        package_seed=meta.package_seed,
+        entity=entity,
+        semantic=semantic,
+        role="mid",
+        length_range=length_range,
+        salt=salt,
+        extra=extra,
+        alphabet=alphabet,
     )
-    insert = _resolve_insert(bound, entity, semantic)
-
-    if entity in {"class", "record"}:
-        name = _splice_pascal(chunks, insert)
-        return _suffix_class(name, bound)
-
-    if entity in {"method", "field", "param", "local"}:
-        return _splice_camel(chunks, insert)
-
-    if entity == "enum_value":
-        return _splice_camel(chunks, insert)
-
-    if entity == "file":
-        snake = _splice_snake(chunks, insert)
-        if rule_key == "mirror_random":
-            snake = _mirror_wrap(snake, bound, snake=True)
-        return snake
-
-    if entity == "folder":
-        snake = _splice_snake(chunks, insert)
-        if rule_key == "mirror_random":
-            snake = _mirror_wrap(snake, bound, snake=True)
-        return snake
-
-    return _splice_camel(chunks, insert)
+    return _apply_infix(chunks, key, join_style)
 
 
 def meta_from_lock(naming_rule_meta: dict[str, object] | None) -> NamingMeta:
-    """Build NamingMeta from ``本包维度锁.json -> namingObfuscationRule.namingRuleMeta``."""
+    """Build NamingMeta from ``本包维度锁.json -> namingRuleMeta`` (v2 or legacy)."""
     nm = naming_rule_meta or {}
 
     def s(key: str) -> str:
         val = nm.get(key)
         return str(val).strip().lower() if isinstance(val, str) else ""
 
+    def parse_range(key: str, default: tuple[int, int]) -> tuple[int, int]:
+        raw = nm.get(key)
+        if isinstance(raw, (list, tuple)) and len(raw) == 2:
+            try:
+                return int(raw[0]), int(raw[1])
+            except (TypeError, ValueError):
+                pass
+        return default
+
+    rule_key = s("ruleKey")
+    profile = _profile_for(rule_key)
+    package_seed = s("packageSeed") or s("dartCodePrefix")
+    join_raw = nm.get("joinStyles")
+    join_styles: dict[str, str] = {}
+    if isinstance(join_raw, dict):
+        join_styles = {str(k): str(v) for k, v in join_raw.items()}
+
+    affix_raw = nm.get("affix") or profile.get("affix") or "infix"
+    alphabet_raw = nm.get("alphabet")
+    alphabet = (
+        str(alphabet_raw)
+        if isinstance(alphabet_raw, str) and alphabet_raw
+        else str(profile.get("alphabet") or _ALPHABET)
+    )
+
     return NamingMeta(
-        rule_key=s("ruleKey"),
-        insert_token=s("variableMiddleInsert") or s("embedSegment") or s("randomTail"),
-        class_suffix=s("classSuffix"),
-        left_random=s("leftRandom"),
-        right_random=s("rightRandom"),
-        infix=s("infix"),
-        batch_domain2=s("batchDomain2"),
-        pseudoword=s("pseudoword"),
-        opaque=s("opaque"),
-        app_initials2=s("appInitials2"),
-        pivot_initial=s("pivotInitial"),
+        rule_key=rule_key,
+        package_seed=package_seed,
+        affix=affix_raw,  # type: ignore[arg-type]
+        length_range=parse_range(
+            "lengthRange", profile["length_range"]  # type: ignore[arg-type]
+        ),
+        mirror_length_range=parse_range(
+            "mirrorLengthRange",
+            profile.get("mirror_length_range", (2, 3)),  # type: ignore[arg-type]
+        ),
+        join_styles=join_styles,
+        batch_id=s("batchId") or s("batch_id"),
+        alphabet=alphabet,
     )
 
 
 def transform_block_for_prompt(meta: NamingMeta) -> str:
-    """Render a compact Prompt block that explains the transform contract."""
+    """Render a compact Prompt block for dynamic naming v2."""
+    profile = _profile_for(meta.rule_key)
+    affix = meta.affix or profile.get("affix", "infix")
+    length_range = meta.length_range or profile.get("length_range", (2, 4))
     return (
-        "\n[Naming Transform — APPLY PER IDENTIFIER]\n"
+        "\n[Naming Transform v2 — DYNAMIC KEY PER IDENTIFIER]\n"
         f"- ruleKey: {meta.rule_key}\n"
-        f"- insertToken: {meta.insert_token!r}\n"
-        f"- classSuffix: {meta.class_suffix!r}\n"
-        f"- leftRandom: {meta.left_random!r}\n"
-        f"- rightRandom: {meta.right_random!r}\n"
-        f"- infix: {meta.infix!r}\n"
-        f"- batchDomain2: {meta.batch_domain2!r}\n"
-        "- Apply transform_identifier() independently to EVERY namable (folder, file,\n"
-        "  class, method, field, param, local) under `lib/` **and** under `assets/`.\n"
-        "  Do NOT concatenate a global prefix.\n"
-        "- Reuse the package-wide tokens above on every name; the semantic chunks\n"
-        "  differ per identifier — that is what produces the differentiation.\n"
-        "- See 命名混淆规则.md → 'Per-name independent generation'.\n"
+        f"- packageSeed: {meta.package_seed!r}\n"
+        f"- affix: {affix} (prefix | suffix | infix | mirror)\n"
+        f"- lengthRange: {list(length_range)}\n"
+        f"- joinStyles: {meta.join_styles or profile.get('join_styles', {})}\n"
+        "- Affix keys are NOT stored in meta; call derive_key() / "
+        "transform_identifier() per namable.\n"
+        "- Key length varies within lengthRange (hash-derived, not fixed 3).\n"
+        "- Join style per entity: camel / pascal / snake / compact / dot / hyphen.\n"
+        "- Apply to EVERY namable under `lib/` and `assets/` (see 命名混淆规则.md).\n"
     )

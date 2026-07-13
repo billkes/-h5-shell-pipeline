@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from batch.csv_tasks import CsvTaskRow, normalize_naming_obfuscation_rule
+from batch.naming import build_rule_meta
 
 RULE_DUAL_RANDOM_HEAD = "双随机首段策略"
 RULE_CONSONANT_CORE = "辅音核心策略"
@@ -125,6 +126,16 @@ def _valid_prefix(prefix: str, recent: set[str]) -> bool:
     return bool(_PREFIX_RE.match(p))
 
 
+def _meta_v2(
+    rule_key: str,
+    package_seed: str,
+    *,
+    batch_id: str = "",
+) -> dict[str, Any]:
+    """v2 meta: seeds only — affix keys derived at transform time."""
+    return build_rule_meta(rule_key, package_seed, batch_id=batch_id)
+
+
 def _generate_dual_random_head(
     app_name: str,
     workspace: Path,
@@ -135,14 +146,7 @@ def _generate_dual_random_head(
     app2 = _app_letters(app_name, 2)
     tail = _rand_letters(rng, 1)
     prefix = head + app2 + tail
-    meta = {
-        "ruleKey": "dual_random_head",
-        "randomHead": head,
-        "appInitials2": app2,
-        "randomTail": tail,
-        "length": len(prefix),
-    }
-    return prefix, meta
+    return prefix, _meta_v2("dual_random_head", prefix)
 
 
 def _generate_consonant_core(
@@ -154,13 +158,7 @@ def _generate_consonant_core(
     core = _consonants(app_name, 3)
     rand = _rand_letters(rng, 2)
     prefix = core + rand
-    meta = {
-        "ruleKey": "consonant_core",
-        "consonantCore": core,
-        "randomTail": rand,
-        "length": len(prefix),
-    }
-    return prefix, meta
+    return prefix, _meta_v2("consonant_core", prefix)
 
 
 def _generate_reverse_initials(
@@ -173,13 +171,7 @@ def _generate_reverse_initials(
     r0 = _rand_letters(rng, 1)
     r1 = _rand_letters(rng, 1)
     prefix = f"{letters[2]}{letters[1]}{r0}{letters[0]}{r1}"
-    meta = {
-        "ruleKey": "reverse_initials",
-        "reversedInitials": f"{letters[2]}{letters[1]}{letters[0]}",
-        "classSuffix": f"{r0}{r1}",
-        "length": len(prefix),
-    }
-    return prefix, meta
+    return prefix, _meta_v2("reverse_initials", prefix)
 
 
 def _generate_vowel_bridge(
@@ -192,13 +184,7 @@ def _generate_vowel_bridge(
     v0 = _rand_vowels(rng, 1)
     v1 = _rand_vowels(rng, 1)
     prefix = f"{letters[0]}{v0}{letters[1]}{v1}{letters[2]}"
-    meta = {
-        "ruleKey": "vowel_bridge",
-        "letterSegments": letters,
-        "embedSegment": f"{v0}{v1}",
-        "length": len(prefix),
-    }
-    return prefix, meta
+    return prefix, _meta_v2("vowel_bridge", prefix)
 
 
 def _generate_batch_initial_embed(
@@ -212,14 +198,7 @@ def _generate_batch_initial_embed(
     app2 = _app_letters(app_name, 2)
     rnd1 = _rand_letters(rng, 1)
     prefix = batch2 + app2 + rnd1
-    meta = {
-        "ruleKey": "batch_initial_embed",
-        "batchId": batch_id or "",
-        "batchDomain2": batch2,
-        "appInitials2": app2,
-        "length": len(prefix),
-    }
-    return prefix, meta
+    return prefix, _meta_v2("batch_initial_embed", prefix, batch_id=batch_id or "")
 
 
 def _generate_mirror_random(
@@ -232,14 +211,7 @@ def _generate_mirror_random(
     pivot = _app_letters(app_name, 1)
     right = _rand_letters(rng, 2)
     prefix = left + pivot + right
-    meta = {
-        "ruleKey": "mirror_random",
-        "leftRandom": left,
-        "pivotInitial": pivot,
-        "rightRandom": right,
-        "length": len(prefix),
-    }
-    return prefix, meta
+    return prefix, _meta_v2("mirror_random", prefix)
 
 
 def _generate_single_initial_triple(
@@ -251,13 +223,7 @@ def _generate_single_initial_triple(
     pivot = _app_letters(app_name, 1)
     rand = _rand_letters(rng, 3)
     prefix = pivot + rand
-    meta = {
-        "ruleKey": "single_initial_triple",
-        "pivotInitial": pivot,
-        "variableMiddleInsert": rand,
-        "length": len(prefix),
-    }
-    return prefix, meta
+    return prefix, _meta_v2("single_initial_triple", prefix)
 
 
 def _generate_cv_pseudoword(
@@ -267,12 +233,7 @@ def _generate_cv_pseudoword(
 ) -> tuple[str, dict[str, Any]]:
     rng = _rng(workspace, app_name, attempt)
     prefix = _cv_word(rng)
-    meta = {
-        "ruleKey": "cv_pseudoword",
-        "pseudoword": prefix,
-        "length": len(prefix),
-    }
-    return prefix, meta
+    return prefix, _meta_v2("cv_pseudoword", prefix)
 
 
 def _generate_appname_split_insert(
@@ -284,13 +245,7 @@ def _generate_appname_split_insert(
     letters = _app_letters(app_name, 3)
     infix = _rand_letters(rng, 2)
     prefix = f"{letters[0]}{letters[1]}{infix}{letters[2]}"
-    meta = {
-        "ruleKey": "appname_split_insert",
-        "letterSegments": letters,
-        "infix": infix,
-        "length": len(prefix),
-    }
-    return prefix, meta
+    return prefix, _meta_v2("appname_split_insert", prefix)
 
 
 def _generate_hash_domain(
@@ -306,13 +261,7 @@ def _generate_hash_domain(
         letters.append(string.ascii_lowercase[h % 26])
         h //= 26
     prefix = "".join(letters)
-    meta = {
-        "ruleKey": "hash_domain",
-        "batchId": batch_id or "",
-        "opaque": prefix,
-        "length": len(prefix),
-    }
-    return prefix, meta
+    return prefix, _meta_v2("hash_domain", prefix, batch_id=batch_id or "")
 
 
 def generate_dart_prefix(
@@ -394,16 +343,14 @@ def build_naming_rule_prompt_block(row: CsvTaskRow) -> str:
     rule = row.naming_obfuscation_rule
     key = _RULE_KEY_BY_LABEL.get(rule, "")
     return (
-        "\n[CSV Naming Obfuscation — REQUIRED]\n"
+        "\n[CSV Naming Obfuscation v2 — REQUIRED]\n"
         f"- namingObfuscationRule (from CSV): {rule}\n"
         f"- ruleKey: {key}\n"
-        "- Read 命名混淆规则.md in this workspace and apply ALL "
-        "bullets for this rule.\n"
-        "- dartCodePrefix in 本包代码组合.json is authoritative; do NOT "
-        "invent a different prefix.\n"
-        "- Class/file/subfolder naming MUST follow the rule's embed/middle-insert "
-        "constraints documented in namingRuleMeta.\n"
-        "- Apply the same token to ALL identifier layers: folders, files, classes, "
-        "methods, fields, parameters, and locals inside feature methods "
-        "(see 命名混淆规则.md Identifier scope).\n"
+        "- Read 命名混淆规则.md — dynamic key per identifier (no pre-baked affix).\n"
+        "- dartCodePrefix / packageSeed in 本包代码组合.json is the package seed only.\n"
+        "- Affix position: prefix | suffix | infix | mirror (see namingRuleMeta.affix).\n"
+        "- Affix length varies within lengthRange; join style per entity "
+        "(camel/pascal/snake/compact/dot/hyphen).\n"
+        "- Use transform_identifier() / derive_key() for EVERY namable "
+        "(folders, files, classes, methods, fields, params, locals).\n"
     )

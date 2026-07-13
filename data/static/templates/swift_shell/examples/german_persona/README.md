@@ -4,7 +4,7 @@
 
 ## 适用条件
 
-- `task.csv` 中 **命名混淆规则** = 辅音核心策略 / 双随机首段策略 / 元辅伪词策略 / 倒序声母策略 等
+- `task.csv` 中 **命名混淆规则** = **辅音核心策略** / **倒序声母策略** / **单声母三随机策略** / **双随机镜像策略**（dynamic key v2 主推四条）
 - `task.csv` 中 **编程风格** = 德国人 / 法国人 / 俄罗斯人
 - 需要非语义化前缀以隐藏业务意图
 
@@ -33,7 +33,8 @@
 
 ## 命名约定
 
-- 前缀：`{prefix}` 由命名混淆规则生成，如 `xucfw`、`erbpv`
+- 前缀：`{prefix}` 由命名混淆规则生成（`packageSeed` / `dartCodePrefix`），如 `xucfw`、`erbpv`
+- 标识符缀 key **按 semantic 动态派生**（前缀/后缀/中缀/镜像），长度在规则 `lengthRange` 内变化
 - 模块目录：`{prefix}_{module_name}/`（父目录），`{prefix}_{module_name}_bay/`（叶目录）
   - 对应德国 persona 的 `nested_role_leaf` 布局
 - Swift 文件/类名：大驼峰，前缀首字母大写，嵌入角色隐喻词：
