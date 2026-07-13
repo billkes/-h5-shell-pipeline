@@ -5,64 +5,64 @@
     "products": [
       {
         "index": 1,
-        "price": 0.95,
+        "price": 0.99,
         "originalPrice": null,
-        "coins": 95,
-        "name": "User Allowance 1",
+        "coins": 99,
+        "name": "Service Tier 1",
         "tags": [],
         "remarks": null
       },
       {
         "index": 2,
-        "price": 2.99,
+        "price": 1.49,
         "originalPrice": null,
-        "coins": 299,
-        "name": "User Allowance 2",
+        "coins": 149,
+        "name": "Service Tier 2",
         "tags": [],
         "remarks": null
       },
       {
         "index": 3,
-        "price": 3.90,
+        "price": 3.99,
         "originalPrice": null,
-        "coins": 390,
-        "name": "User Allowance 3",
+        "coins": 399,
+        "name": "Service Tier 3",
         "tags": [],
         "remarks": null
       },
       {
         "index": 4,
-        "price": 4.99,
+        "price": 4.95,
         "originalPrice": null,
-        "coins": 499,
-        "name": "User Allowance 4",
+        "coins": 495,
+        "name": "Service Tier 4",
         "tags": [],
         "remarks": null
       },
       {
         "index": 5,
-        "price": 5.99,
+        "price": 7.99,
         "originalPrice": null,
-        "coins": 599,
-        "name": "User Allowance 5",
+        "coins": 899,
+        "name": "Service Tier 5",
         "tags": [],
         "remarks": null
       },
       {
         "index": 6,
-        "price": 9.95,
+        "price": 9.90,
         "originalPrice": null,
-        "coins": 1195,
-        "name": "User Allowance 6",
+        "coins": 1190,
+        "name": "Service Tier 6",
         "tags": [],
         "remarks": null
       },
       {
         "index": 7,
-        "price": 12.90,
+        "price": 12.95,
         "originalPrice": null,
-        "coins": 1490,
-        "name": "User Allowance 7",
+        "coins": 1495,
+        "name": "Service Tier 7",
         "tags": [],
         "remarks": null
       },
@@ -70,35 +70,35 @@
         "index": 8,
         "price": 19.99,
         "originalPrice": null,
-        "coins": 2495,
-        "name": "User Allowance 8",
+        "coins": 2499,
+        "name": "Service Tier 8",
         "tags": [],
         "remarks": null
       },
       {
         "index": 9,
-        "price": 24.99,
+        "price": 29.99,
         "originalPrice": null,
-        "coins": 3199,
-        "name": "User Allowance 9",
+        "coins": 3999,
+        "name": "Service Tier 9",
         "tags": [],
         "remarks": null
       },
       {
         "index": 10,
-        "price": 39.99,
+        "price": 49.99,
         "originalPrice": null,
-        "coins": 5499,
-        "name": "User Allowance 10",
+        "coins": 6999,
+        "name": "Service Tier 10",
         "tags": [],
         "remarks": null
       },
       {
         "index": 11,
-        "price": 49.99,
+        "price": 59.99,
         "originalPrice": null,
-        "coins": 6995,
-        "name": "User Allowance 11",
+        "coins": 8499,
+        "name": "Service Tier 11",
         "tags": [],
         "remarks": null
       },
@@ -106,8 +106,8 @@
         "index": 12,
         "price": 99.99,
         "originalPrice": null,
-        "coins": 14995,
-        "name": "User Allowance 12",
+        "coins": 14999,
+        "name": "Service Tier 12",
         "tags": [],
         "remarks": null
       }
@@ -122,49 +122,56 @@
         "promoPrice": 0.99,
         "originalPrice": 1.99,
         "coins": 190,
-        "name": "Special Allowance 1"
+        "name": "Promo Tier 1"
       },
       {
         "index": 2,
         "promoPrice": 1.99,
         "originalPrice": 4.99,
         "coins": 490,
-        "name": "Special Allowance 2"
+        "name": "Promo Tier 2"
       },
       {
         "index": 3,
-        "promoPrice": 4.95,
-        "originalPrice": 9.95,
-        "coins": 1190,
-        "name": "Special Allowance 3"
+        "promoPrice": 2.99,
+        "originalPrice": 5.99,
+        "coins": 740,
+        "name": "Promo Tier 3"
       },
       {
         "index": 4,
-        "promoPrice": 7.99,
-        "originalPrice": 14.99,
-        "coins": 1890,
-        "name": "Special Allowance 4"
+        "promoPrice": 4.95,
+        "originalPrice": 9.95,
+        "coins": 1190,
+        "name": "Promo Tier 4"
       },
       {
         "index": 5,
         "promoPrice": 11.95,
         "originalPrice": 20.95,
         "coins": 2690,
-        "name": "Special Allowance 5"
+        "name": "Promo Tier 5"
       },
       {
         "index": 6,
-        "promoPrice": 35.99,
-        "originalPrice": 49.99,
-        "coins": 6990,
-        "name": "Special Allowance 6"
+        "promoPrice": 19.99,
+        "originalPrice": 29.99,
+        "coins": 4590,
+        "name": "Promo Tier 6"
       },
       {
         "index": 7,
+        "promoPrice": 35.99,
+        "originalPrice": 49.99,
+        "coins": 6990,
+        "name": "Promo Tier 7"
+      },
+      {
+        "index": 8,
         "promoPrice": 79.99,
         "originalPrice": 99.99,
         "coins": 14990,
-        "name": "Special Allowance 7"
+        "name": "Promo Tier 8"
       }
     ]
   }
