@@ -1,33 +1,22 @@
-"""Tests for skill_adapt icon manifest prefix refresh."""
+"""Icon manifest prefix comes from early dimension lock (prepare.context), not lock refresh."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-from batch.skill_adapt import refresh_icon_sprite_manifest_prefix
+from batch.skill_adapt import _build_icon_sprite_manifest
 
 
-def test_refresh_icon_sprite_manifest_prefix(tmp_path: Path) -> None:
+def test_icon_manifest_uses_early_dart_prefix(tmp_path: Path) -> None:
     ws = tmp_path
     (ws / "本包代码组合.json").write_text(
         json.dumps({"dartCodePrefix": "eebun"}),
         encoding="utf-8",
     )
-    manifest = {
-        "prefix": "apxxx",
-        "symbols": [
-            {"slug": "home", "symbolId": "apxxx-mark-home", "source": "canonical"},
-            {"slug": "list", "symbolId": "apxxx-mark-list", "source": "uupm-icons"},
-        ],
-    }
-    adapt = ws / "skill-adapt"
-    adapt.mkdir()
-    (adapt / "icon-sprite-manifest.json").write_text(
-        json.dumps(manifest),
-        encoding="utf-8",
-    )
-    assert refresh_icon_sprite_manifest_prefix(ws) is True
-    data = json.loads((adapt / "icon-sprite-manifest.json").read_text(encoding="utf-8"))
-    assert data["prefix"] == "eebun"
-    assert data["symbols"][0]["symbolId"] == "eebun-mark-home"
+    candidate: dict = {"style": {}, "pattern": {}}
+    designer = {"iconStyle": "outlined inline SVG sprite (unified H5 kit)"}
+    manifest = _build_icon_sprite_manifest(ws, candidate, designer)
+    assert manifest["prefix"] == "eebun"
+    for entry in manifest["symbols"]:
+        assert entry["symbolId"].startswith("eebun-mark-")

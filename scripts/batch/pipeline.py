@@ -60,10 +60,7 @@ from batch.failure_notes import analyze_log_error_snippets
 from batch.cursor_runner import run_agent
 from batch.debug_banner import ensure_debug_banner_false
 
-from batch.dimension_lock import (
-    resolve_dimension_lock,
-    write_dimension_lock,
-)
+from batch.dimension_lock import resolve_dimension_lock
 from batch.visual_lock_assets import fill_visual_lock_assets
 from batch.flutter_ops import (
     analyze_log_shows_success,
@@ -90,7 +87,6 @@ from batch.state import (
     show_state,
 )
 from batch.workspace import (
-    alloc_code_combo,
     code_combo_block,
     copy_workspace_docs,
     dart_prefix,
@@ -220,6 +216,7 @@ class FlutterPipeline:
         return format_ambient_canvas_block(ctx.workspace)
 
     def _run_prepare_context(self, ctx: AppContext) -> bool:
+        from batch.dimension_lock import ensure_code_dimensions_locked
         from batch.skill_context import write_skill_input
 
         row = self._csv_row_for(ctx)
@@ -233,6 +230,14 @@ class FlutterPipeline:
             pack_type=ctx.pack_type,
             batch_id=self._batch_id(),
         )
+        ensure_code_dimensions_locked(
+            self.cfg,
+            ctx.workspace,
+            row,
+            dart_package_name=ctx.dart_name,
+            batch_id=self._batch_id(),
+        )
+        write_flutter_cursor_rules(ctx.workspace, row)
         return True
 
     def _run_skill_design(self, ctx: AppContext) -> bool:
@@ -374,13 +379,6 @@ class FlutterPipeline:
             from batch.skill_logo import maybe_write_logo_brief
 
             maybe_write_logo_brief(cfg=self.cfg, workspace=ctx.workspace, row=row)
-            from batch.skill_adapt import refresh_icon_sprite_manifest_prefix
-
-            if refresh_icon_sprite_manifest_prefix(ctx.workspace):
-                print(">>> icon-sprite-manifest: 已同步 dartCodePrefix")
-            from batch.skill_tokens import run_skill_tokens
-
-            run_skill_tokens(cfg=self.cfg, workspace=ctx.workspace)
         return True
 
     def _run_design_system_step(self, ctx: AppContext) -> bool:
@@ -389,18 +387,20 @@ class FlutterPipeline:
 
     def _prepare_dimensions(self, ctx: AppContext) -> None:
         """Lock CSV dimensions before any Agent phase."""
+        from batch.dimension_lock import ensure_code_dimensions_locked
+
         row = self._csv_row_for(ctx)
         if row is None:
             raise RuntimeError(f"CSV 未找到任务行: {ctx.name}")
         ws = ctx.workspace
-        alloc_code_combo(self.cfg, ws)
-        self._apply_csv_code_combo(ctx)
-        write_dimension_lock(
+        ensure_code_dimensions_locked(
+            self.cfg,
             ws,
             row,
             dart_package_name=ctx.dart_name,
             batch_id=self._batch_id(),
         )
+        self._apply_csv_code_combo(ctx)
         write_layout_manifest(ws, ctx.dart_name)
         write_flutter_cursor_rules(ws, row)
 

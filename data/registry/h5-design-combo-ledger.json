@@ -2,19 +2,19 @@
   "apps": {
     "Buildioo": {
       "batchId": "TEST-0714",
-      "fingerprintKey": "135871d91dcd65d8",
+      "fingerprintKey": "fd72cab6adc3eb1b",
       "visualFingerprint": {
-        "primary": "#ec4899",
-        "accent": "#0284c7",
-        "background": "#fdf2f8",
-        "heading": "fredoka",
-        "body": "nunito",
-        "pattern": "hero + features + cta",
-        "style": "predictive analytics",
+        "primary": "#78716c",
+        "accent": "#d97706",
+        "background": "#fffbeb",
+        "heading": "eb garamond",
+        "body": "crimson text",
+        "pattern": "lead magnet + form",
+        "style": "enterprise saas (mobile)",
         "category": "mood tracker"
       },
-      "candidateId": "c3",
-      "style": "Predictive Analytics",
+      "candidateId": "c2",
+      "style": "Enterprise SaaS (Mobile)",
       "category": "Mood Tracker",
       "uxDomainsUsed": [
         "ux",
@@ -26,19 +26,19 @@
     },
     "Prompio": {
       "batchId": "TEST-0714",
-      "fingerprintKey": "93877e0d0b1332ab",
+      "fingerprintKey": "166d818d57938832",
       "visualFingerprint": {
-        "primary": "#0d9488",
-        "accent": "#d97706",
-        "background": "#f0fdfa",
-        "heading": "baloo 2",
-        "body": "comic neue",
-        "pattern": "horizontal scroll journey",
-        "style": "inclusive design",
+        "primary": "#1e3a5f",
+        "accent": "#a16207",
+        "background": "#f8fafc",
+        "heading": "crimson pro",
+        "body": "atkinson hyperlegible",
+        "pattern": "scroll-triggered storytelling",
+        "style": "claymorphism (mobile)",
         "category": "research lab / university department"
       },
-      "candidateId": "c2",
-      "style": "Inclusive Design",
+      "candidateId": "c3",
+      "style": "Claymorphism (Mobile)",
       "category": "Research Lab / University Department",
       "uxDomainsUsed": [
         "ux",
@@ -49,7 +49,7 @@
     }
   },
   "fingerprints": {
-    "135871d91dcd65d8": "Buildioo",
-    "93877e0d0b1332ab": "Prompio"
+    "fd72cab6adc3eb1b": "Buildioo",
+    "166d818d57938832": "Prompio"
   }
 }

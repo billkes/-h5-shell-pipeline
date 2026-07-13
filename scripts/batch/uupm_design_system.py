@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -241,6 +242,25 @@ def _format_stack_md(stack: str, query: str, results: list[dict[str, str]]) -> s
     return "\n".join(lines).strip() + "\n"
 
 
+def _patch_master_category(master_path: Path, category: str) -> None:
+    """Replace uupm-generated Category line with product-grounded label."""
+    text = master_path.read_text(encoding="utf-8")
+    label = (category or "").strip()
+    if not label:
+        return
+    if re.search(r"^\*\*Category:\*\*", text, flags=re.MULTILINE):
+        text = re.sub(
+            r"^\*\*Category:\*\*.*$",
+            f"**Category:** {label}",
+            text,
+            count=1,
+            flags=re.MULTILINE,
+        )
+    else:
+        text = text.replace("# Design System MASTER", f"# Design System MASTER\n\n**Category:** {label}", 1)
+    master_path.write_text(text, encoding="utf-8")
+
+
 def run_skill_design(
     *,
     cfg: BatchConfig,
@@ -408,6 +428,25 @@ def run_skill_design(
     if not master.is_file():
         raise RuntimeError(f"skill.design 未生成 MASTER.md: {master}")
 
+    from batch.skill_product_bind import load_product_bind, master_category_label
+
+    bind = {
+        "app": {"name": row.name},
+        "product": {
+            "audience": row.audience or "",
+            "coreScene": row.core_scene or "",
+            "localFeature": row.local_feature or "",
+            "themeCn": row.theme_cn or "",
+        },
+    }
+    ctx_path = workspace / "skill-input" / "context.json"
+    if ctx_path.is_file():
+        try:
+            bind = json.loads(ctx_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            pass
+    _patch_master_category(master, master_category_label(bind))
+
     pointer = workspace / POINTER_FILENAME
     rel = master.relative_to(workspace)
     slug = row.name.lower().replace(" ", "-")
@@ -475,6 +514,10 @@ def run_skill_adapt_step(*, workspace: Path, row: CsvTaskRow) -> Path:
         audience=row.audience or "",
     )
 
+    from batch.skill_product_bind import load_product_bind, master_category_label
+
+    bind = load_product_bind(workspace)
+
     scripts_dir = None
     try:
         inject_uupm_scripts(cfg)
@@ -484,10 +527,16 @@ def run_skill_adapt_step(*, workspace: Path, row: CsvTaskRow) -> Path:
     except Exception:
         pass
 
+    master = master_path_for_app(workspace, row.name)
+    if master.is_file():
+        _patch_master_category(master, master_category_label(bind))
+
     from batch.skill_context import update_context_designer_seeds
     from batch.skill_adapt import designer_selections_from_candidate
 
-    designer = designer_selections_from_candidate(selected, seeds)
+    designer = designer_selections_from_candidate(
+        selected, seeds, product_bind=bind, project_dir=cfg.project_dir
+    )
     update_context_designer_seeds(workspace, designer)
 
     try:
@@ -508,7 +557,8 @@ def run_skill_adapt_step(*, workspace: Path, row: CsvTaskRow) -> Path:
         stack = meta.get("stack") or "flutter"
         stack_path = stack_guidelines_path(workspace, row.name, str(stack))
 
-    master = master_path_for_app(workspace, row.name)
+    if not master.is_file():
+        master = master_path_for_app(workspace, row.name)
     return write_skill_adapt_outputs(
         workspace,
         candidate=selected,
@@ -516,6 +566,7 @@ def run_skill_adapt_step(*, workspace: Path, row: CsvTaskRow) -> Path:
         selection_rationale=rationale,
         master_path=master,
         stack_path=stack_path,
+        project_dir=cfg.project_dir,
     )
 
 

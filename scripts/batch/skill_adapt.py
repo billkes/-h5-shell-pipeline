@@ -135,7 +135,10 @@ def _combined_pick_score(
     collision = collision_score(candidate, anti)
     theme = theme_fit_score(candidate, product_text)
     penalty = audience_mismatch_penalty(candidate, audience)
-    return collision * 0.55 + (1.0 - theme) * 0.35 + penalty
+    from batch.skill_product_bind import domain_theme_boost
+
+    boost = domain_theme_boost(candidate, product_text)
+    return collision * 0.42 + (1.0 - theme) * 0.42 + penalty - boost
 
 
 def pick_candidate(
@@ -195,19 +198,33 @@ def pick_candidate(
 def designer_selections_from_candidate(
     candidate: dict[str, Any],
     seeds: dict[str, str],
+    *,
+    product_bind: dict[str, Any] | None = None,
+    project_dir: Path | None = None,
 ) -> dict[str, str]:
     """Map uupm candidate + CSV seeds → designerDeckSelections."""
+    from batch.skill_product_bind import hero_visual_motif, navigation_pattern_canon
+
     style = candidate.get("style") or {}
     colors = candidate.get("colors") or {}
     typo = candidate.get("typography") or {}
     pattern = candidate.get("pattern") or {}
     dials = candidate.get("dials") or {}
+    bind = product_bind or {}
 
     color_temp = colors.get("notes") or colors.get("primary") or seeds.get("colorTemperature") or ""
     shape = style.get("name") or style.get("keywords") or seeds.get("shapeLanguage") or ""
     typography = typo.get("heading") or typo.get("mood") or seeds.get("typographyPersonality") or ""
-    navigation = pattern.get("name") or seeds.get("navigationPattern") or ""
-    hero = style.get("best_for") or seeds.get("heroVisualMotif") or ""
+    navigation = (
+        navigation_pattern_canon(
+            bind,
+            project_dir=project_dir or Path("."),
+            fallback=str(pattern.get("name") or seeds.get("navigationPattern") or ""),
+        )
+        if bind
+        else (pattern.get("name") or seeds.get("navigationPattern") or "")
+    )
+    hero = hero_visual_motif(bind) if bind else (seeds.get("heroVisualMotif") or preset_motif_from_style(style))
     motion_label = dials.get("motion_label") or seeds.get("interactionFlavor") or ""
     icon = seeds.get("iconStyle") or "outlined inline SVG sprite (unified H5 kit)"
 
@@ -220,6 +237,11 @@ def designer_selections_from_candidate(
         "interactionFlavor": str(motion_label)[:120],
         "iconStyle": str(icon)[:120],
     }
+
+
+def preset_motif_from_style(style: dict[str, Any]) -> str:
+    keywords = str(style.get("keywords") or style.get("name") or "")
+    return keywords[:120] if keywords else "Domain-specific mobile surfaces"
 
 
 def _build_css_motion_brief(candidate: dict[str, Any]) -> str:
@@ -318,30 +340,6 @@ def _build_icon_sprite_manifest(workspace: Path, candidate: dict[str, Any], desi
     }
 
 
-def refresh_icon_sprite_manifest_prefix(workspace: Path) -> bool:
-    """Rewrite symbolId entries after lock.dimensions assigns dartCodePrefix."""
-    path = workspace / SKILL_ADAPT_DIR / ICON_SPRITE_MANIFEST
-    if not path.is_file():
-        return False
-    from batch.skill_icons import h5_symbol_id
-    from batch.workspace import dart_prefix
-
-    prefix = dart_prefix(workspace)
-    data = json.loads(path.read_text(encoding="utf-8"))
-    old_prefix = str(data.get("prefix") or "").strip()
-    if old_prefix == prefix:
-        return False
-    data["prefix"] = prefix
-    for entry in data.get("symbols") or []:
-        if not isinstance(entry, dict):
-            continue
-        slug = str(entry.get("slug") or "").strip()
-        if slug:
-            entry["symbolId"] = h5_symbol_id(prefix, slug)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return True
-
-
 def format_css_motion_block(workspace: Path) -> str:
     path = workspace / SKILL_ADAPT_DIR / CSS_MOTION_BRIEF
     if not path.is_file():
@@ -396,7 +394,11 @@ def _design_brief_md(
     master_rel: str,
     stack_rel: str,
     selection_rationale: str,
+    product_bind: dict[str, Any] | None = None,
+    project_dir: Path | None = None,
 ) -> str:
+    from batch.skill_product_bind import product_navigation_brief
+
     style = candidate.get("style") or {}
     colors = candidate.get("colors") or {}
     typo = candidate.get("typography") or {}
@@ -405,30 +407,36 @@ def _design_brief_md(
         "",
         f"**Selection:** {selection_rationale}",
         "",
-        "## Primary Sources",
-        f"- `{master_rel}` — full design system (ui-ux-pro-max MASTER)",
-        f"- `{stack_rel}` — stack implementation guidelines",
-        "- `design-system/*/pages/*.md` — per-screen overrides (override MASTER)",
-        "- `design-system/*/ux-checklist.md` — UX/a11y acceptance checklist",
-        "- `design-system/*/h5-interface-brief.md` — H5 monolith Do/Don't",
-        "",
-        "## Visual Identity (from selected candidate)",
-        f"- **Style:** {style.get('name', '?')} — {style.get('keywords', '')}",
-        f"- **Colors:** primary `{colors.get('primary', '?')}`, background `{colors.get('background', '?')}`",
-        f"- **Typography:** {typo.get('heading', '?')} / {typo.get('body', '?')} ({typo.get('mood', '')})",
-        f"- **Pattern:** {(candidate.get('pattern') or {}).get('name', '?')}",
-        "",
-        "## Ambient Canvas",
-        "Expand `skill-adapt/ambient-canvas-brief.md` into 视觉蓝图.md **§Ambient Canvas Canon**.",
-        "Bind layers to heroVisualMotif + key_effects — **no flat SaaS gray wash only**.",
-        "",
-        "## Anti-Patterns (hard avoid in 视觉蓝图.md)",
-        str(candidate.get("anti_patterns") or "(see MASTER §Anti-Patterns)"),
-        "",
-        "## Agent Rule",
-        "Do NOT invent generic UI/UX rules. Expand MASTER into 视觉蓝图.md / 本包视觉锁.json; cite MASTER sections.",
-        "",
     ]
+    if product_bind and project_dir:
+        lines.append(product_navigation_brief(product_bind, project_dir))
+    lines.extend(
+        [
+            "## Primary Sources",
+            f"- `{master_rel}` — full design system (ui-ux-pro-max MASTER)",
+            f"- `{stack_rel}` — stack implementation guidelines",
+            "- `design-system/*/pages/*.md` — per-screen overrides (override MASTER)",
+            "- `design-system/*/ux-checklist.md` — UX/a11y acceptance checklist",
+            "- `design-system/*/h5-interface-brief.md` — H5 monolith Do/Don't",
+            "",
+            "## Visual Identity (colors & typography — IA from Product Navigation Canon)",
+            f"- **Style:** {style.get('name', '?')} — {style.get('keywords', '')}",
+            f"- **Colors:** primary `{colors.get('primary', '?')}`, background `{colors.get('background', '?')}`",
+            f"- **Typography:** {typo.get('heading', '?')} / {typo.get('body', '?')} ({typo.get('mood', '')})",
+            f"- **uupm pattern (visual tone only):** {(candidate.get('pattern') or {}).get('name', '?')}",
+            "",
+            "## Ambient Canvas",
+            "Expand `skill-adapt/ambient-canvas-brief.md` into 视觉蓝图.md **§Ambient Canvas Canon**.",
+            "Motif follows **interaction topology**, not generic SaaS style keywords.",
+            "",
+            "## Anti-Patterns (hard avoid in 视觉蓝图.md)",
+            str(candidate.get("anti_patterns") or "(see MASTER §Anti-Patterns)"),
+            "",
+            "## Agent Rule",
+            "IA + workflows: topology + productFlow. Visual: MASTER + pages. Do not copy uupm pattern name as navigation.",
+            "",
+        ]
+    )
     return "\n".join(lines)
 
 
@@ -440,11 +448,18 @@ def write_skill_adapt_outputs(
     selection_rationale: str,
     master_path: Path,
     stack_path: Path | None,
+    project_dir: Path | None = None,
 ) -> Path:
+    from batch.skill_product_bind import load_product_bind
+
     root = workspace / SKILL_ADAPT_DIR
     root.mkdir(parents=True, exist_ok=True)
+    bind = load_product_bind(workspace)
+    pdir = project_dir or workspace
 
-    designer = designer_selections_from_candidate(candidate, seeds)
+    designer = designer_selections_from_candidate(
+        candidate, seeds, product_bind=bind, project_dir=pdir
+    )
     selected = {
         "candidateId": candidate.get("id") or "c1",
         "selectionRationale": selection_rationale,
@@ -476,12 +491,19 @@ def write_skill_adapt_outputs(
         master_rel=master_rel,
         stack_rel=stack_rel,
         selection_rationale=selection_rationale,
+        product_bind=bind,
+        project_dir=pdir,
     )
     (root / DESIGN_BRIEF).write_text(brief, encoding="utf-8")
 
     from batch.ambient_canvas import build_ambient_canvas_brief
 
-    ambient = build_ambient_canvas_brief(candidate, designer=designer)
+    ambient = build_ambient_canvas_brief(
+        candidate,
+        designer=designer,
+        product_bind=bind,
+        project_dir=pdir,
+    )
     (root / AMBIENT_CANVAS_BRIEF).write_text(ambient, encoding="utf-8")
 
     from batch.skill_resolve import integration_enabled

@@ -313,14 +313,31 @@ def _product_context_block(ctx: dict[str, Any], row: CsvTaskRow) -> str:
     return "\n".join(lines)
 
 
-def _pattern_context_lines(candidate: dict[str, Any]) -> list[str]:
+def _pattern_context_lines(
+    candidate: dict[str, Any],
+    ctx: dict[str, Any],
+    *,
+    project_dir: Path | None = None,
+) -> list[str]:
+    from batch.skill_product_bind import load_product_bind, navigation_pattern_canon
+
     pattern = candidate.get("pattern") or {}
     style = candidate.get("style") or {}
+    bind = ctx if (ctx.get("product") or ctx.get("constraints")) else load_product_bind(Path("."))
+    pdir = project_dir or Path(".")
     lines: list[str] = []
+    nav = navigation_pattern_canon(
+        bind,
+        project_dir=pdir,
+        fallback=str((bind.get("designerSeeds") or {}).get("navigationPattern") or ""),
+    )
+    if nav:
+        lines.append(f"- **Navigation pattern:** {nav}")
+        lines.append("- **IA source:** productFlow + interaction topology (not uupm page pattern name)")
     if pattern.get("name"):
-        lines.append(f"- **Navigation pattern:** {pattern['name']}")
+        lines.append(f"- **Visual tone (uupm):** {pattern['name']}")
     if pattern.get("sections"):
-        lines.append(f"- **Pattern sections:** {pattern['sections']}")
+        lines.append(f"- **Visual sections reference:** {pattern['sections']}")
     if style.get("name"):
         lines.append(f"- **Shape language:** {style['name']}")
     if style.get("effects"):
@@ -361,7 +378,7 @@ def _format_h5_page_override_md(
         "",
     ]
 
-    pattern_lines = _pattern_context_lines(candidate)
+    pattern_lines = _pattern_context_lines(candidate, ctx)
     if pattern_lines:
         lines.append("### Design System Anchors")
         lines.append("")
@@ -437,7 +454,9 @@ def _persist_pages(
     from design_system import persist_design_system  # type: ignore[import-not-found]
 
     created: list[Path] = []
-    persist_design_system(candidate, None, str(workspace), base_query)
+    # H5 canonical pages are written locally; do not re-persist MASTER (skill.adapt owns it).
+    if not h5_canonical:
+        persist_design_system(candidate, None, str(workspace), base_query)
     pages_dir = design_system_dir_for_app(workspace, row.name) / "pages"
     for page in pages:
         if h5_canonical and page in H5_PAGE_SPECS:
@@ -492,6 +511,11 @@ def run_skill_pages(
     master = master_path_for_app(workspace, row.name)
     if not master.is_file():
         raise RuntimeError(f"skill.pages 未生成 MASTER.md: {master}")
+    if is_h5_shell(pack_type):
+        from batch.skill_product_bind import load_product_bind, master_category_label
+        from batch.uupm_design_system import _patch_master_category
+
+        _patch_master_category(master, master_category_label(load_product_bind(workspace)))
     return ds_dir / "pages"
 
 

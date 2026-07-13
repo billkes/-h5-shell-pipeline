@@ -120,6 +120,17 @@ def test_product_context_injected() -> None:
     assert "Interaction topology" in text
 
 
+def test_hub_navigation_uses_topology_not_uupm_pattern() -> None:
+    row = _sample_row()
+    ctx = _sample_ctx()
+    text = _format_h5_page_override_md("hub", _sample_candidate(), ctx, row)
+
+    assert "**Navigation pattern:** Hub-first" in text
+    assert "Hero + Features + CTA" not in text.split("Navigation pattern:")[1].split("\n")[0]
+    assert "**Visual tone (uupm):** Hero + Features + CTA" in text
+    assert "IA source" in text
+
+
 def test_cross_project_differs_by_candidate_pattern(tmp_path: Path) -> None:
     row_a = _sample_row(name="Buildioo")
     row_b = _sample_row(name="Prompio")
@@ -141,8 +152,8 @@ def test_cross_project_differs_by_candidate_pattern(tmp_path: Path) -> None:
 
     assert "> **PROJECT:** Buildioo" in out_a
     assert "> **PROJECT:** Prompio" in out_b
-    assert "Hero + Features + CTA" in out_a
-    assert "Horizontal Scroll Journey" in out_b
+    assert "**Visual tone (uupm):** Hero + Features + CTA" in out_a
+    assert "**Visual tone (uupm):** Horizontal Scroll Journey" in out_b
     assert out_a != out_b
 
 

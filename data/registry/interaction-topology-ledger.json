@@ -1,4 +1,20 @@
 {
-  "apps": {},
-  "batchUsage": {}
+  "apps": {
+    "Buildioo": {
+      "topologyId": "T8_reminder_ring",
+      "label": "Reminder ring",
+      "batchId": "TEST-0714"
+    },
+    "Prompio": {
+      "topologyId": "T4_wizard",
+      "label": "Wizard pipeline",
+      "batchId": "TEST-0714"
+    }
+  },
+  "batchUsage": {
+    "TEST-0714": [
+      "T4_wizard",
+      "T8_reminder_ring"
+    ]
+  }
 }

@@ -326,6 +326,27 @@ def apply_naming_rule_to_combo(
     batch_id: str = "",
 ) -> None:
     """Set namingObfuscationRule, dartCodePrefix, namingRuleMeta on combo dict."""
+    from batch.dimension_lock import locked_code_prefix
+
+    data["namingObfuscationRule"] = row.naming_obfuscation_rule
+    canonical = normalize_naming_obfuscation_rule(row.naming_obfuscation_rule)
+
+    existing = locked_code_prefix(workspace)
+    if not existing:
+        existing = str(data.get("dartCodePrefix") or "").strip()
+    if existing and _PREFIX_RE.match(existing.lower()):
+        meta = data.get("namingRuleMeta")
+        if not isinstance(meta, dict):
+            meta = {}
+        else:
+            meta = dict(meta)
+        meta["packageSeed"] = existing
+        if canonical:
+            meta["namingObfuscationRule"] = canonical
+        data["dartCodePrefix"] = existing
+        data["namingRuleMeta"] = meta
+        return
+
     prefix, meta = generate_dart_prefix(
         row.naming_obfuscation_rule,
         app_name=row.name,
@@ -333,7 +354,6 @@ def apply_naming_rule_to_combo(
         batch_id=batch_id,
         registry_path=registry_path,
     )
-    data["namingObfuscationRule"] = row.naming_obfuscation_rule
     data["dartCodePrefix"] = prefix
     data["namingRuleMeta"] = meta
 

@@ -55,7 +55,47 @@ def _motif_key(candidate: dict[str, Any]) -> str:
     return "mesh_gradient"
 
 
+def motif_key_from_candidate(candidate: dict[str, Any]) -> str:
+    """Public alias for skill.product_bind fallback."""
+    return _motif_key(candidate)
+
+
 _MOTIF_PRESETS: dict[str, dict[str, str]] = {
+    "reminder_ring": {
+        "title": "Reminder Ring Orbit",
+        "motif": "Concentric due-date rings + soft amber pulse on cream base",
+        "layers": "cream base | orbit rings (SVG) | due-node accents | subtle grid",
+        "scene_hint": "list/hub: rings visible; detail: single ring focus; export: calm wash",
+        "motion": "orbit drift 24s; due pulse 3s (respect reduced-motion)",
+    },
+    "wizard_pipeline": {
+        "title": "Wizard Step Lane",
+        "motif": "Horizontal step lane + progress wash for multi-step flows",
+        "layers": "institutional base | step lane stripes | progress gradient bar",
+        "scene_hint": "wizard steps: lane active; teleprompter: minimal wash",
+        "motion": "lane progress fill on step change; no infinite decorative loops",
+    },
+    "checklist_session": {
+        "title": "Checklist Session Grid",
+        "motif": "Check row grid + completion tick accents",
+        "layers": "muted base | row grid | completion highlight band",
+        "scene_hint": "list/checklist routes show grid; splash/welcome: base only",
+        "motion": "tick fade 400ms on complete",
+    },
+    "dashboard_kpi": {
+        "title": "KPI Tile Wash",
+        "motif": "Metric tile glow + calm dashboard mesh",
+        "layers": "mesh base | tile grid | accent KPI glow",
+        "scene_hint": "hub/dashboard intensified; detail/list subdued",
+        "motion": "KPI count-up on mount only",
+    },
+    "capture_first": {
+        "title": "Capture Spotlight",
+        "motif": "Camera-ready spotlight ellipse + archive lane",
+        "layers": "neutral base | spotlight | lane stripe",
+        "scene_hint": "capture routes: spotlight; archive list: lane only",
+        "motion": "spotlight breathe 12s",
+    },
     "predictive_analytics": {
         "title": "Analytics Grid + Confidence Bands",
         "motif": "Forecast line, confidence interval wash, anomaly pulse nodes",
@@ -117,24 +157,33 @@ def build_ambient_canvas_brief(
     candidate: dict[str, Any],
     *,
     designer: dict[str, str] | None = None,
+    product_bind: dict[str, Any] | None = None,
+    project_dir: Path | None = None,
 ) -> str:
     """Markdown brief for PM 视觉蓝图 §Ambient Canvas and H5 implementer."""
+    from batch.skill_product_bind import ambient_motif_key, hero_visual_motif, navigation_pattern_canon
+
     style = candidate.get("style") or {}
     colors = candidate.get("colors") or {}
     pattern = candidate.get("pattern") or {}
     designer = designer or {}
+    bind = product_bind or {}
 
     primary = str(colors.get("primary") or "#2563EB")
     secondary = str(colors.get("secondary") or primary)
     accent = str(colors.get("accent") or colors.get("cta") or primary)
     bg = str(colors.get("background") or "#F8FAFC")
 
-    motif_key = _motif_key(candidate)
-    preset = _MOTIF_PRESETS[motif_key]
+    motif_key = ambient_motif_key(bind, candidate) if bind else _motif_key(candidate)
+    preset = _MOTIF_PRESETS.get(motif_key) or _MOTIF_PRESETS["mesh_gradient"]
     tokens = ambient_canvas_tokens(primary, secondary, accent)
 
-    hero = designer.get("heroVisualMotif") or style.get("best_for") or preset["motif"]
-    nav = designer.get("navigationPattern") or pattern.get("name") or ""
+    hero = hero_visual_motif(bind) if bind else (designer.get("heroVisualMotif") or preset["motif"])
+    nav = (
+        navigation_pattern_canon(bind, project_dir=project_dir, fallback=str(pattern.get("name") or ""))
+        if bind and project_dir
+        else (designer.get("navigationPattern") or pattern.get("name") or "")
+    )
     effects = str(style.get("effects") or candidate.get("key_effects") or "")
 
     lines = [

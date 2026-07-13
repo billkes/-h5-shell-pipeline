@@ -759,6 +759,279 @@
           "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Buildioo-Swift/Buildioo"
         }
       ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_14-55",
+      "startedAt": "2026-07-13 14:55:01",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Buildioo",
+          "packType": "h5_swift_shell",
+          "container": "Buildioo-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Buildioo-Swift/Buildioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_14-55",
+      "startedAt": "2026-07-13 14:55:22",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Prompio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Prompio",
+          "packType": "h5_swift_shell",
+          "container": "Prompio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Prompio-Swift/Prompio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-03",
+      "startedAt": "2026-07-13 15:03:08",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Buildioo",
+          "packType": "h5_swift_shell",
+          "container": "Buildioo-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Buildioo-Swift/Buildioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-05",
+      "startedAt": "2026-07-13 15:05:28",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Buildioo",
+          "packType": "h5_swift_shell",
+          "container": "Buildioo-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Buildioo-Swift/Buildioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-05",
+      "startedAt": "2026-07-13 15:05:38",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Prompio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Prompio",
+          "packType": "h5_swift_shell",
+          "container": "Prompio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Prompio-Swift/Prompio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-12",
+      "startedAt": "2026-07-13 15:12:20",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Buildioo",
+          "packType": "h5_swift_shell",
+          "container": "Buildioo-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Buildioo-Swift/Buildioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-12",
+      "startedAt": "2026-07-13 15:12:35",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Buildioo",
+          "packType": "h5_swift_shell",
+          "container": "Buildioo-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Buildioo-Swift/Buildioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-13",
+      "startedAt": "2026-07-13 15:13:27",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Buildioo",
+          "packType": "h5_swift_shell",
+          "container": "Buildioo-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Buildioo-Swift/Buildioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-14",
+      "startedAt": "2026-07-13 15:14:10",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Prompio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Prompio",
+          "packType": "h5_swift_shell",
+          "container": "Prompio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Prompio-Swift/Prompio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-16",
+      "startedAt": "2026-07-13 15:16:17",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Buildioo",
+          "packType": "h5_swift_shell",
+          "container": "Buildioo-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Buildioo-Swift/Buildioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-16",
+      "startedAt": "2026-07-13 15:16:24",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Prompio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Prompio",
+          "packType": "h5_swift_shell",
+          "container": "Prompio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Prompio-Swift/Prompio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-18",
+      "startedAt": "2026-07-13 15:18:09",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Buildioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Buildioo",
+          "packType": "h5_swift_shell",
+          "container": "Buildioo-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Buildioo-Swift/Buildioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-13_15-18",
+      "startedAt": "2026-07-13 15:18:19",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Prompio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Prompio",
+          "packType": "h5_swift_shell",
+          "container": "Prompio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Prompio-Swift/Prompio"
+        }
+      ]
     }
   ]
 }

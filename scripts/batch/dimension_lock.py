@@ -144,6 +144,30 @@ def write_dimension_lock(
     return path
 
 
+def ensure_code_dimensions_locked(
+    cfg: BatchConfig,
+    workspace: Path,
+    row: CsvTaskRow,
+    *,
+    dart_package_name: str = "",
+    batch_id: str = "",
+) -> Path:
+    """Alloc code combo + write 本包维度锁.json once, before skill.adapt (dartCodePrefix)."""
+    from batch.workspace import alloc_code_combo
+
+    lock_path = workspace / LOCK_FILE
+    combo_path = workspace / COMBO_FILE
+    if lock_path.is_file() and combo_path.is_file():
+        return lock_path
+    alloc_code_combo(cfg, workspace)
+    return write_dimension_lock(
+        workspace,
+        row,
+        dart_package_name=dart_package_name,
+        batch_id=batch_id,
+    )
+
+
 def read_dimension_lock(workspace: Path) -> dict[str, Any] | None:
     """Read lock file; return None if missing."""
     path = workspace / LOCK_FILE
@@ -154,6 +178,25 @@ def read_dimension_lock(workspace: Path) -> dict[str, Any] | None:
     except json.JSONDecodeError:
         return None
     return data if isinstance(data, dict) else None
+
+
+def locked_code_prefix(workspace: Path) -> str:
+    """Authoritative dartCodePrefix from early dimension lock."""
+    lock = read_dimension_lock(workspace)
+    if not lock:
+        return ""
+    naming = lock.get("namingObfuscationRule") or {}
+    return str(naming.get("dartCodePrefix") or "").strip()
+
+
+def locked_architecture_folders(workspace: Path) -> dict[str, dict[str, str]] | None:
+    lock = read_dimension_lock(workspace)
+    if not lock:
+        return None
+    folders = lock.get("architectureFolders")
+    if not isinstance(folders, dict) or not folders:
+        return None
+    return folders  # type: ignore[return-value]
 
 
 def lock_from_combo_fallback(workspace: Path) -> dict[str, Any] | None:

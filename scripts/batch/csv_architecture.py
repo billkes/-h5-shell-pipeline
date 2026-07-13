@@ -94,13 +94,21 @@ def apply_csv_to_code_combo(
         registry_path=registry_path,
         batch_id=batch_id,
     )
-    merge_architecture_folders_into_combo(
-        data,
-        workspace=workspace,
-        app_name=row.name,
-        pattern_key=spec.architecture_pattern,
-        naming_rule_label=row.naming_obfuscation_rule,
-    )
+    from batch.dimension_lock import locked_architecture_folders, locked_code_prefix
+
+    lock_prefix = locked_code_prefix(workspace)
+    combo_prefix = str(data.get("dartCodePrefix") or "").strip()
+    lock_folders = locked_architecture_folders(workspace)
+    if lock_prefix and lock_prefix == combo_prefix and lock_folders:
+        data["architectureFolders"] = lock_folders
+    else:
+        merge_architecture_folders_into_combo(
+            data,
+            workspace=workspace,
+            app_name=row.name,
+            pattern_key=spec.architecture_pattern,
+            naming_rule_label=row.naming_obfuscation_rule,
+        )
 
     combo_path.write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n",
