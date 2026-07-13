@@ -1,0 +1,42 @@
+{
+  "apps": {
+    "Buildioo": {
+      "batchId": "TEST-0714",
+      "fingerprintKey": "135871d91dcd65d8",
+      "visualFingerprint": {
+        "primary": "#ec4899",
+        "accent": "#0284c7",
+        "background": "#fdf2f8",
+        "heading": "fredoka",
+        "body": "nunito",
+        "pattern": "hero + features + cta",
+        "style": "predictive analytics",
+        "category": "mood tracker"
+      },
+      "candidateId": "c3",
+      "style": "Predictive Analytics",
+      "category": "Mood Tracker"
+    },
+    "Prompio": {
+      "batchId": "TEST-0714",
+      "fingerprintKey": "93877e0d0b1332ab",
+      "visualFingerprint": {
+        "primary": "#0d9488",
+        "accent": "#d97706",
+        "background": "#f0fdfa",
+        "heading": "baloo 2",
+        "body": "comic neue",
+        "pattern": "horizontal scroll journey",
+        "style": "inclusive design",
+        "category": "research lab / university department"
+      },
+      "candidateId": "c2",
+      "style": "Inclusive Design",
+      "category": "Research Lab / University Department"
+    }
+  },
+  "fingerprints": {
+    "135871d91dcd65d8": "Buildioo",
+    "93877e0d0b1332ab": "Prompio"
+  }
+}

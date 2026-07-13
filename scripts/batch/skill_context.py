@@ -6,6 +6,11 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from batch.design_diversity import (
+    design_ledger_path,
+    enrich_anti_collision_with_visuals,
+    theme_search_query_from_row,
+)
 from batch.pack_type import h5_shell_runtime, is_flutter_runtime, is_h5_shell
 from batch.registry import format_already_used_block
 
@@ -90,6 +95,12 @@ def build_context_payload(
         },
         "product": {
             "themeAngle": row.theme_angle or "",
+            "track": row.track or "",
+            "audience": row.audience or "",
+            "coreScene": row.core_scene or "",
+            "localFeature": row.local_feature or "",
+            "themeCn": row.theme_cn or "",
+            "searchQuery": theme_search_query_from_row(row),
         },
         "constraints": {
             "offlineOnly": True,
@@ -107,18 +118,27 @@ def build_anti_collision_payload(
     row: CsvTaskRow,
     batch_id: str = "",
 ) -> dict[str, Any]:
-    _ = row
     same_batch = _same_batch_summaries(cfg, row, batch_id=batch_id)
     historical = _registry_avoid_phrases(cfg.contentpack_registry)
-    return {
+    anti = {
         "sameBatchUsed": same_batch,
         "historicalAvoid": historical,
         "seedHints": [],
         "mustDiffer": [
             "themeAngle",
+            "visualFingerprint",
+            "colorMood",
+            "navigationPattern",
         ],
         "registryBlock": format_already_used_block(cfg.contentpack_registry),
     }
+    return enrich_anti_collision_with_visuals(
+        anti,
+        ledger_path=design_ledger_path(cfg.project_dir),
+        app_name=row.name,
+        batch_id=batch_id,
+        output_dir=cfg.project_dir / "output",
+    )
 
 
 def _constraints_markdown(pack_type: str) -> str:
@@ -190,4 +210,7 @@ def avoid_query_suffix(anti: dict[str, Any]) -> str:
     if not parts:
         return ""
     joined = "; ".join(p.strip() for p in parts if p.strip())
-    return f" Avoid duplicating: {joined}. Must differ in theme, navigation, color mood, interaction."
+    return (
+        f" Avoid duplicating sibling visual identity (palette, fonts, layout pattern). "
+        f"Must differ in theme and navigation. Context: {joined}."
+    )

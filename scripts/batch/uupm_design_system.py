@@ -8,6 +8,13 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from batch.design_diversity import (
+    design_ledger_path,
+    diversify_candidates,
+    enrich_anti_collision_with_visuals,
+    register_design_selection,
+    theme_search_query_from_row,
+)
 from batch.skill_context import avoid_query_suffix, stack_for_pack_type
 from batch.candidate_similarity import (
     run_fallback_ladder,
@@ -178,16 +185,24 @@ def _dial_variants(base: dict[str, int]) -> list[tuple[str, dict[str, int]]]:
     ]
 
 
-def design_query_from_context(ctx: dict[str, Any], anti: dict[str, Any]) -> str:
-    app = ctx.get("app") or {}
+def design_query_from_context(ctx: dict[str, Any], anti: dict[str, Any], row: CsvTaskRow | None = None) -> str:
     product = ctx.get("product") or {}
-    parts = [
-        app.get("name"),
-        app.get("description"),
-        product.get("themeAngle"),
-        product.get("mainFeature"),
-    ]
-    base = " ".join(str(p).strip() for p in parts if p and str(p).strip())
+    search_query = str(product.get("searchQuery") or "").strip()
+    if search_query:
+        base = search_query
+    else:
+        app = ctx.get("app") or {}
+        parts = [
+            app.get("name"),
+            product.get("track"),
+            product.get("audience"),
+            product.get("coreScene"),
+            product.get("localFeature"),
+            product.get("themeCn"),
+        ]
+        base = " ".join(str(p).strip() for p in parts if p and str(p).strip())
+    if row is not None and not search_query:
+        base = theme_search_query_from_row(row)
     return base + avoid_query_suffix(anti)
 
 
@@ -255,7 +270,7 @@ def run_skill_design(
 
     ctx = json.loads(ctx_path.read_text(encoding="utf-8"))
     anti = json.loads(anti_path.read_text(encoding="utf-8"))
-    query = design_query_from_context(ctx, anti)
+    query = design_query_from_context(ctx, anti, row=row)
     # Extract base query (without avoid suffix) for fallback ladder
     base_query = query.replace(avoid_query_suffix(anti), "").strip()
     stack = stack_for_pack_type(pack_type)
@@ -279,6 +294,8 @@ def run_skill_design(
         )
         ds["id"] = cid
         candidates_out.append(ds)
+
+    candidates_out = diversify_candidates(candidates_out, query=base_query)
 
     # ── Fallback Ladder ──────────────────────────────────────────────
     registry_path = cfg.contentpack_registry
@@ -408,18 +425,36 @@ def run_skill_adapt_step(*, workspace: Path, row: CsvTaskRow) -> Path:
     ctx = json.loads(ctx_path.read_text(encoding="utf-8")) if ctx_path.is_file() else {}
     seeds = (ctx.get("designerSeeds") or {}) if isinstance(ctx, dict) else {}
 
+    from batch.config import BatchConfig
+
+    cfg = BatchConfig.from_env()
+    anti = enrich_anti_collision_with_visuals(
+        anti,
+        ledger_path=design_ledger_path(cfg.project_dir),
+        app_name=row.name,
+        batch_id=str((ctx.get("constraints") or {}).get("batchId") or cfg.batch_id or ""),
+        output_dir=cfg.project_dir / "output",
+    )
+
     selected, rationale = pick_candidate(candidates, anti)
 
     scripts_dir = None
     try:
-        from batch.config import BatchConfig
-
-        cfg = BatchConfig.from_env()
         scripts_dir = resolve_uupm_scripts_dir(cfg)
         _inject_scripts(scripts_dir)
         from design_system import persist_design_system  # type: ignore[import-not-found]
 
-        persist_design_system(selected, None, str(workspace), design_query_from_context(ctx, anti))
+        persist_design_system(selected, None, str(workspace), design_query_from_context(ctx, anti, row=row))
+    except Exception:
+        pass
+
+    try:
+        register_design_selection(
+            design_ledger_path(cfg.project_dir),
+            app=row.name,
+            batch_id=str((ctx.get("constraints") or {}).get("batchId") or cfg.batch_id or ""),
+            candidate=selected,
+        )
     except Exception:
         pass
 
