@@ -71,7 +71,7 @@
 }
 .c-{{PREFIX}}-legal-meta {
   margin: 0 0 12px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
   color: var(--{{PREFIX}}-on-muted);
 }
@@ -87,7 +87,7 @@
 }
 .c-{{PREFIX}}-legal-para {
   margin: 0 0 12px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.55;
   color: var(--{{PREFIX}}-on-muted);
 }

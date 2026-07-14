@@ -12,6 +12,7 @@ from batch.h5_legal_ui import (
     resolve_vault_css_text,
     resolve_vault_js_text,
 )
+from batch.h5_vite_gate import is_h5_vite_project
 
 VEIL_DIALOG_IN_RENDER_RE = re.compile(
     r"u-[a-z0-9]+-veil-dialog",
@@ -67,12 +68,17 @@ def verify_h5_overlay_stack(project: Path) -> list[str]:
     if not is_h5_shell_project(project):
         return issues
 
-    render_text, _ = resolve_vault_js_text(project)
+    render_text, render_source = resolve_vault_js_text(project)
     if render_text is None:
         if is_h5_monolith(project):
             issues.append("RENDER: missing vault entry.htm (h5_monolith)")
+        elif is_h5_vite_project(project):
+            return issues
         else:
             issues.append("RENDER: missing vault *_render.js")
+        return issues
+
+    if is_h5_vite_project(project):
         return issues
 
     if is_h5_monolith(project):

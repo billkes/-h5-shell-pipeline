@@ -145,6 +145,31 @@ class H5OverlayStackTests(unittest.TestCase):
             project = _write_project(Path(tmp), BAD_CORE, NO_OVERLAY_RENDER)
             self.assertEqual(verify_h5_overlay_stack(project), [])
 
+    def test_h5_vite_skips_vault_core(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "ViteApp"
+            h5 = project / "h5"
+            (h5 / "src" / "router").mkdir(parents=True)
+            (h5 / "package.json").write_text("{}", encoding="utf-8")
+            (h5 / "vite.config.ts").write_text("export default {}", encoding="utf-8")
+            (h5 / "src" / "main.ts").write_text("", encoding="utf-8")
+            (h5 / "src" / "router" / "index.ts").write_text(
+                "export const router = { path: '/legal' };",
+                encoding="utf-8",
+            )
+            (project / "本包登记信息.json").write_text(
+                json.dumps(
+                    {
+                        "packType": "h5_swift_shell",
+                        "h5VaultPattern": "h5_modular_svg",
+                        "codeAntiCorrelation": {"dartCodePrefix": "demo"},
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(verify_h5_overlay_stack(project), [])
+
     def test_monolith_entry_passes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project = _write_monolith_project(Path(tmp))

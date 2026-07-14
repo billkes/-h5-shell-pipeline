@@ -102,3 +102,4 @@ function createBus() {
 }
 
 export { applySafeArea, bootstrapSafeArea };
+export { showSnack } from '../lib/snack';

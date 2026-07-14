@@ -28,6 +28,9 @@ def test_apply_h5_vite_scaffold(tmp_path: Path) -> None:
     assert "h5_site" in copy_script
     assert "H5_APP_SLUG" in copy_script
     assert "uhfnf_vault" in copy_script or "_vault" in copy_script
+    bridge = (dst / "src" / "bridge" / "index.ts").read_text(encoding="utf-8")
+    assert "export { showSnack }" in bridge
+    assert (dst / "src" / "lib" / "snack.ts").is_file()
 
 
 def test_scaffold_idempotent(tmp_path: Path) -> None:
