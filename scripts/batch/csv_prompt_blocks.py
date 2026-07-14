@@ -7,6 +7,7 @@ from batch.csv_architecture import (
     build_programming_style_prompt_block,
 )
 from batch.csv_naming import build_naming_rule_prompt_block
+from batch.native_shell_naming import build_native_shell_naming_prompt_block
 from pathlib import Path
 
 from batch.csv_tasks import CsvTaskRow
@@ -95,6 +96,16 @@ def csv_naming_rule_block(row: CsvTaskRow | None) -> str:
     if row is None:
         return ""
     return build_naming_rule_prompt_block(row)
+
+
+def csv_native_shell_naming_block(
+    row: CsvTaskRow | None,
+    *,
+    prefix: str = "",
+) -> str:
+    if row is None:
+        return ""
+    return build_native_shell_naming_prompt_block(row, prefix=prefix)
 
 
 def dimension_boundary_block() -> str:

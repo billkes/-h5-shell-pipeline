@@ -284,6 +284,7 @@ class V3StepRunner:
             "csv_architecture_block": self.p._csv_architecture_block_for(ctx),
             "csv_programming_style_block": self.p._csv_programming_style_block_for(ctx),
             "csv_naming_rule_block": self.p._csv_naming_rule_block_for(ctx),
+            "native_shell_naming_block": self.p._csv_native_shell_naming_block_for(ctx),
             "csv_full_name_block": self.p._csv_full_name_block_for(ctx),
             "csv_iap_block": self.p._csv_iap_block_for(ctx),
             "design_system_block": self.p._design_system_block(ctx),
@@ -591,7 +592,7 @@ class V3StepRunner:
         from batch.skill_resolve import integration_enabled
         from batch.h5_bundle_gate import print_h5_bundle_warnings, verify_h5_bundle_soft
         from batch.h5_deflavor_audit import verify_h5_deflavor_baseline
-        from batch.h5_legal_ui import verify_h5_legal_ui
+        from batch.h5_legal_ui import verify_h5_legal_ui, verify_h5_legal_view_mode
         from batch.h5_overlay_stack import verify_h5_overlay_stack
         from batch.h5_plaza_dev_gate import verify_h5_plaza_dev_gate
         from batch.skill_ux_gate import verify_skill_ux_gate
@@ -609,6 +610,7 @@ class V3StepRunner:
         issues.extend(verify_h5_deflavor_baseline(fp))
         issues.extend(verify_h5_legal_bundled(fp))
         issues.extend(verify_h5_legal_ui(fp))
+        issues.extend(verify_h5_legal_view_mode(fp))
         issues.extend(verify_h5_overlay_stack(fp))
         issues.extend(verify_h5_welcome_canon(fp))
         issues.extend(verify_h5_plaza_dev_gate(fp))
@@ -764,6 +766,12 @@ class V3StepRunner:
         issues.extend(collect_storekit_violations(ws))
         issues.extend(collect_placeholder_violations(ws))
         issues.extend(collect_native_launch_ui_violations(ws))
+        from batch.native_shell_naming import collect_native_shell_naming_violations
+
+        issues.extend(collect_native_shell_naming_violations(ws))
+        from batch.native_ios_signing import collect_native_ios_signing_violations
+
+        issues.extend(collect_native_ios_signing_violations(ws))
         issues.extend(self._optional_xcodebuild(ws, ctx.name, runtime))
         return len(issues) == 0, issues
 

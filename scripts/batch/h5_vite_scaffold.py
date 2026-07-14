@@ -51,12 +51,15 @@ def _read_register(project: Path) -> dict[str, Any]:
 def template_values(project: Path, *, app_name: str, prefix: str) -> dict[str, str]:
     slug = app_slug_from_name(app_name)
     cap = _prefix_cap(prefix)
+    register = _read_register(project)
+    asset_scheme = str(register.get("assetScheme") or f"{slug}-asset")
     return {
         "{{APP_NAME}}": app_name,
         "{{APP_NAME_LOWER}}": app_name.lower(),
         "{{APP_SLUG}}": slug,
         "{{PREFIX}}": prefix.lower(),
         "{{PREFIX_CAP}}": cap,
+        "{{ASSET_SCHEME}}": asset_scheme,
     }
 
 
@@ -158,7 +161,7 @@ def _merge_toolchain_only(dst: Path, values: dict[str, str]) -> None:
 
 
 def ensure_public_native_img_symlink(h5_dir: Path, project: Path) -> bool:
-    """Expose {AppName}/assets/img via public/assets/img for Vite dev."""
+    """Expose ios/{AppName}/SeedBundle via public/assets/img for Vite dev."""
     from batch.native_bundled_media import native_bundled_img_dir, requires_native_bundled_media
 
     if not requires_native_bundled_media(project):

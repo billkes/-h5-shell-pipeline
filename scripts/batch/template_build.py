@@ -249,6 +249,8 @@ def _apply_swift_shell_template(ctx: BuildContext, row: CsvTaskRow, workspace: P
         bundle_id,
         "--team-id",
         ctx.team_id,
+        "--provisioning-profile",
+        ctx.cfg.xcode_provisioning_profile,
         "--asset-scheme",
         asset_scheme,
     ]
@@ -295,6 +297,8 @@ def _apply_oc_shell_template(ctx: BuildContext, row: CsvTaskRow, workspace: Path
         bundle_id,
         "--team-id",
         ctx.team_id or "",
+        "--provisioning-profile",
+        ctx.cfg.xcode_provisioning_profile,
         "--asset-scheme",
         asset_scheme,
     ]

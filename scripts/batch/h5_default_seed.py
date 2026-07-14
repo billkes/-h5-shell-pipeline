@@ -9,6 +9,7 @@ from batch.h5_shell_placeholders import prefix_from_workspace
 from batch.h5_vite_gate import h5_src_dir, is_h5_vite_project
 from batch.h5_vite_scaffold import TEMPLATE_ROOT, resolve_prefix, substitute_text, template_values
 from batch.native_bundled_media import (
+    NATIVE_SEED_BUNDLE_SUBDIR,
     collect_native_bundled_media_violations,
     native_bundled_img_dir,
     requires_native_bundled_media,
@@ -148,14 +149,21 @@ def collect_h5_default_seed_violations(project: Path) -> list[str]:
 
     prefix = prefix_from_workspace(project) or resolve_prefix(project) or "app"
     ws = project.resolve()
-    vault_dir = native_bundled_img_dir(ws) if requires_native_bundled_media(ws) else (
-        ws / "h5" / "assets" / f"{prefix}_vault"
-    )
-    vault_label = (
-        str(vault_dir.relative_to(ws))
-        if vault_dir is not None and vault_dir.is_relative_to(ws)
-        else f"h5/assets/{prefix}_vault"
-    )
+    if requires_native_bundled_media(ws):
+        bundle_dir = native_bundled_img_dir(ws)
+        vault_dir = bundle_dir
+        vault_label = (
+            str(bundle_dir.relative_to(ws))
+            if bundle_dir is not None and bundle_dir.is_relative_to(ws)
+            else f"ios/{{AppName}}/{NATIVE_SEED_BUNDLE_SUBDIR}"
+        )
+    else:
+        vault_dir = ws / "h5" / "assets" / f"{prefix}_vault"
+        vault_label = (
+            str(vault_dir.relative_to(ws))
+            if vault_dir.is_relative_to(ws)
+            else f"h5/assets/{prefix}_vault"
+        )
     for match in _VAULT_REF_RE.finditer(seed_text):
         fname = (match.group(1) or match.group(2) or match.group(3) or "").strip()
         if fname and vault_dir is not None and not (vault_dir / fname).is_file():

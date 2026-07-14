@@ -49,6 +49,7 @@ from batch.csv_prompt_blocks import (
     csv_full_name_block,
     csv_iap_block,
     csv_naming_rule_block,
+    csv_native_shell_naming_block,
     csv_programming_style_block,
     dimension_boundary_block,
 )
@@ -486,6 +487,15 @@ class FlutterPipeline:
     def _csv_naming_rule_block_for(self, ctx: AppContext) -> str:
         return csv_naming_rule_block(self._csv_row_for(ctx))
 
+    def _csv_native_shell_naming_block_for(self, ctx: AppContext) -> str:
+        lock = resolve_dimension_lock(ctx.workspace) or {}
+        naming = lock.get("namingObfuscationRule") or {}
+        prefix = str(naming.get("dartCodePrefix") or "").strip()
+        return csv_native_shell_naming_block(
+            self._csv_row_for(ctx),
+            prefix=prefix,
+        )
+
     def _csv_full_name_block_for(self, ctx: AppContext) -> str:
         return csv_full_name_block(self._csv_row_for(ctx))
 
@@ -564,6 +574,17 @@ class FlutterPipeline:
         return transform_block_for_prompt(meta)
 
     def _apply_xcode_delivery(self, ctx: AppContext) -> None:
+        from batch.pack_type import h5_shell_runtime, is_native_ios_runtime
+
+        if is_native_ios_runtime(ctx.pack_type) and h5_shell_runtime(ctx.pack_type) == "swift":
+            from batch.xcode_delivery import (
+                apply_workspace_ios_signing,
+                regenerate_xcodegen_project,
+            )
+
+            regenerate_xcodegen_project(ctx.workspace, ctx.name)
+            apply_workspace_ios_signing(self.cfg, ctx.workspace)
+            return
         fp = find_flutter_project(ctx.workspace) or ctx.workspace
         ios = fp / "ios"
         if not ios.is_dir():
@@ -611,16 +632,19 @@ class FlutterPipeline:
             from batch.h5_legal_ui import verify_h5_legal_ui
 
             ui_issues = verify_h5_legal_ui(fp)
+            from batch.h5_legal_ui import verify_h5_legal_view_mode
+
+            view_mode_issues = verify_h5_legal_view_mode(fp)
             from batch.h5_overlay_stack import verify_h5_overlay_stack
 
             overlay_issues = verify_h5_overlay_stack(fp)
-            if legal_issues or ui_issues or overlay_issues:
+            if legal_issues or ui_issues or view_mode_issues or overlay_issues:
                 get_run_log().detail(
                     "h5_shell legal verify failed: "
-                    + "; ".join((legal_issues + ui_issues + overlay_issues)[:8])
+                    + "; ".join((legal_issues + ui_issues + view_mode_issues + overlay_issues)[:8])
                 )
                 print("H5 vault verify failed:")
-                for item in legal_issues + ui_issues + overlay_issues:
+                for item in legal_issues + ui_issues + view_mode_issues + overlay_issues:
                     print(f"  {item}")
                 return False
         except (FileNotFoundError, ValueError) as exc:

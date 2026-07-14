@@ -186,9 +186,10 @@ def collect_h5_deflavor_violations(project: Path) -> list[str]:
     issues: list[str] = []
     issues.extend(verify_h5_deflavor_baseline(project))
     try:
-        from batch.h5_legal_ui import verify_h5_legal_ui
+        from batch.h5_legal_ui import verify_h5_legal_ui, verify_h5_legal_view_mode
 
         issues.extend(verify_h5_legal_ui(project))
+        issues.extend(verify_h5_legal_view_mode(project))
     except ImportError:
         pass
     issues.extend(verify_h5_source_deflavor(project))

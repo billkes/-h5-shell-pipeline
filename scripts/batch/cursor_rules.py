@@ -553,3 +553,14 @@ def write_native_cursor_rules(
             "本包编程风格 persona 约束",
             "# 本包编程风格约束（按包定制，请严格遵守）\n\n" + style_block.strip(),
         )
+
+    from batch.native_shell_naming import build_native_shell_naming_prompt_block
+
+    naming_block = build_native_shell_naming_prompt_block(row, prefix="")
+    if naming_block.strip() and language.lower() == "swift":
+        _write_mdc(
+            rules_dir,
+            "native-shell-naming.mdc",
+            "本包 Native 壳目录命名约束",
+            "# 本包 Native 壳目录命名（按包定制，请严格遵守）\n\n" + naming_block.strip(),
+        )

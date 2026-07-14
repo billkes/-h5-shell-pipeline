@@ -131,6 +131,13 @@ def run_post_delivery(workspace: Path, *, fix: bool, sync_dev_url: bool) -> tupl
     if fix:
         for rel in enforce_no_storekit(ws):
             fixes.append(f"移除 StoreKit 本地配置: {rel}")
+        try:
+            from batch.native_shell_naming import apply_native_bridge_folder_rename
+
+            for rel in apply_native_bridge_folder_rename(ws):
+                fixes.append(rel)
+        except OSError:
+            pass
         for rel in apply_shell_placeholders(ws, force=True):
             fixes.append(f"写入占位图: {rel}")
         try:
@@ -140,18 +147,38 @@ def run_post_delivery(workspace: Path, *, fix: bool, sync_dev_url: bool) -> tupl
                 fixes.append("同步 LAYOUT:pipeline 顶栏/page-shell 契约 → h5/src/styles/global.css")
         except OSError:
             pass
-        if sync_dev_url:
-            dev = sync_h5_dev_entry_urls(ws)
-            if dev:
-                fixes.append(f"刷新硬编码 h5EntryUrl: {dev}")
         reg = _read_registration(ws)
         if _sync_register_json(ws, reg):
             fixes.append("同步 register.json ← 本包登记信息.json")
+
+    if sync_dev_url:
+        dev = sync_h5_dev_entry_urls(ws, force=True)
+        if dev:
+            fixes.append(f"刷新硬编码 h5EntryUrl + ATS LAN: {dev}")
+        try:
+            from batch.native_dev_network import sync_native_ats_lan_ip
+
+            for rel in sync_native_ats_lan_ip(ws):
+                fixes.append(f"同步 ATS 局域网例外: {rel}")
+        except ImportError:
+            pass
     else:
         issues.extend(collect_storekit_violations(ws))
 
     issues.extend(collect_placeholder_violations(ws))
     issues.extend(collect_loading_violations(ws))
+    try:
+        from batch.native_dev_network import collect_native_dev_network_violations
+
+        issues.extend(collect_native_dev_network_violations(ws))
+    except ImportError:
+        pass
+    try:
+        from batch.native_shell_naming import collect_native_shell_naming_violations
+
+        issues.extend(collect_native_shell_naming_violations(ws))
+    except OSError:
+        pass
     try:
         from batch.h5_default_seed import collect_h5_default_seed_violations
 
@@ -184,7 +211,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--sync-dev-url",
         action="store_true",
-        help="与 --fix 联用：刷新 Native 硬编码 Vite LAN 地址（HostController / ShellConfig）",
+        help="刷新 Native 硬编码 Vite LAN 地址 + Info.plist ATS（无需 --fix；勿覆盖编组 A 真图）",
     )
     args = parser.parse_args(argv)
 

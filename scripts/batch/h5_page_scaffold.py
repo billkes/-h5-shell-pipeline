@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from batch.h5_ui_copy import hero_copy, list_copy, settings_copy, welcome_copy
+from batch.h5_legal_ui import project_needs_legal_ui
 from batch.h5_theme_tokens import resolve_prefix
 from batch.h5_vite_gate import h5_src_dir, is_h5_vite_project
 from batch.h5_page_sections import (
@@ -298,7 +299,7 @@ def _router_includes_route(project: Path, route: str) -> bool:
 
 
 def sync_h5_legal_overlay_css(project: Path, *, write: bool = True) -> Path | None:
-    if not is_h5_vite_project(project) or not _router_includes_route(project, "/legal"):
+    if not is_h5_vite_project(project) or not project_needs_legal_ui(project):
         return None
     css_path = h5_src_dir(project) / "styles" / "global.css"
     if not css_path.is_file():
@@ -318,7 +319,7 @@ def sync_h5_legal_overlay_css(project: Path, *, write: bool = True) -> Path | No
 
 
 def sync_h5_legal_overlay_component(project: Path, *, write: bool = True) -> Path | None:
-    if not is_h5_vite_project(project) or not _router_includes_route(project, "/legal"):
+    if not is_h5_vite_project(project) or not project_needs_legal_ui(project):
         return None
     tpl = TEMPLATE_ROOT / "components" / "LegalOverlay.vue.tpl"
     if not tpl.is_file():
@@ -504,7 +505,7 @@ def format_page_scaffold_prompt_block(workspace: Path, app_name: str) -> str:
         "- Blueprint: `TAB_ROOT_BLUEPRINT` in `h5_page_sections.py` (aligned with `H5_PAGE_SPECS`).",
         "- Implement business logic ONLY in `views/*View.logic.ts` (create if missing).",
         "- Wizard / Live / Export / RunDetail — full Agent ownership.",
-        "- Welcome / Legal overlay markup + global CSS are pipeline-owned when `#/welcome` / `#/legal` are in Screen Inventory.",
+        "- Welcome / Legal overlay markup + global CSS are pipeline-owned when legal docs or Legal modal are in scope.",
         "- **All pipeline scaffold copy is English-only** — never inject CSV 中文主题/核心场景 into visible UI.",
         "",
     ]

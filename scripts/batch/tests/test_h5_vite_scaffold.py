@@ -31,6 +31,19 @@ def test_apply_h5_vite_scaffold(tmp_path: Path) -> None:
     bridge = (dst / "src" / "bridge" / "index.ts").read_text(encoding="utf-8")
     assert "export { showSnack }" in bridge
     assert (dst / "src" / "lib" / "snack.ts").is_file()
+    vault = (dst / "src" / "lib" / "vaultAsset.ts").read_text(encoding="utf-8")
+    assert "temioo-asset" in vault
+    assert "usfyeasset" not in vault
+
+
+def test_scaffold_asset_scheme_from_register(tmp_path: Path) -> None:
+    (tmp_path / "本包登记信息.json").write_text(
+        '{"assetScheme": "teavoo-asset"}',
+        encoding="utf-8",
+    )
+    apply_h5_vite_scaffold(tmp_path, app_name="Teavoo", prefix="bthfc")
+    vault = (tmp_path / "h5" / "src" / "lib" / "vaultAsset.ts").read_text(encoding="utf-8")
+    assert "teavoo-asset" in vault
 
 
 def test_scaffold_idempotent(tmp_path: Path) -> None:

@@ -262,7 +262,7 @@ H5_PAGE_SPECS: dict[str, dict[str, Any]] = {
     "legal": {
         "layout": {
             "Max Width": "min(90vw, 340px) modal card",
-            "Layout": "Hash overlay stacked on source route — never full-page replace",
+            "Layout": "In-page modal overlay — local state, no /legal route",
             "Sections": "1. Header + close, 2. Scrollable legal body, 3. Bottom fade mask",
         },
         "spacing": {"Content Density": "Low — reading column only"},
@@ -270,12 +270,14 @@ H5_PAGE_SPECS: dict[str, dict[str, Any]] = {
         "colors": {"Strategy": "Elevated card on scrim; links use accent"},
         "components": [
             "Required: formatLegalBody + kit classes c-{prefix}-legal-*",
-            "Required: overlay router stacks base page under veil",
+            "Required: LegalOverlay component toggled by legalDoc ref (Welcome / Settings)",
             "Avoid: LEGAL br-dump single div wall",
+            "Avoid: router.push('/legal') while using modal veil/dialog",
         ],
-        "unique_components": ["shell/legal_modal", "overlay veil-dialog stack"],
+        "unique_components": ["shell/legal_modal", "LegalOverlay veil-card"],
         "recommendations": [
-            "Route `#/legal?doc=privacy|terms`",
+            "Modal: openLegal sets legalDoc; @close clears it — no hash route",
+            "Full-page alternative: dedicated /legal route without modal markup (pick one)",
             "Open from Welcome / Settings link rows",
             "Sync MD via sync_h5_legal_bundled.py",
         ],

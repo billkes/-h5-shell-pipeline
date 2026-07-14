@@ -25,7 +25,7 @@ def _write_vite_project(root: Path, *, router: str) -> Path:
         encoding="utf-8",
     )
     (project / "本包登记信息.json").write_text(
-        '{"codeAntiCorrelation":{"dartCodePrefix":"demo"}}',
+        '{"packType":"h5_swift_shell","codeAntiCorrelation":{"dartCodePrefix":"demo"}}',
         encoding="utf-8",
     )
     (src / "styles" / "global.css").write_text(":root {}\n", encoding="utf-8")
@@ -134,10 +134,11 @@ def test_sync_legal_and_welcome(tmp_path: Path) -> None:
             "import WelcomeView from '../views/WelcomeView.vue';\n"
             "export const routes = ["
             "{ path: '/welcome', component: WelcomeView },"
-            "{ path: '/legal', component: { template: '<div />' } },"
             "];\n"
         ),
     )
+    (project / "Demo Privacy Agreement.md").write_text("# Privacy\n\nBody\n", encoding="utf-8")
+    (project / "Demo User Agreement.md").write_text("# Terms\n\nBody\n", encoding="utf-8")
     (project / "h5" / "src" / "legal").mkdir(parents=True)
     (project / "h5" / "src" / "legal" / "demo_legal_bundled.ts").write_text(
         'export const LEGAL = { privacy: "p", terms: "t" };\n', encoding="utf-8"
@@ -160,3 +161,5 @@ def test_sync_legal_and_welcome(tmp_path: Path) -> None:
         encoding="utf-8"
     )
     assert "loadDemo" not in logic
+    assert "legalDoc" in logic
+    assert "/legal" not in logic

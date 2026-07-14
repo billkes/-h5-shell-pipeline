@@ -232,7 +232,7 @@ def _verify_h5_welcome_vite(project: Path) -> list[str]:
         issues.append("MISSING: disabled Agree CTA until checkbox checked")
 
     if not re.search(
-        r"#/legal|legal\?doc=|path:\s*['\"]/legal|/legal|openLegal\s*\(|Privacy Agreement",
+        r"openLegal\s*\(|LegalOverlay|Privacy Agreement",
         audit_surface,
         re.I,
     ):
@@ -297,7 +297,7 @@ def verify_h5_welcome_canon(project: Path) -> list[str]:
     if not re.search(r"welcome-go|welcome.*disabled|disabled.*Agree", welcome, re.I):
         issues.append("MISSING: disabled Agree CTA until checkbox checked")
 
-    if not re.search(r"#/legal|legal\?doc=", welcome, re.I):
+    if not re.search(r"openLegal|LegalOverlay|Privacy Agreement", welcome, re.I):
         issues.append("MISSING: Privacy/Terms legal links in renderWelcome")
 
     if not re.search(r"\b18\b|18\s*\+|older", welcome, re.I):
