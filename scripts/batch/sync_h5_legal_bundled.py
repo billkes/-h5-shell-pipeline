@@ -384,7 +384,7 @@ def sync_h5_legal_bundled(project: Path, *, write: bool = True) -> Path:
     return out_path
 
 
-def verify_h5_legal_bundled(project: Path) -> list[str]:
+def verify_h5_legal_bundled(project: Path, *, project_dir: Path | None = None) -> list[str]:
     """Return issue strings; empty means OK."""
     project = project.expanduser().resolve()
     issues: list[str] = []
@@ -396,6 +396,10 @@ def verify_h5_legal_bundled(project: Path) -> list[str]:
 
     if not project_needs_legal_ui(project):
         return issues
+
+    from batch.h5_legal_md_gate import verify_h5_legal_md
+
+    issues.extend(verify_h5_legal_md(project, project_dir=project_dir))
 
     try:
         expected, _meta = load_expected_legal(project)

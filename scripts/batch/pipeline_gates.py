@@ -714,6 +714,11 @@ def verify_pm_ui_plan_outputs(
         if not tokens_css.is_file():
             _soft("缺少 skill-adapt/design-tokens.css（skill.tokens 产物）")
 
+        from batch.h5_legal_md_gate import verify_h5_legal_md
+
+        for issue in verify_h5_legal_md(workspace, project_dir=project_dir):
+            _hard(issue)
+
     visual = workspace / "视觉蓝图.md"
     if visual.is_file():
         vtext = visual.read_text(encoding="utf-8", errors="replace")

@@ -551,20 +551,32 @@ class FlutterPipeline:
             if num is not None:
                 privacy_style = str(num)
         main_name = ctx.name.split("-")[0].strip() if "-" in ctx.name else ctx.name
+        style_hints = {
+            "1": "Standard formal compliance; low template repetition.",
+            "2": (
+                "Structured: privacy MUST put user rights BEFORE data collection; "
+                "~1000 English words each; ≥1 app-specific scenario section."
+            ),
+            "3": "Concise split chapters; ~600 English words each; ≥3 core-clause differences.",
+        }
+        style_note = style_hints.get(privacy_style, style_hints["1"])
         return (
-            f"\n[Legal Agreements — REQUIRED]\n"
-            f"Generate TWO legal documents following 法律协议规范.md:\n"
-            f"1) '{main_name} Privacy Agreement.md' — Privacy policy "
-            f"(style: {privacy_style})\n"
-            f"2) '{main_name} User Agreement.md' — Terms of service "
-            f"(style: {privacy_style})\n"
-            f"- All content in ENGLISH; no country-specific clauses;\n"
-            f"  Latest Updated: May 18, 2026; Age rating 18+;\n"
-            f"  Contact: {main_name}@gmail.com.\n"
-            f"- Body: H1/H2/H3 + prose; NO markdown tables, lists, or block "
-            f"quotes.\n"
-            f"- Privacy MUST include H2 section: Children's Privacy\n"
-            f"- Terms MUST include H2 section: Limitation of Liability\n"
+            f"\n[Legal Agreements — REQUIRED — pipeline gate enforced]\n"
+            f"**READ FIRST:** `docs/法律协议规范.md` (canonical spec in this repo).\n"
+            f"Write at workspace root in THIS phase:\n"
+            f"1) `{main_name} Privacy Agreement.md` — Privacy (协议风格{privacy_style})\n"
+            f"2) `{main_name} User Agreement.md` — Terms (协议风格{privacy_style})\n"
+            f"- Style {privacy_style}: {style_note}\n"
+            f"- All content in ENGLISH; no country/region-specific legal regimes;\n"
+            f"  header date EXACTLY: Latest Updated: May 18, 2026; Age rating 18+;\n"
+            f"  end with ## Contact Us + {main_name}@gmail.com.\n"
+            f"- Global safety copy (privacy+terms combined): Zero Tolerance; "
+            f"filtering methods; user reporting mechanism; action within 24 hours.\n"
+            f"- Body: exactly one H1 (= filename); sections use ## / ###; prose only;\n"
+            f"  NO markdown tables, lists (- * 1.), or block quotes (>).\n"
+            f"- Privacy MUST include H2: Children's Privacy\n"
+            f"- Terms MUST include H2: Limitation of Liability\n"
+            f"- Self-check 法律协议规范 §7 before finishing; `verify_h5_legal_md` FAIL blocks pipeline.\n"
         )
 
     def _naming_transform_block(self, ctx: AppContext) -> str:

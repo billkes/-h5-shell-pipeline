@@ -34,6 +34,7 @@ ${FREE_TIER_BLOCK}
 ${BUSINESS_DEPTH_BLOCK}
 ${TOPOLOGY_BLOCK}
 ${H5_SHELL_BLOCK}
+${LEGAL_AGREEMENT_BLOCK}
 
 ---
 
@@ -77,6 +78,17 @@ Sections in order (include all; use `####` for top-level sections, `---` between
 5. **审核 / 演示路线（点击版）** — 预计时长与 Tab 固定说明；演示数据导入/清空表；分阶段 Step 表；路线 ASCII；固定数据表；覆盖说明；审核 FAQ 表
 
 Content MUST align with `功能文档.md` (same product, flows/tabs/IAP must match).
+
+---
+
+## Deliverable 1c) Legal agreements (English MD — HARD GATE)
+
+Write **both** files at workspace root **in this phase** (not deferred to H5 Implementer):
+
+- `{主名字} Privacy Agreement.md`
+- `{主名字} User Agreement.md`
+
+Follow `docs/法律协议规范.md` and the **[Legal Agreements — REQUIRED]** block above. `plan.gate` and `dev.h5.gate` call `verify_h5_legal_md()` — missing files or wrong H1/date/contact/style length **fail the batch**.
 
 ---
 
