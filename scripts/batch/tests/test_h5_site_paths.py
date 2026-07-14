@@ -62,6 +62,25 @@ class H5SitePathsTests(unittest.TestCase):
         self.assertEqual(active_h5_entry_url(reg), "http://192.168.1.10:8080/")
 
 
+    def test_detect_lan_ip_prefers_darwin_wifi(self) -> None:
+        from unittest.mock import patch
+
+        from batch.h5_site_paths import detect_lan_ip
+
+        with patch("batch.h5_site_paths._darwin_wifi_ip", return_value="192.168.11.74"):
+            self.assertEqual(detect_lan_ip(), "192.168.11.74")
+
+    def test_detect_lan_ip_skips_docker_bridge(self) -> None:
+        from unittest.mock import patch
+
+        from batch.h5_site_paths import detect_lan_ip
+
+        with patch("batch.h5_site_paths._darwin_wifi_ip", return_value=None):
+            with patch("socket.socket") as mock_sock_cls:
+                mock_sock = mock_sock_cls.return_value.__enter__.return_value
+                mock_sock.getsockname.return_value = ("172.19.0.1", 0)
+                self.assertIsNone(detect_lan_ip())
+
     def test_h5_dev_entry_url_uses_lan_when_available(self) -> None:
         from unittest.mock import patch
 
@@ -88,7 +107,7 @@ class H5SitePathsTests(unittest.TestCase):
                 encoding="utf-8",
             )
             with patch("batch.h5_site_paths.detect_lan_ip", return_value="10.0.0.5"):
-                url = sync_h5_dev_entry_urls(ws)
+                url = sync_h5_dev_entry_urls(ws, force=True)
             self.assertEqual(url, "http://10.0.0.5:5174/")
             reg = json.loads((ws / "本包登记信息.json").read_text(encoding="utf-8"))
             self.assertEqual(reg["h5EntryUrlDev"], "http://10.0.0.5:5174/")

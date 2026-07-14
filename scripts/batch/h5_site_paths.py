@@ -20,9 +20,37 @@ LAUNCH_PLACEHOLDER_ASSET_URI = (
 )
 
 
+def _darwin_wifi_ip() -> str | None:
+    """Prefer en0/en1 from ipconfig — avoids Docker 172.x from UDP route trick."""
+    import platform
+    import subprocess
+
+    if platform.system() != "Darwin":
+        return None
+    for iface in ("en0", "en1", "en2"):
+        try:
+            proc = subprocess.run(
+                ["ipconfig", "getifaddr", iface],
+                capture_output=True,
+                text=True,
+                timeout=1,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        ip = (proc.stdout or "").strip()
+        if ip and not ip.startswith("127."):
+            return ip
+    return None
+
+
 def detect_lan_ip() -> str | None:
     """Best-effort LAN IPv4 for cross-device Vite dev / native shell h5EntryUrlDev."""
     import socket
+
+    wifi = _darwin_wifi_ip()
+    if wifi:
+        return wifi
 
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
@@ -30,6 +58,14 @@ def detect_lan_ip() -> str | None:
             sock.connect(("8.8.8.8", 80))
             ip = sock.getsockname()[0]
             if ip and not ip.startswith("127."):
+                # Skip Docker bridge 172.16–172.31 when Wi-Fi iface was empty
+                if ip.startswith("172."):
+                    try:
+                        octet = int(ip.split(".")[1])
+                        if 16 <= octet <= 31:
+                            return None
+                    except (IndexError, ValueError):
+                        pass
                 return ip
     except OSError:
         pass
@@ -92,8 +128,13 @@ def sync_native_hardcoded_h5_entry_url(workspace: Path, entry_url: str) -> list[
     return changed
 
 
-def sync_h5_dev_entry_urls(project: Path, *, port: int | None = None) -> str | None:
-    """Refresh h5EntryUrlDev (and loopback h5EntryUrl) in 本包登记信息.json."""
+def sync_h5_dev_entry_urls(
+    project: Path,
+    *,
+    port: int | None = None,
+    force: bool = False,
+) -> str | None:
+    """Refresh h5EntryUrlDev (+ Native ShellConfig) and ATS LAN IP in 本包登记信息.json."""
     import json
 
     reg_path = project / "本包登记信息.json"
@@ -109,10 +150,21 @@ def sync_h5_dev_entry_urls(project: Path, *, port: int | None = None) -> str | N
     dev_url = h5_dev_entry_url(port=port)
     reg["h5EntryUrlDev"] = dev_url
     entry = str(reg.get("h5EntryUrl") or "")
-    if not entry or entry.startswith("http://127.0.0.1") or entry.startswith("http://localhost"):
+    if (
+        force
+        or not entry
+        or entry.startswith("http://127.0.0.1")
+        or entry.startswith("http://localhost")
+    ):
         reg["h5EntryUrl"] = dev_url
     reg_path.write_text(json.dumps(reg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     sync_native_hardcoded_h5_entry_url(project, dev_url)
+    try:
+        from batch.native_dev_network import sync_native_ats_lan_ip
+
+        sync_native_ats_lan_ip(project)
+    except ImportError:
+        pass
     return dev_url
 
 
