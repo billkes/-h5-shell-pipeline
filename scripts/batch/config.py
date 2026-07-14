@@ -228,6 +228,8 @@ class BatchConfig:
     uupm_integrations: dict[str, object] = field(default_factory=dict)
     design_gemini_api_key: str = ""
     xcode_bundle_id: str = "test.duckegg.ios"
+    xcode_development_team: str = ""
+    xcode_provisioning_profile: str = "duckeggkaifaProfile"
     iap_bundle_prefix: str = ""
 
     @property
@@ -414,6 +416,14 @@ class BatchConfig:
             uupm_skill_dir=os.environ.get("UUPM_SKILL_DIR", ""),
             design_gemini_api_key=os.environ.get("DESIGN_GEMINI_API_KEY", ""),
             xcode_bundle_id=os.environ.get("XCODE_BUNDLE_ID", "test.duckegg.ios"),
+            xcode_development_team=os.environ.get(
+                "APPLE_TEAM_ID",
+                os.environ.get("XCODE_DEVELOPMENT_TEAM", ""),
+            ),
+            xcode_provisioning_profile=os.environ.get(
+                "XCODE_PROVISIONING_PROFILE",
+                "duckeggkaifaProfile",
+            ),
             iap_bundle_prefix=os.environ.get("IAP_BUNDLE_PREFIX", ""),
         )
         for key, val in overrides.items():
@@ -430,6 +440,17 @@ class BatchConfig:
                 gemini = str(design.get("gemini_api_key") or "").strip()
                 if gemini and not cfg.design_gemini_api_key:
                     cfg.design_gemini_api_key = gemini
+        xcode = yaml_data.get("xcode") if isinstance(yaml_data, dict) else None
+        if isinstance(xcode, dict):
+            bundle_id = str(xcode.get("bundle_id") or "").strip()
+            if bundle_id and not os.environ.get("XCODE_BUNDLE_ID"):
+                cfg.xcode_bundle_id = bundle_id
+            team_id = str(xcode.get("team_id") or "").strip()
+            if team_id and not cfg.xcode_development_team:
+                cfg.xcode_development_team = team_id
+            profile = str(xcode.get("provisioning_profile") or "").strip()
+            if profile and not os.environ.get("XCODE_PROVISIONING_PROFILE"):
+                cfg.xcode_provisioning_profile = profile
         return cfg
 
 

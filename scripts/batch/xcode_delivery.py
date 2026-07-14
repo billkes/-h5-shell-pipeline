@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import secrets
 import shutil
+import subprocess
 from pathlib import Path
 
 from batch.config import BatchConfig
@@ -270,14 +271,14 @@ def _set_or_replace_setting(block: str, key: str, value: str) -> str:
     return block[:insert_at] + line + block[insert_at:]
 
 
-def _patch_runner_build_settings(text: str, cfg: BatchConfig) -> str:
-    """Patch Runner target Debug/Release/Profile build settings."""
+def _patch_ios_app_build_settings(text: str, cfg: BatchConfig) -> str:
+    """Patch app target Debug/Release/Profile build settings (Flutter Runner or Swift shell)."""
     if not cfg.xcode_bundle_id:
         return text
 
     def patch_block(match: re.Match[str]) -> str:
         block = match.group(0)
-        if "ASSETCATALOG_COMPILER_APPICON_NAME" not in block:
+        if "PRODUCT_BUNDLE_IDENTIFIER" not in block:
             return block
         block = _set_or_replace_setting(block, "CODE_SIGN_STYLE", "Manual")
         block = _set_or_replace_setting(block, "DEVELOPMENT_TEAM", '""')
@@ -298,10 +299,11 @@ def _patch_runner_build_settings(text: str, cfg: BatchConfig) -> str:
             '""',
         )
         if cfg.xcode_provisioning_profile:
+            profile = cfg.xcode_provisioning_profile.strip().strip('"')
             block = _set_or_replace_setting(
                 block,
                 '"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]"',
-                cfg.xcode_provisioning_profile,
+                profile,
             )
         block = _set_or_replace_setting(
             block,
@@ -333,6 +335,11 @@ def _patch_runner_build_settings(text: str, cfg: BatchConfig) -> str:
         )
         text = re.sub(pattern, patch_block, text)
     return text
+
+
+def _patch_runner_build_settings(text: str, cfg: BatchConfig) -> str:
+    """Backward-compatible alias for Flutter Runner / Swift app targets."""
+    return _patch_ios_app_build_settings(text, cfg)
 
 
 def _patch_project_wide_settings(text: str) -> str:
@@ -377,6 +384,65 @@ def _remove_scene_delegate(ios_root: Path) -> None:
                 plistlib.dump(data, f)
     except (OSError, ValueError, ImportError):
         pass
+
+
+def _first_workspace_pbxproj(workspace: Path) -> Path | None:
+    ws = workspace.resolve()
+    for path in ws.glob("*.xcodeproj/project.pbxproj"):
+        return path
+    candidates = [
+        p
+        for p in ws.rglob("project.pbxproj")
+        if "build" not in p.parts and "DerivedData" not in p.parts
+    ]
+    candidates.sort(key=lambda p: len(p.relative_to(ws).parts))
+    return candidates[0] if candidates else None
+
+
+def regenerate_xcodegen_project(workspace: Path, app_name: str = "") -> bool:
+    """Run xcodegen when project.yml exists at workspace root."""
+    project_yml = workspace / "project.yml"
+    if not project_yml.is_file():
+        return False
+    try:
+        result = subprocess.run(
+            ["xcodegen", "generate", "--spec", str(project_yml), "--project", str(workspace)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        print("  >>> xcodegen: 未安装，跳过 regenerate")
+        return False
+    if result.returncode != 0:
+        print(f"  >>> xcodegen regenerate 失败:\n{result.stderr or result.stdout}")
+        return False
+    label = app_name or workspace.name
+    print(f"  >>> xcodegen regenerate → {label}.xcodeproj")
+    return True
+
+
+def apply_workspace_ios_signing(cfg: BatchConfig, workspace: Path) -> bool:
+    """Apply Manual signing to workspace-root Swift/OC xcodeproj (post-xcodegen safety net)."""
+    pbx = _first_workspace_pbxproj(workspace)
+    if pbx is None:
+        print("  >>> Signing: workspace 未找到 project.pbxproj")
+        return False
+    original = pbx.read_text(encoding="utf-8", errors="replace")
+    text = _patch_project_wide_settings(original)
+    text = _patch_ios_app_build_settings(text, cfg)
+    if not _pbxproj_braces_balanced(text):
+        print("  >>> Signing: pbxproj 括号失衡，跳过写入")
+        return False
+    pbx.write_text(text, encoding="utf-8")
+    if cfg.xcode_bundle_id:
+        print(f"  >>> Bundle ID = {cfg.xcode_bundle_id}")
+    if cfg.xcode_development_team:
+        print(f"  >>> Development Team = {cfg.xcode_development_team}")
+    if cfg.xcode_provisioning_profile:
+        print(f"  >>> Provisioning Profile = {cfg.xcode_provisioning_profile}")
+    print("  >>> CODE_SIGN_STYLE = Manual")
+    return True
 
 
 def apply_xcode_delivery_settings(

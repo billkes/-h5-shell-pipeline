@@ -32,6 +32,7 @@ PLACEHOLDERS = {
     "{{H5_HOST}}": "h5_host",
     "{{BUNDLE_ID}}": "bundle_id",
     "{{TEAM_ID}}": "team_id",
+    "{{PROVISIONING_PROFILE}}": "provisioning_profile",
     "{{ASSET_SCHEME}}": "asset_scheme",
 }
 
@@ -46,6 +47,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--h5-host", required=True, help="H5 production host")
     parser.add_argument("--bundle-id", required=True, help="iOS bundle identifier")
     parser.add_argument("--team-id", required=True, help="Apple development team ID")
+    parser.add_argument(
+        "--provisioning-profile",
+        default="duckeggkaifaProfile",
+        help="Manual signing provisioning profile name",
+    )
     parser.add_argument("--asset-scheme", required=True, help="Custom URL scheme for local assets")
     return parser.parse_args()
 
@@ -66,8 +72,18 @@ def build_values(args: argparse.Namespace) -> dict[str, str]:
         "{{H5_ENTRY_URL}}": h5_dev_entry_url(),
         "{{BUNDLE_ID}}": args.bundle_id,
         "{{TEAM_ID}}": args.team_id,
+        "{{PROVISIONING_PROFILE}}": _yaml_string(args.provisioning_profile),
         "{{ASSET_SCHEME}}": args.asset_scheme,
     }
+
+
+def _yaml_string(value: str) -> str:
+    text = (value or "").strip()
+    if not text:
+        return '""'
+    if text.startswith('"') and text.endswith('"'):
+        return text
+    return f'"{text}"'
 
 
 def substitute_in_text(text: str, values: dict[str, str]) -> str:

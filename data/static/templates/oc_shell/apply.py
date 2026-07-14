@@ -27,6 +27,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--h5-host", required=True, help="H5 production host")
     parser.add_argument("--bundle-id", required=True, help="iOS bundle identifier")
     parser.add_argument("--team-id", default="", help="Apple development team ID")
+    parser.add_argument(
+        "--provisioning-profile",
+        default="duckeggkaifaProfile",
+        help="Manual signing provisioning profile name",
+    )
     parser.add_argument("--asset-scheme", required=True, help="WKURLSchemeHandler scheme")
     parser.add_argument("--callback-scheme", default="app-callback", help="Native→H5 callback URL scheme")
     return parser.parse_args()
@@ -51,6 +56,7 @@ def build_values(args: argparse.Namespace) -> dict[str, str]:
         "{{H5_DEV_PORT}}": str(H5_VITE_DEV_PORT),
         "{{BUNDLE_ID}}": args.bundle_id,
         "{{TEAM_ID}}": args.team_id or "",
+        "{{PROVISIONING_PROFILE}}": args.provisioning_profile,
         "{{ASSET_SCHEME}}": args.asset_scheme,
         "{{CALLBACK_SCHEME}}": args.callback_scheme,
     }

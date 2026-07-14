@@ -154,6 +154,7 @@ def _run_apply_script(
     h5_host: str,
     team_id: str,
     asset_scheme: str,
+    provisioning_profile: str,
 ) -> None:
     cmd = [
         sys.executable,
@@ -174,6 +175,8 @@ def _run_apply_script(
         bundle_id,
         "--team-id",
         team_id or "",
+        "--provisioning-profile",
+        provisioning_profile or "",
         "--asset-scheme",
         asset_scheme,
     ]
@@ -226,7 +229,12 @@ def ensure_native_shell_scaffold(
     prefix = dart_prefix(workspace)
     app_slug = app_slug_from_name(app_name)
     h5_host = os.environ.get("H5_PROD_HOST", "")
-    team_id = os.environ.get("APPLE_TEAM_ID", "")
+    team_id = os.environ.get("APPLE_TEAM_ID", "") or os.environ.get("XCODE_DEVELOPMENT_TEAM", "")
+    provisioning_profile = os.environ.get("XCODE_PROVISIONING_PROFILE", "duckeggkaifaProfile")
+    if not team_id:
+        from batch.config import BatchConfig
+
+        team_id = BatchConfig.from_env().xcode_development_team
 
     if runtime == "oc":
         asset_scheme = f"{prefix}asset"
@@ -265,9 +273,32 @@ def ensure_native_shell_scaffold(
             h5_host=h5_host,
             team_id=team_id,
             asset_scheme=asset_scheme,
+            provisioning_profile=provisioning_profile,
         )
         if runtime == "swift":
             _maybe_xcodegen(staging, app_name)
         merged = merge_native_shell_staging(staging, workspace, app_name, runtime=runtime)
         log.extend(merged)
+        if runtime in ("swift", "oc"):
+            from batch.config import BatchConfig
+            from batch.xcode_delivery import (
+                apply_workspace_ios_signing,
+                regenerate_xcodegen_project,
+            )
+
+            cfg = BatchConfig.from_env()
+            if runtime == "swift":
+                regenerate_xcodegen_project(workspace, app_name)
+            apply_workspace_ios_signing(cfg, workspace)
+        if runtime == "swift":
+            from batch.native_shell_naming import apply_native_bridge_folder_rename
+
+            for rel in apply_native_bridge_folder_rename(
+                workspace,
+                persona=row.programming_style,
+                prefix=prefix,
+                app_name=app_name,
+                runtime=runtime,
+            ):
+                log.append(rel)
     return log
