@@ -8,6 +8,9 @@ defaults:
 xcode:
   # 流水线测试阶段固定包名，不随应用名变化。
   bundle_id: test.duckegg.ios
+  # duckeggkaifaProfile 归属团队（WanYing He）；勿与证书括号内个人 ID 混淆。
+  team_id: "995HYU84B7"
+  provisioning_profile: duckeggkaifaProfile
 
 build:
   pub_get_max_retries: 3
