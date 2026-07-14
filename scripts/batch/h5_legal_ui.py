@@ -8,12 +8,14 @@ from pathlib import Path
 
 from batch.h5_site_paths import site_entry_path, site_root_from_register, vault_dir_path
 from batch.h5_vite_gate import (
+    h5_src_dir,
     is_h5_vite_project,
     vite_css_text,
     vite_legal_card_present,
     vite_vue_and_ts_text,
 )
 from batch.pack_type import is_h5_shell
+from batch.screen_inventory import read_spec_text
 
 REGISTER_FILE = "本包登记信息.json"
 
@@ -30,6 +32,22 @@ SCROLLBAR_THUMB_RE = re.compile(
     re.IGNORECASE,
 )
 INLINE_STYLE_RE = re.compile(r"<style[^>]*>(.*?)</style>", re.IGNORECASE | re.DOTALL)
+ROUTER_LEGAL_ROUTE_RE = re.compile(
+    r"path\s*:\s*['\"]/legal['\"]",
+    re.IGNORECASE,
+)
+OPEN_LEGAL_ROUTER_PUSH_RE = re.compile(
+    r"openLegal[\s\S]{0,240}?router\.(?:push|replace)\s*\([\s\S]{0,120}?/legal",
+    re.IGNORECASE,
+)
+LEGAL_MODAL_MARKERS_RE = re.compile(
+    r"LegalOverlay|legalDoc|legal-veil|c-[a-z0-9]+-legal-veil",
+    re.IGNORECASE,
+)
+LEGAL_ROUTE_MODAL_MARKERS_RE = re.compile(
+    r"legal-veil|veil-dialog|role\s*=\s*['\"]dialog['\"]",
+    re.IGNORECASE,
+)
 
 
 def _read_register(project: Path) -> dict:
@@ -146,6 +164,87 @@ def resolve_vault_css_text(project: Path) -> str | None:
     return None
 
 
+def router_file_has_legal_route(project: Path) -> bool:
+    if not is_h5_vite_project(project):
+        return False
+    router_path = h5_src_dir(project) / "router" / "index.ts"
+    if not router_path.is_file():
+        return False
+    return bool(ROUTER_LEGAL_ROUTE_RE.search(router_path.read_text(encoding="utf-8", errors="ignore")))
+
+
+def project_needs_legal_ui(project: Path) -> bool:
+    project = project.expanduser().resolve()
+    if not is_h5_shell_project(project):
+        return False
+    if any(project.glob("*Privacy*")) or any(project.glob("*User*Agreement*")):
+        return True
+    if re.search(r"\blegal\b", read_spec_text(project), re.I):
+        return True
+    if router_file_has_legal_route(project):
+        return True
+    if is_h5_vite_project(project):
+        text = vite_vue_and_ts_text(project)
+        if "openLegal" in text or "LegalOverlay" in text:
+            return True
+    return False
+
+
+def uses_legal_modal(project: Path) -> bool:
+    if not is_h5_vite_project(project):
+        return False
+    text = vite_vue_and_ts_text(project)
+    css = vite_css_text(project)
+    surface = f"{text}\n{css}"
+    return bool(LEGAL_MODAL_MARKERS_RE.search(surface))
+
+
+def verify_h5_legal_view_mode(project: Path) -> list[str]:
+    """Legal must be modal-without-route OR full-page route-without-modal — never both."""
+    project = project.expanduser().resolve()
+    issues: list[str] = []
+
+    if not project_needs_legal_ui(project):
+        return issues
+
+    has_route = router_file_has_legal_route(project)
+    has_modal = uses_legal_modal(project)
+    src_text = vite_vue_and_ts_text(project) if is_h5_vite_project(project) else ""
+
+    if OPEN_LEGAL_ROUTER_PUSH_RE.search(src_text):
+        issues.append(
+            "LEGAL_VIEW_MODE: openLegal must toggle local modal state, not router.push('/legal')"
+        )
+
+    if has_route and has_modal:
+        issues.append(
+            "LEGAL_VIEW_MODE: modal LegalOverlay must not register /legal route"
+        )
+
+    if has_route and not has_modal:
+        for rel in (
+            "views/LegalOverlay.vue",
+            "views/LegalView.vue",
+            "pages/LegalView.vue",
+        ):
+            candidate = h5_src_dir(project) / rel
+            if not candidate.is_file():
+                continue
+            body = candidate.read_text(encoding="utf-8", errors="ignore")
+            if LEGAL_ROUTE_MODAL_MARKERS_RE.search(body):
+                issues.append(
+                    "LEGAL_VIEW_MODE: /legal route page must be full-page, not modal veil/dialog"
+                )
+                break
+
+    if not has_route and not has_modal and is_h5_vite_project(project):
+        issues.append(
+            "LEGAL_VIEW_MODE: missing legal viewer (LegalOverlay modal or dedicated /legal page)"
+        )
+
+    return issues
+
+
 def verify_h5_legal_ui(project: Path) -> list[str]:
     project = project.expanduser().resolve()
     issues: list[str] = []
@@ -153,9 +252,10 @@ def verify_h5_legal_ui(project: Path) -> list[str]:
     if not is_h5_shell_project(project):
         return issues
 
-    from batch.screen_inventory import project_includes_route
+    if not project_needs_legal_ui(project):
+        return issues
 
-    if not project_includes_route(project, "/legal"):
+    if router_file_has_legal_route(project) and not uses_legal_modal(project):
         return issues
 
     prefix = resolve_prefix(project)

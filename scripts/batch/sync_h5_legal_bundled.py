@@ -392,9 +392,9 @@ def verify_h5_legal_bundled(project: Path) -> list[str]:
     if not is_h5_shell_project(project):
         return issues
 
-    from batch.screen_inventory import project_includes_route
+    from batch.h5_legal_ui import project_needs_legal_ui
 
-    if not project_includes_route(project, "/legal"):
+    if not project_needs_legal_ui(project):
         return issues
 
     try:
