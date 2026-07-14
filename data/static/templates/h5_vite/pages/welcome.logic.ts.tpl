@@ -5,9 +5,14 @@ import { ensureBootstrapData } from '../store/defaultSeed';
 export function useWelcomeLogic() {
   const router = useRouter();
   const agreed = ref(false);
+  const legalDoc = ref<'privacy' | 'terms' | null>(null);
 
   function openLegal(doc: 'privacy' | 'terms') {
-    router.push({ path: '/legal', query: { doc, base: '/welcome' } });
+    legalDoc.value = doc;
+  }
+
+  function closeLegal() {
+    legalDoc.value = null;
   }
 
   function continueFlow() {
@@ -16,5 +21,5 @@ export function useWelcomeLogic() {
     router.replace('/hub');
   }
 
-  return { agreed, openLegal, continueFlow };
+  return { agreed, legalDoc, openLegal, closeLegal, continueFlow };
 }

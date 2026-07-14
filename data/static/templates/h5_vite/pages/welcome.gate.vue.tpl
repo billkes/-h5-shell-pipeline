@@ -20,11 +20,13 @@
       </label>
       <button class="c-{{PREFIX}}-action" type="button" :disabled="!agreed" @click="continueFlow">Continue</button>
     </div>
+    <LegalOverlay v-if="legalDoc" :doc="legalDoc" @close="closeLegal" />
   </div>
 </template>
 <!-- SCAFFOLD:pipeline:end -->
 <script setup lang="ts">
+import LegalOverlay from '../components/LegalOverlay.vue';
 import { useWelcomeLogic } from './WelcomeView.logic';
 
-const { agreed, openLegal, continueFlow } = useWelcomeLogic();
+const { agreed, legalDoc, openLegal, closeLegal, continueFlow } = useWelcomeLogic();
 </script>

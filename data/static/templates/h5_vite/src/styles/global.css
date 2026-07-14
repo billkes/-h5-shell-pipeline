@@ -233,6 +233,16 @@ body::-webkit-scrollbar,
   color: var(--{{PREFIX}}-primary);
 }
 
+.c-{{PREFIX}}-tabbar__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.c-{{PREFIX}}-tabbar__item--active .c-{{PREFIX}}-tabbar__icon {
+  stroke-width: 2.5;
+}
+
 .page-shell {
   min-height: 100%;
   overflow-x: hidden;

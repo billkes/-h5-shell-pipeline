@@ -29,11 +29,13 @@
         </div>
       </div>
     </div>
+    <LegalOverlay v-if="legalDoc" :doc="legalDoc" @close="closeLegal" />
   </div>
 </template>
 <!-- SCAFFOLD:pipeline:end -->
 
 <script setup lang="ts">
+import LegalOverlay from '../components/LegalOverlay.vue';
 import TopBar from '../components/TopBar.vue';
 import TabBar from '../components/TabBar.vue';
 import { useSettingsLogic } from './{{VIEW_STEM}}.logic';
@@ -42,8 +44,10 @@ const {
   balance,
   freeRemaining,
   showClear,
+  legalDoc,
   openStore,
   openLegal,
+  closeLegal,
   openPlaza,
   onVerTouchStart,
   onVerTouchEnd,

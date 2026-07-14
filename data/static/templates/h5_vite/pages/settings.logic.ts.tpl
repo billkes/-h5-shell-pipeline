@@ -9,6 +9,7 @@ export function useSettingsLogic() {
   const balance = ref(0);
   const freeRemaining = ref(2);
   const showClear = ref(false);
+  const legalDoc = ref<'privacy' | 'terms' | null>(null);
   let versionPressTimer: ReturnType<typeof setTimeout> | null = null;
 
   function refreshWallet() {
@@ -24,7 +25,11 @@ export function useSettingsLogic() {
   }
 
   function openLegal(doc: 'privacy' | 'terms') {
-    router.push({ path: '/legal', query: { doc, base: '/settings' } });
+    legalDoc.value = doc;
+  }
+
+  function closeLegal() {
+    legalDoc.value = null;
   }
 
   function openPlaza() {
@@ -51,8 +56,10 @@ export function useSettingsLogic() {
     balance,
     freeRemaining,
     showClear,
+    legalDoc,
     openStore,
     openLegal,
+    closeLegal,
     openPlaza,
     onVerTouchStart,
     onVerTouchEnd,
