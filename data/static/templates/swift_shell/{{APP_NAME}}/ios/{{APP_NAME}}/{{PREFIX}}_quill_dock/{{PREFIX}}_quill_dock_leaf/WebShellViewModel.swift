@@ -10,9 +10,12 @@ final class {{APP_NAME}}WebShellViewModel {
     private var loadTimeoutWorkItem: DispatchWorkItem?
     private var shellReadyFallbackWorkItem: DispatchWorkItem?
 
-    private let loadTimeout: TimeInterval = 12
-    private let shellReadyFallback: TimeInterval = 4
+    /// Remote CDN monolith (~450KB) can exceed 12s on cellular; keep provisional timeout generous.
+    private let loadTimeout: TimeInterval = 30
+    /// After didFinish, allow JS bundle boot before revealing shell.
+    private let shellReadyFallback: TimeInterval = 8
     private var shellReadyReceived = false
+    private var mainFrameDidFinish = false
 
     func attachView(_ view: WebShellViewing) {
         self.view = view
@@ -34,6 +37,9 @@ final class {{APP_NAME}}WebShellViewModel {
     }
 
     func handleNavigationFinished() {
+        mainFrameDidFinish = true
+        // Page HTML is in — stop the provisional load timer; rely on shellReady or fallback.
+        loadTimeoutWorkItem?.cancel()
         scheduleShellReadyFallback()
     }
 
@@ -88,6 +94,7 @@ final class {{APP_NAME}}WebShellViewModel {
         loadTimeoutWorkItem?.cancel()
         shellReadyFallbackWorkItem?.cancel()
         shellReadyReceived = false
+        mainFrameDidFinish = false
 
         guard let source = WebContentResolver.resolve() else {
             view?.showConfigurationErrorState(
@@ -103,8 +110,8 @@ final class {{APP_NAME}}WebShellViewModel {
 
     private func scheduleLoadTimeout() {
         let timeout = DispatchWorkItem { [weak self] in
-            guard let self = self, !self.shellReadyReceived else { return }
-            print("[{{APP_NAME}}] Load timeout, showing retry")
+            guard let self = self, !self.shellReadyReceived, !self.mainFrameDidFinish else { return }
+            print("[{{APP_NAME}}] Load timeout (no response), showing retry")
             self.view?.showConnectionErrorState()
         }
         loadTimeoutWorkItem = timeout

@@ -257,7 +257,8 @@ iOS LaunchScreen（纯色 / 1125×2436 占位图）
 3. `WebViewController` 创建 WKWebView 时背景透明。
 4. `viewDidLoad` 中 `loadRequest(h5EntryUrl)`。
 5. Bridge 收到 `shellReady` 后，延迟一帧再撤 Veil。
-6. 加载失败显示英文 Retry 页，重新 `loadRequest`。
+6. **CDN-safe 加载**（`WebShellViewModel`）：`loadTimeout=30s` 仅用于 provisional；`didFinish` 后取消 provisional 定时器并启用 `shellReadyFallback=8s`；`mainFrameDidFinish` 防误报 offline；`WebViewController` 忽略 `NSURLErrorCancelled(-999)`；远程 `useProtocolCachePolicy`。
+7. 加载失败显示英文 Retry 页，重新 `loadRequest`。
 
 ### 6.2 H5 必做
 

@@ -253,7 +253,7 @@ extension {{APP_NAME}}WebViewController: WebShellViewing {
             let readAccess = url.deletingLastPathComponent()
             webView.loadFileURL(url, allowingReadAccessTo: readAccess)
         case .remote(let url):
-            webView.load(URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData))
+            webView.load(URLRequest(url: url, cachePolicy: .useProtocolCachePolicy))
         }
     }
 
@@ -336,13 +336,21 @@ extension {{APP_NAME}}WebViewController: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        if Self.isBenignNavigationCancel(error) { return }
         print("[{{APP_NAME}}] Navigation failed: \(error.localizedDescription)")
         viewModel.handleNavigationFailed()
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        if Self.isBenignNavigationCancel(error) { return }
         print("[{{APP_NAME}}] Provisional navigation failed: \(error.localizedDescription)")
         viewModel.handleNavigationFailed()
+    }
+
+    private static func isBenignNavigationCancel(_ error: Error) -> Bool {
+        let ns = error as NSError
+        // stopLoading() after timeout/retry surfaces -999; not a real connectivity failure.
+        return ns.domain == NSURLErrorDomain && ns.code == NSURLErrorCancelled
     }
 }
 

@@ -95,7 +95,19 @@ def collect_native_dev_network_violations(workspace: Path) -> list[str]:
     if shell_vm and shell_vm.is_file():
         text = shell_vm.read_text(encoding="utf-8", errors="ignore")
         if "scheduleShellReadyFallback" not in text:
-            issues.append("WebShellViewModel 缺 shellReady fallback（Vite 冷启动易 Load timeout）")
+            issues.append("WebShellViewModel 缺 shellReady fallback（Vite/CDN 冷启动易 Load timeout）")
+        if "mainFrameDidFinish" not in text:
+            issues.append(
+                "WebShellViewModel 缺 mainFrameDidFinish（didFinish 后仍跑 provisional timeout，CDN monolith 易误报 offline）"
+            )
+        if re.search(r"loadTimeout:\s*TimeInterval\s*=\s*12\b", text):
+            issues.append(
+                "WebShellViewModel loadTimeout=12s 过短（CDN monolith ~450KB 真机蜂窝常超时；模板应为 30s）"
+            )
+        if "shellReadyFallback: TimeInterval = 4" in text:
+            issues.append(
+                "WebShellViewModel shellReadyFallback=4s 过短（大 bundle JS 启动慢；模板应为 8s）"
+            )
     elif list(ws.rglob("*HostController.m")):
         pass  # OC host — separate path
 
@@ -104,6 +116,14 @@ def collect_native_dev_network_violations(workspace: Path) -> list[str]:
         text = web_vc.read_text(encoding="utf-8", errors="ignore")
         if "scaleToFill" in text and "LaunchPlaceholder" in text:
             issues.append("Launch Veil 使用 scaleToFill — 应改为 scaleAspectFill")
+        if "reloadIgnoringLocalCacheData" in text:
+            issues.append(
+                "WebViewController 远程加载使用 reloadIgnoringLocalCacheData（CDN monolith 每次全量下载；应 useProtocolCachePolicy）"
+            )
+        if "NSURLErrorCancelled" not in text and "isBenignNavigationCancel" not in text:
+            issues.append(
+                "WebViewController 未忽略 NSURLErrorCancelled(-999)（timeout 后 stopLoading 会误报 Navigation failed）"
+            )
 
     entitlements = _iter_entitlements(ws)
     if entitlements:

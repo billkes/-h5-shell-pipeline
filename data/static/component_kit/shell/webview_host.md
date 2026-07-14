@@ -31,6 +31,7 @@
 |---|---|
 | input 聚焦无键盘 | 检查是否误设 `isTextInteractionEnabled=false` |
 | 首屏白屏很久 | 检查 `h5EntryUrl` 可达性；Veil 应盖住直至 `shellReady` |
+| CDN prod 真机 Load timeout / -999 | monolith ~450KB 蜂窝慢；须 `mainFrameDidFinish` + 30s/8s + 忽略 -999（见 `native_dev_network` gate） |
 | WebView 缩放导致双击放大镜 | Flutter `enableZoom(false)` + H5 CSS |
 | 底部 accessory 灰条 | 壳 swizzle `inputAccessoryView` → nil |
 | 加载失败无重试 | 英文 Retry 触发重新 `loadRequest` |
