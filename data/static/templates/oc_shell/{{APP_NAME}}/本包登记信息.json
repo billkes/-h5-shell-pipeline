@@ -41,6 +41,8 @@
   "packType": "h5_oc_shell",
   "appSlug": "{{APP_SLUG}}",
   "bundleId": "{{BUNDLE_ID}}",
+  "teamId": "{{TEAM_ID}}",
+  "provisioningProfile": "{{PROVISIONING_PROFILE}}",
   "h5EntryUrl": "{{H5_ENTRY_URL}}",
   "h5EntryUrlDev": "http://127.0.0.1:{{H5_DEV_PORT}}/",
   "h5EntryUrlProd": "https://{{H5_HOST}}/{{APP_SLUG}}/",

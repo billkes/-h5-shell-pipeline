@@ -3,6 +3,7 @@
   "appSlug": "{{APP_SLUG}}",
   "bundleId": "{{BUNDLE_ID}}",
   "teamId": "{{TEAM_ID}}",
+  "provisioningProfile": "{{PROVISIONING_PROFILE}}",
   "packType": "h5_swift_shell",
   "shellRuntime": "swift",
   "h5EntryUrl": "https://{{H5_HOST}}/{{APP_SLUG}}/{{APP_NAME_LOWER}}_entry.htm",

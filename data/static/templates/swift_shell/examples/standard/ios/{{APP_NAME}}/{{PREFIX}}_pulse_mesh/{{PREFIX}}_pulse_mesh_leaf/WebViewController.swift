@@ -98,7 +98,7 @@ final class {{APP_NAME}}WebViewController: UIViewController {
         view.addSubview(launchVeilView)
 
         launchVeilImageView = UIImageView(image: UIImage(named: "LaunchPlaceholder"))
-        launchVeilImageView.contentMode = .scaleToFill
+        launchVeilImageView.contentMode = .scaleAspectFill
         launchVeilImageView.clipsToBounds = true
         launchVeilImageView.translatesAutoresizingMaskIntoConstraints = false
         launchVeilView.addSubview(launchVeilImageView)

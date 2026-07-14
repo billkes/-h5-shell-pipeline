@@ -1,21 +1,23 @@
-"""Tests for native bundled media gate (h5_oc_shell)."""
+"""Tests for native bundled media gate (h5_oc_shell / h5_swift_shell)."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 from batch.h5_default_seed import collect_h5_default_seed_violations
-from batch.native_bundled_media import collect_native_bundled_media_violations
+from batch.native_bundled_media import (
+    collect_native_bundled_media_violations,
+    native_bundled_img_dir,
+)
 
 
 def _write_temioo_like_ws(tmp: Path) -> Path:
     ws = tmp / "Temioo"
     ws.mkdir()
     (ws / "Temioo.xcodeproj").mkdir()
-    app = ws / "Temioo"
-    app.mkdir()
-    (app / "assets" / "img").mkdir(parents=True)
-    (app / "assets" / "img" / "seed_slide_cs101.jpg").write_bytes(b"jpeg")
+    seed_bundle = ws / "ios" / "Temioo" / "SeedBundle"
+    seed_bundle.mkdir(parents=True)
+    (seed_bundle / "seed_slide_cs101.jpg").write_bytes(b"jpeg")
     (ws / "本包登记信息.json").write_text(
         '{"packType":"h5_oc_shell","shellRuntime":"oc","codeAntiCorrelation":{"dartCodePrefix":"uhfnf"}}',
         encoding="utf-8",
@@ -30,6 +32,11 @@ def _write_temioo_like_ws(tmp: Path) -> Path:
     return ws
 
 
+def test_native_bundled_img_dir_points_to_seed_bundle(tmp_path: Path) -> None:
+    ws = _write_temioo_like_ws(tmp_path)
+    assert native_bundled_img_dir(ws) == ws / "ios" / "Temioo" / "SeedBundle"
+
+
 def test_rejects_legacy_h5_vault_dir(tmp_path: Path) -> None:
     ws = _write_temioo_like_ws(tmp_path)
     legacy = ws / "h5" / "assets" / "uhfnf_vault"
@@ -39,7 +46,16 @@ def test_rejects_legacy_h5_vault_dir(tmp_path: Path) -> None:
     assert any("禁止 h5/assets/uhfnf_vault" in i for i in issues)
 
 
-def test_accepts_native_assets_img_for_seed(tmp_path: Path) -> None:
+def test_rejects_workspace_assets_img_duplicate(tmp_path: Path) -> None:
+    ws = _write_temioo_like_ws(tmp_path)
+    dup = ws / "assets" / "img"
+    dup.mkdir(parents=True)
+    (dup / "seed_slide_cs101.jpg").write_bytes(b"x")
+    issues = collect_native_bundled_media_violations(ws)
+    assert any("禁止 workspace 根 assets/img/" in i for i in issues)
+
+
+def test_accepts_native_seed_bundle_for_seed(tmp_path: Path) -> None:
     ws = _write_temioo_like_ws(tmp_path)
     seed = ws / "h5" / "src" / "store" / "defaultSeed.ts"
     seed.write_text(
@@ -61,3 +77,4 @@ const x = vaultAssetPath('seed_slide_cs101.jpg');
     issues = collect_h5_default_seed_violations(ws)
     assert not any("配图缺失" in i for i in issues)
     assert not any("禁止 h5/assets" in i for i in issues)
+    assert not any("禁止 workspace 根 assets/img/" in i for i in issues)

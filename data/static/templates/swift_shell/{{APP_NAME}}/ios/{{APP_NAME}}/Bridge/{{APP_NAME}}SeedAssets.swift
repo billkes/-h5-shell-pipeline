@@ -10,7 +10,7 @@ enum {{APP_NAME}}SeedAssets {
             if let url = try? {{APP_NAME}}FileVault.resolve(rel), FileManager.default.fileExists(atPath: url.path) {
                 continue
             }
-            guard let data = {{APP_NAME}}BundleMedia.data(forRelativePath: rel) else {
+            guard let data = {{APP_NAME}}BundleMedia.data(forBundledFilename: filename) else {
                 continue
             }
             try? {{APP_NAME}}FileVault.writeData(rel, data: data)
