@@ -14,6 +14,7 @@ SKILL_ADAPT = "skill.adapt"
 SKILL_PAGES = "skill.pages"
 SKILL_TOKENS = "skill.tokens"
 LOCK_DIMENSIONS = "lock.dimensions"
+PREVIEW_TABS = "preview.tabs"
 
 BUILD_AGENT = "build.agent"
 
@@ -56,6 +57,7 @@ V3_STEPS: tuple[str, ...] = (
     SKILL_PAGES,
     SKILL_TOKENS,
     LOCK_DIMENSIONS,
+    PREVIEW_TABS,
     BUILD_AGENT,
     PLAN_GATE,
     DEV_H5_BUILD,
@@ -67,7 +69,7 @@ V3_STEPS: tuple[str, ...] = (
     GIT_DEV,
 )
 
-AGENT_STEPS: tuple[str, ...] = (BUILD_AGENT,)
+AGENT_STEPS: tuple[str, ...] = (PREVIEW_TABS, BUILD_AGENT)
 
 _LEGACY_AGENT_STEP_IDS: frozenset[str] = frozenset(
     {AGENT_PLAN, AGENT_IMPL, AGENT_SHELL, AGENT_H5, PLAN_AGENT, DEV_AGENT, DEV_H5}
@@ -81,6 +83,7 @@ STEP_LABELS: dict[str, str] = {
     SKILL_PAGES: "skill.pages · 逐屏 override",
     SKILL_TOKENS: "skill.tokens · 设计 Token 同步",
     LOCK_DIMENSIONS: "锁维度 + 工程准备",
+    PREVIEW_TABS: "Tab 明暗预览 · 静态 HTML",
     BUILD_AGENT: "Build Agent · 蓝图 + 实现（单次调用）",
     AGENT_PLAN: "Agent · 蓝图与计划文档（legacy）",
     AGENT_IMPL: "Agent · Flutter 实现（legacy）",
@@ -104,6 +107,7 @@ STEP_TO_PHASE: dict[str, str] = {
     SKILL_PAGES: PM_UI_PLAN_PHASE,
     SKILL_TOKENS: PM_UI_PLAN_PHASE,
     LOCK_DIMENSIONS: PM_UI_PLAN_PHASE,
+    PREVIEW_TABS: PM_UI_PLAN_PHASE,
     BUILD_AGENT: PM_UI_PLAN_PHASE,
     PLAN_GATE: PM_UI_PLAN_PHASE,
     DEV_H5_BUILD: PM_UI_PLAN_PHASE,
@@ -143,7 +147,7 @@ def steps_for_run(*, pack_type: str) -> tuple[str, ...]:
     """Return ordered step ids for this app + config."""
     steps: list[str] = []
     for step in V3_STEPS:
-        if step in (DEV_H5_BUILD, DEV_H5_GATE) and not is_h5_shell(pack_type):
+        if step in (DEV_H5_BUILD, DEV_H5_GATE, PREVIEW_TABS) and not is_h5_shell(pack_type):
             continue
         if step in (PUBGET, ANALYZE) and not is_flutter_runtime(pack_type):
             continue
@@ -193,6 +197,7 @@ def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
         "skill.pages": SKILL_PAGES,
         "skill.tokens": SKILL_TOKENS,
         "lock.dimensions": LOCK_DIMENSIONS,
+        "preview.tabs": PREVIEW_TABS,
         "build.agent": BUILD_AGENT,
         "plan.agent": BUILD_AGENT,
         "dev.agent": BUILD_AGENT,

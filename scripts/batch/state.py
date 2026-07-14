@@ -161,6 +161,7 @@ def _infer_steps_from_phases(data: dict[str, Any]) -> dict[str, str]:
         BUILD_AGENT,
         LOCK_DIMENSIONS,
         PREPARE_CONTEXT,
+        PREVIEW_TABS,
         SKILL_ADAPT,
         SKILL_DESIGN,
         GIT_DEV,
@@ -176,6 +177,7 @@ def _infer_steps_from_phases(data: dict[str, Any]) -> dict[str, str]:
         SKILL_DESIGN,
         SKILL_ADAPT,
         LOCK_DIMENSIONS,
+        PREVIEW_TABS,
         BUILD_AGENT,
         PLAN_GATE,
         GIT_PLAN,
@@ -203,7 +205,7 @@ def _infer_steps_from_phases(data: dict[str, Any]) -> dict[str, str]:
         for s in (PUBGET, ANALYZE, NATIVE_CHECK, GIT_DEV):
             if s in steps:
                 steps[s] = "done"
-        for s in _plan_prep[:5]:
+        for s in _plan_prep[:6]:
             if s in steps:
                 steps[s] = "done"
         if BUILD_AGENT in steps:
@@ -303,6 +305,7 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
         DEV_H5_GATE,
         LOCK_DIMENSIONS,
         PREPARE_CONTEXT,
+        PREVIEW_TABS,
         SKILL_ADAPT,
         SKILL_DESIGN,
         SKILL_ENRICH,
@@ -326,6 +329,7 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
         LOCK_DIMENSIONS,
     )
     _backfill_prep_chain_when_build_done(out, _skill_chain)
+    _backfill_prep_chain_when_build_done(out, (PREVIEW_TABS,))
     # Legacy step ids
     if out.get("prepare") == "done" or out.get("prepare.context") == "done":
         _promote_to_done(out, PREPARE_CONTEXT)
@@ -344,6 +348,8 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
         _promote_to_done(out, DEV_H5_GATE)
     if out.get("lock.dimensions") == "done":
         _promote_to_done(out, LOCK_DIMENSIONS)
+    if out.get("preview.tabs") == "done":
+        _promote_to_done(out, PREVIEW_TABS)
     if out.get("plan.agent") == "done":
         _promote_to_done(out, BUILD_AGENT)
     if out.get("dev.agent") == "done" or out.get("dev.h5") == "done":
@@ -425,6 +431,7 @@ def set_step(
         from batch.pipeline_steps import (
             LOCK_DIMENSIONS,
             PREPARE_CONTEXT,
+            PREVIEW_TABS,
             SKILL_ADAPT,
             SKILL_DESIGN,
             SKILL_ENRICH,
@@ -440,6 +447,7 @@ def set_step(
             SKILL_PAGES,
             SKILL_TOKENS,
             LOCK_DIMENSIONS,
+            PREVIEW_TABS,
         ):
             if steps.get(prep_step) not in _TERMINAL_STEP:
                 steps[prep_step] = "done"

@@ -42,6 +42,12 @@ def test_apply_naming_rule_preserves_combo_prefix(tmp_path: Path) -> None:
     data = json.loads(combo.read_text(encoding="utf-8"))
     apply_naming_rule_to_combo(ws, _row(), data)
     assert data["dartCodePrefix"] == "dofqm"
+    meta = data["namingRuleMeta"]
+    assert meta.get("ruleKey") == "dual_random_head"
+    assert meta.get("packageSeed") == "dofqm"
+    assert meta.get("affix")
+    assert meta.get("lengthRange")
+    assert meta.get("joinStyles")
 
 
 def test_apply_naming_rule_reads_prefix_from_lock(tmp_path: Path) -> None:

@@ -226,6 +226,117 @@
       "registeredAt": "2026-07-14",
       "batchId": "TEST-0714",
       "usedAt": "2026-07-14"
+    },
+    {
+      "appName": "Rolioo",
+      "themeAngle": "Theme: 骰子走格派对; Track: 轻社交; Audience: 派对筹备者; Core scene: 骰子走格派对; Local feature: 回合积分评分与格上口算反应知识表演挑战、2-8人同屏赛季排行; Product flow: Pick two 回合积分评分与格上口算反应知识表演挑战、2-8人同屏赛季排行 items to compare 骰子走格派对 side by side for 派对筹备者; highlight deltas; save comparison pairs; export a dual-column summary card.",
+      "appSlug": "rolioo",
+      "bundleId": "test.duckegg.ios",
+      "teamId": "995HYU84B7",
+      "provisioningProfile": "duckeggkaifaProfile",
+      "packType": "h5_swift_shell",
+      "shellRuntime": "swift",
+      "h5VaultPattern": "h5_modular_css",
+      "h5VaultLayout": "assets_images_flat",
+      "h5SourceRoot": "h5/",
+      "h5SiteUploadRoot": "h5_site/",
+      "h5SiteRoot": "h5_site/rolioo/",
+      "h5SiteEntry": "index.html",
+      "bundleEntryPath": "h5_site/rolioo/index.html",
+      "h5BuildCommand": "npm run build:deploy",
+      "h5EntryUrl": "https://test.darin.beauty/rolioo/",
+      "h5EntryUrlDev": "http://192.168.11.74:5174/",
+      "h5EntryUrlProd": "https://test.darin.beauty/rolioo/",
+      "launchPlaceholderAsset": "native:Assets.xcassets/launch_placeholder.imageset/launch_placeholder.png",
+      "assetScheme": "rolioo-asset",
+      "bridgeDeckSelections": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "WKScriptMessageHandler.postMessage(JSON)",
+        "bridgeCallbackStyle": "evaluateJavaScript(callbackId(data))",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "WKURLSchemeHandler local vault",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentStart"
+      },
+      "bridgeCapabilities": [
+        "shellReady",
+        "readFile",
+        "writeFile",
+        "pickImage",
+        "saveImage",
+        "purchase",
+        "restorePurchases",
+        "mediaServe",
+        "openLegal"
+      ],
+      "kitDeckSelections": {
+        "kitAtomSet": "btn/input/chip/card/appbar/modal",
+        "kitCssMethodology": "SUIT",
+        "kitAtomGranularity": "mid-level-14",
+        "kitDomShape": "text-only",
+        "kitJsPattern": "class-based",
+        "kitJsNamespace": "{Prefix}.notify.*",
+        "kitStorageAdapter": "raw-localStorage",
+        "kitMotionApproach": "web-animations-api",
+        "h5StateModel": "centralized-store",
+        "h5RouterPattern": "modal-stack",
+        "h5ScreenPattern": "component-instance"
+      },
+      "kitJsNamespaceResolved": "Dnmrl.ui",
+      "codeAntiCorrelation": {
+        "dartCodePrefix": "dnmrl",
+        "namingStyle": "screen_suffix",
+        "folderStyle": "by_feature",
+        "architecture": "layered",
+        "stateManagement": "provider",
+        "codeOrganization": "fine_grained",
+        "fileNaming": "snake_case",
+        "importStyle": "package_prefix",
+        "constantsLayout": "scattered",
+        "iapModuleName": "PurchaseHelper",
+        "reportModuleName": "ReportService",
+        "constantsModuleName": "AppConfig",
+        "networkLayerName": "RequestManager",
+        "routeCoordinatorName": "RouteMap",
+        "utilityHelperName": "ValidationService",
+        "architectureFolders": {
+          "models": {
+            "role": "models",
+            "folderSuffix": "flux_unit",
+            "folderBasename": "dnmrl_flux_unit",
+            "stubBasename": "dnmrl_flux_port_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "views": {
+            "role": "views",
+            "folderSuffix": "mint_nest",
+            "folderBasename": "dnmrl_mint_nest",
+            "stubBasename": "dnmrl_sage_flow_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "controllers": {
+            "role": "controllers",
+            "folderSuffix": "lane_strip",
+            "folderBasename": "dnmrl_lane_strip",
+            "stubBasename": "dnmrl_ember_node_anchor",
+            "stubClassSuffix": "Controller"
+          }
+        },
+        "programmingStyle": "美国人",
+        "architecturePattern": "mvc",
+        "csvStateManagement": "Provider",
+        "csvArchitecturePattern": "MVC",
+        "namingObfuscationRule": "辅音核心策略",
+        "namingRuleMeta": {
+          "packageSeed": "dnmrl",
+          "namingObfuscationRule": "辅音核心策略"
+        }
+      },
+      "name": "Rolioo",
+      "description": "Theme: 骰子走格派对; Track: 轻社交; Audience: 派对筹备者; Core scene: 骰子走格派对; Local feature: 回合积分评分与格上口算反应知识表演挑战、2-8人同屏赛季排行; Product flow: Pick two 回合积分评分与格上口算反应知识表演挑战、2-8人同屏赛季排行 items to compare 骰子走格派对 side by side for 派对筹备者; highlight deltas; save comparison pairs; export a dual-column summary card.",
+      "registeredAt": "2026-07-14",
+      "batchId": "TEST-0714",
+      "usedAt": "2026-07-14"
     }
   ],
   "entries": []

@@ -11,6 +11,11 @@ from batch.h5_ui_copy import hero_copy, list_copy, settings_copy, welcome_copy
 from batch.h5_legal_ui import project_needs_legal_ui
 from batch.h5_theme_tokens import resolve_prefix
 from batch.h5_vite_gate import h5_src_dir, is_h5_vite_project
+from batch.preview_fidelity_gate import (
+    PREVIEW_IMPL_LOCK,
+    has_preview_artifacts,
+    is_view_preview_locked,
+)
 from batch.h5_page_sections import (
     compose_page_scaffold_css,
     compose_tab_root_vue,
@@ -423,6 +428,8 @@ def sync_h5_page_scaffold_css(
 ) -> Path | None:
     if not is_h5_vite_project(project):
         return None
+    if has_preview_artifacts(project):
+        return h5_src_dir(project) / "styles" / "global.css"
     css_path = h5_src_dir(project) / "styles" / "global.css"
     if not css_path.is_file():
         return None
@@ -474,16 +481,29 @@ def sync_h5_page_scaffold(
 
     written.extend(sync_h5_welcome_scaffold(project, app_name=app_name, write=write))
     written.extend(sync_h5_plaza_scaffold(project, app_name=app_name, write=write))
-    from batch.h5_default_seed import sync_default_seed_stub, sync_settings_clear_bootstrap
+    from batch.h5_default_seed import (
+        sync_default_seed_stub,
+        sync_main_bootstrap,
+        sync_settings_clear_bootstrap,
+    )
 
     stub = sync_default_seed_stub(project, app_name=app_name, write=write)
     if stub is not None:
         written.append(stub)
+    main_boot = sync_main_bootstrap(project, write=write)
+    if main_boot is not None:
+        written.append(main_boot)
     settings_logic = sync_settings_clear_bootstrap(project, app_name=app_name, write=write)
     if settings_logic is not None:
         written.append(settings_logic)
 
     for target in targets:
+        if is_view_preview_locked(project, target.view_path, target.page_type):
+            print(
+                f">>> dev.h5.build: skipped page scaffold (preview-locked) → "
+                f"{target.view_path.relative_to(project)}"
+            )
+            continue
         values = _build_substitutions(project, app_name=app_name, prefix=prefix, target=target)
         rendered = _render_tab_root(target.page_type, topology, values)
         if not rendered:
@@ -507,6 +527,9 @@ def format_page_scaffold_prompt_block(workspace: Path, app_name: str) -> str:
         "- Wizard / Live / Export / RunDetail — full Agent ownership.",
         "- Welcome / Legal overlay markup + global CSS are pipeline-owned when legal docs or Legal modal are in scope.",
         "- **All pipeline scaffold copy is English-only** — never inject CSV 中文主题/核心场景 into visible UI.",
+        "- When `_preview/*-tabs-preview.html` exists: tab-root views with `"
+        + PREVIEW_IMPL_LOCK
+        + "` or preview DOM markers are **never overwritten** by this step.",
         "",
     ]
     if targets:

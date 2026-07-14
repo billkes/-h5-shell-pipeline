@@ -136,6 +136,204 @@ def _meta_v2(
     return build_rule_meta(rule_key, package_seed, batch_id=batch_id)
 
 
+_NAMING_META_V2_KEYS = ("ruleKey", "packageSeed", "affix", "lengthRange", "joinStyles")
+
+
+def ensure_naming_rule_meta_v2(
+    meta: dict[str, Any] | None,
+    *,
+    package_seed: str,
+    rule_label: str,
+    batch_id: str = "",
+) -> dict[str, Any]:
+    """Merge or build full namingRuleMeta v2 (seeds only, no pre-baked affix keys)."""
+    seed = (package_seed or "").strip().lower()
+    canonical = normalize_naming_obfuscation_rule(rule_label) or (rule_label or "").strip()
+    rule_key = _RULE_KEY_BY_LABEL.get(canonical, "")
+    if not rule_key or not _PREFIX_RE.match(seed):
+        out = dict(meta) if isinstance(meta, dict) else {}
+        if seed:
+            out.setdefault("packageSeed", seed)
+        if canonical:
+            out.setdefault("namingObfuscationRule", canonical)
+        return out
+
+    full = dict(build_rule_meta(rule_key, seed, batch_id=batch_id))
+    if canonical:
+        full["namingObfuscationRule"] = canonical
+    if isinstance(meta, dict):
+        for key, val in meta.items():
+            if key not in full and val not in (None, "", [], {}):
+                full[key] = val
+    return full
+
+
+def _naming_meta_v2_issues(
+    meta: dict[str, Any] | None,
+    *,
+    source: str,
+) -> list[str]:
+    if not isinstance(meta, dict) or not meta:
+        return [f"{source} namingRuleMeta 缺失或为空"]
+    issues: list[str] = []
+    for key in _NAMING_META_V2_KEYS:
+        val = meta.get(key)
+        if val is None or val == "" or val == [] or val == {}:
+            issues.append(f"{source} namingRuleMeta 缺少 {key}")
+    length_range = meta.get("lengthRange")
+    if isinstance(length_range, list) and len(length_range) != 2:
+        issues.append(f"{source} namingRuleMeta.lengthRange 须为 [min, max]")
+    join_styles = meta.get("joinStyles")
+    if isinstance(join_styles, dict) and not join_styles:
+        issues.append(f"{source} namingRuleMeta.joinStyles 为空")
+    return issues
+
+
+def collect_naming_rule_meta_violations(workspace: Path) -> list[str]:
+    """Hard gate: namingRuleMeta v2 must exist in combo, lock, and register ledgers."""
+    ws = workspace.resolve()
+    issues: list[str] = []
+
+    def _read(path: Path) -> dict[str, Any] | None:
+        if not path.is_file():
+            return None
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return None
+        return data if isinstance(data, dict) else None
+
+    combo = _read(ws / "本包代码组合.json")
+    if combo is not None:
+        issues.extend(
+            _naming_meta_v2_issues(combo.get("namingRuleMeta"), source="本包代码组合.json")
+        )
+    else:
+        issues.append("缺少 本包代码组合.json（无法校验 namingRuleMeta v2）")
+
+    lock = _read(ws / "本包维度锁.json")
+    if lock is not None:
+        naming = lock.get("namingObfuscationRule")
+        meta = naming.get("namingRuleMeta") if isinstance(naming, dict) else None
+        issues.extend(
+            _naming_meta_v2_issues(meta, source="本包维度锁.json")
+        )
+
+    reg = _read(ws / "本包登记信息.json")
+    if reg is not None:
+        cac = reg.get("codeAntiCorrelation")
+        meta = cac.get("namingRuleMeta") if isinstance(cac, dict) else None
+        issues.extend(
+            _naming_meta_v2_issues(
+                meta,
+                source="本包登记信息.json codeAntiCorrelation",
+            )
+        )
+
+    return issues
+
+
+def repair_naming_rule_meta_ledgers(
+    workspace: Path,
+    *,
+    batch_id: str = "",
+) -> list[str]:
+    """Backfill namingRuleMeta v2 into combo, dimension lock, and register JSON."""
+    from batch.dimension_lock import read_dimension_lock
+
+    ws = workspace.resolve()
+    combo_path = ws / "本包代码组合.json"
+    if not combo_path.is_file():
+        return []
+
+    try:
+        combo = json.loads(combo_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(combo, dict):
+        return []
+
+    lock = read_dimension_lock(ws) or {}
+    naming_lock = lock.get("namingObfuscationRule")
+    prefix = str(combo.get("dartCodePrefix") or "").strip()
+    if not prefix and isinstance(naming_lock, dict):
+        prefix = str(naming_lock.get("dartCodePrefix") or "").strip()
+
+    rule_label = str(combo.get("namingObfuscationRule") or "").strip()
+    if not rule_label and isinstance(naming_lock, dict):
+        rule_label = str(naming_lock.get("value") or "").strip()
+
+    if not prefix or not rule_label:
+        return []
+
+    meta = ensure_naming_rule_meta_v2(
+        combo.get("namingRuleMeta") if isinstance(combo.get("namingRuleMeta"), dict) else None,
+        package_seed=prefix,
+        rule_label=rule_label,
+        batch_id=batch_id or str(lock.get("batchId") or ""),
+    )
+
+    fixes: list[str] = []
+    combo_changed = combo.get("namingRuleMeta") != meta
+    combo["dartCodePrefix"] = prefix
+    combo["namingRuleMeta"] = meta
+    if rule_label:
+        combo["namingObfuscationRule"] = normalize_naming_obfuscation_rule(rule_label) or rule_label
+    if combo_changed or combo.get("dartCodePrefix") != prefix:
+        combo_path.write_text(
+            json.dumps(combo, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        fixes.append("补全 本包代码组合.json namingRuleMeta v2")
+
+    lock_path = ws / "本包维度锁.json"
+    if lock_path.is_file() and isinstance(lock, dict):
+        naming = lock.setdefault("namingObfuscationRule", {})
+        if not isinstance(naming, dict):
+            naming = {}
+            lock["namingObfuscationRule"] = naming
+        if (
+            naming.get("namingRuleMeta") != meta
+            or naming.get("dartCodePrefix") != prefix
+        ):
+            naming["dartCodePrefix"] = prefix
+            naming["namingRuleMeta"] = meta
+            if rule_label:
+                naming["value"] = normalize_naming_obfuscation_rule(rule_label) or rule_label
+            lock_path.write_text(
+                json.dumps(lock, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            fixes.append("补全 本包维度锁.json namingRuleMeta v2")
+
+    reg_path = ws / "本包登记信息.json"
+    if reg_path.is_file():
+        try:
+            reg = json.loads(reg_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            reg = None
+        if isinstance(reg, dict):
+            cac = reg.setdefault("codeAntiCorrelation", {})
+            if not isinstance(cac, dict):
+                cac = {}
+                reg["codeAntiCorrelation"] = cac
+            reg_changed = cac.get("namingRuleMeta") != meta
+            cac["dartCodePrefix"] = prefix
+            cac["namingRuleMeta"] = meta
+            if rule_label:
+                cac["namingObfuscationRule"] = (
+                    normalize_naming_obfuscation_rule(rule_label) or rule_label
+                )
+            if reg_changed or cac.get("dartCodePrefix") != prefix:
+                reg_path.write_text(
+                    json.dumps(reg, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+                fixes.append("补全 本包登记信息.json codeAntiCorrelation.namingRuleMeta v2")
+
+    return fixes
+
+
 def _generate_dual_random_head(
     app_name: str,
     workspace: Path,
@@ -335,16 +533,15 @@ def apply_naming_rule_to_combo(
     if not existing:
         existing = str(data.get("dartCodePrefix") or "").strip()
     if existing and _PREFIX_RE.match(existing.lower()):
-        meta = data.get("namingRuleMeta")
-        if not isinstance(meta, dict):
-            meta = {}
-        else:
-            meta = dict(meta)
-        meta["packageSeed"] = existing
-        if canonical:
-            meta["namingObfuscationRule"] = canonical
         data["dartCodePrefix"] = existing
-        data["namingRuleMeta"] = meta
+        data["namingRuleMeta"] = ensure_naming_rule_meta_v2(
+            data.get("namingRuleMeta") if isinstance(data.get("namingRuleMeta"), dict) else None,
+            package_seed=existing,
+            rule_label=canonical or row.naming_obfuscation_rule,
+            batch_id=batch_id,
+        )
+        if canonical:
+            data["namingObfuscationRule"] = canonical
         return
 
     prefix, meta = generate_dart_prefix(

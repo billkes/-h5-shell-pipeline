@@ -69,12 +69,37 @@
         "web"
       ],
       "pageOverrideCount": 0
+    },
+    "Rolioo": {
+      "batchId": "TEST-0714",
+      "fingerprintKey": "e3b6c0f576fee128",
+      "visualFingerprint": {
+        "primary": "#475569",
+        "accent": "#059669",
+        "background": "#f8fafc",
+        "heading": "calistoga",
+        "body": "inter",
+        "pattern": "bento grid showcase",
+        "style": "accessible & ethical",
+        "category": "mood tracker"
+      },
+      "candidateId": "c2",
+      "style": "Accessible & Ethical",
+      "category": "Mood Tracker",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web",
+        "chart"
+      ],
+      "pageOverrideCount": 0
     }
   },
   "fingerprints": {
     "fd72cab6adc3eb1b": "Buildioo",
     "166d818d57938832": "Prompio",
     "f5c43d52e6b0b02a": "Temioo",
-    "0260f40ca145db0d": "Teavoo"
+    "0260f40ca145db0d": "Teavoo",
+    "e3b6c0f576fee128": "Rolioo"
   }
 }

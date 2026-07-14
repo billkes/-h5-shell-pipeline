@@ -38,7 +38,7 @@
 
 ```
 prepare.context → skill.design → skill.enrich → skill.adapt → skill.pages → skill.tokens
-→ lock.dimensions → build.agent → plan.gate → dev.h5.build → dev.h5.gate → git.plan
+→ lock.dimensions → preview.tabs → build.agent → plan.gate → dev.h5.build → dev.h5.gate → git.plan
 → native.check（Swift/OC）
 → git.dev
 ```

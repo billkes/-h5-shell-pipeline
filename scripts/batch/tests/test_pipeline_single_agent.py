@@ -15,14 +15,16 @@ def test_one_agent_step_for_tool_flutter() -> None:
     steps = steps_for_run(pack_type="tool_flutter")
     assert steps.count(BUILD_AGENT) == 1
     assert agent_steps_for_run(pack_type="tool_flutter") == (BUILD_AGENT,)
-    assert AGENT_STEPS == (BUILD_AGENT,)
+    assert BUILD_AGENT in AGENT_STEPS
     assert not any(s.startswith("audit.") for s in steps)
 
 
 def test_one_agent_step_for_h5_shell() -> None:
+    from batch.pipeline_steps import PREVIEW_TABS
+
     steps = steps_for_run(pack_type="h5_shell")
     assert steps.count(BUILD_AGENT) == 1
-    assert agent_steps_for_run(pack_type="h5_shell") == (BUILD_AGENT,)
+    assert agent_steps_for_run(pack_type="h5_shell") == (PREVIEW_TABS, BUILD_AGENT)
     assert "agent.plan" not in steps
     assert "agent.impl" not in steps
     assert not any(s.startswith("audit.") for s in steps)

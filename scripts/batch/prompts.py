@@ -334,6 +334,7 @@ class PromptBuilder:
         required_selection_block: str = "",
         business_depth_block: str = "",
         topology_block: str = "",
+        preview_tabs_block: str = "",
         resume: bool = False,
         include_intro: bool = True,
         **_: object,
@@ -380,9 +381,41 @@ class PromptBuilder:
                 "REQUIRED_SELECTION_BLOCK": required_selection_block,
                 "BUSINESS_DEPTH_BLOCK": business_depth_block,
                 "TOPOLOGY_BLOCK": topology_block,
+                "PREVIEW_TABS_BLOCK": preview_tabs_block,
             },
         )
         return intro + "\n\n" + plan_body
+
+    def preview_tabs_phase(self, *, resume: bool = False, **kwargs: object) -> str:
+        """Lightweight Agent — static Tab preview HTML + preview-canonical.md."""
+        from batch.h5_site_paths import app_slug_from_name
+
+        name = str(kwargs.get("name", ""))
+        resume_block = (
+            "**RESUME:** Overwrite `_preview/` files only; do not touch `h5/src` or plan docs."
+            if resume
+            else ""
+        )
+        body = self._fmt(
+            self._load("phase_preview_tabs.txt"),
+            {
+                "name": name,
+                "desc": str(kwargs.get("desc", "")),
+                "APP_SLUG": app_slug_from_name(name),
+                "CODE_COMBO_BLOCK": str(kwargs.get("code_combo", "")),
+                "DESIGN_SYSTEM_BLOCK": str(kwargs.get("design_system_block", "")),
+                "AMBIENT_CANVAS_BLOCK": str(kwargs.get("ambient_canvas_block", "")),
+                "TOPOLOGY_BLOCK": str(kwargs.get("topology_block", "")),
+                "H5_SHELL_BLOCK": str(kwargs.get("h5_shell_block", "")),
+                "RESUME_BLOCK": resume_block,
+            },
+        )
+        brain = self.global_brain_block(
+            name=name,
+            role_slug="preview-tabs",
+            role_focus=_UI_BRAIN_FOCUS,
+        )
+        return self._prepend_brain(brain, body)
 
     def _build_agent_impl_body(
         self,
@@ -541,6 +574,7 @@ class PromptBuilder:
         token_impl_block: str = "",
         css_motion_block: str = "",
         icon_manifest_block: str = "",
+        preview_tabs_block: str = "",
         resume: bool = False,
         include_intro: bool = True,
         **_: object,
@@ -568,6 +602,7 @@ class PromptBuilder:
                 "TOKEN_IMPL_BLOCK": token_impl_block,
                 "CSS_MOTION_BLOCK": css_motion_block,
                 "ICON_MANIFEST_BLOCK": icon_manifest_block,
+                "PREVIEW_TABS_BLOCK": preview_tabs_block,
             },
         )
         return intro + "\n\n" + h5_body

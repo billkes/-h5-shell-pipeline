@@ -13,8 +13,10 @@ Description: ${desc}
 ${PART3_LINE}
 
 **Rules:**
+- If `_preview/*-tabs-preview.html` exists → **visual + Tab IA follow preview** (see PREVIEW_TABS_BLOCK below); higher priority than bare MASTER.
 - Read `skill-adapt/design-brief.md` + `skill-adapt/ambient-canvas-brief.md` + `design-system/*/MASTER.md` before writing 视觉蓝图.md.
 - 视觉蓝图.md MUST include **§Ambient Canvas Canon** — theme background per skill-adapt brief, not flat SaaS wash.
 - Do NOT invent generic UI/UX rules — expand ui-ux-pro-max outputs into batch deliverables.
 - Respect iron rules in `.cursor/rules/*.mdc` and dimension lock JSON.
+- **Preview H5 (when `_preview/` exists):** tab-root `*View.vue` line 1 = `<!-- PREVIEW-IMPL:locked -->`; copy preview HTML class hierarchy; **do not** edit `global.css` `THEME:pipeline` — write `skill-adapt/preview-approved-colors.json` only.
 - In RESUME mode: inspect workspace — skip parts whose outputs already exist and are complete; continue from the first incomplete part only. Do NOT delete or rewrite completed work.

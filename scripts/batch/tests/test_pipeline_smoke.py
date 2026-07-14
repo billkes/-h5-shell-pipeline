@@ -43,10 +43,12 @@ def test_dry_run_single_app() -> None:
 
 def test_pipeline_steps_h5_swift() -> None:
     sys.path.insert(0, str(SCRIPTS))
-    from batch.pipeline_steps import steps_for_run
+    from batch.pipeline_steps import PREVIEW_TABS, steps_for_run
 
     steps = steps_for_run(pack_type="h5_swift_shell")
     assert "build.agent" in steps
+    assert PREVIEW_TABS in steps
+    assert steps.index(PREVIEW_TABS) < steps.index("build.agent")
     assert "skill.enrich" in steps
     assert "skill.pages" in steps
     assert "skill.tokens" in steps

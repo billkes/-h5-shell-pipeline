@@ -13,6 +13,7 @@ sys.path.insert(0, str(SCRIPTS))
 from batch.pipeline_steps import (  # noqa: E402
     BUILD_AGENT,
     PLAN_GATE,
+    PREVIEW_TABS,
     SKILL_ENRICH,
     SKILL_PAGES,
     SKILL_TOKENS,
@@ -50,6 +51,21 @@ def test_build_agent_done_backfills_pending_skill_steps() -> None:
     assert migrated[SKILL_TOKENS] == "done"
 
 
+def test_build_agent_done_backfills_preview_tabs() -> None:
+    raw = {
+        "pack_type": "h5_oc_shell",
+        "steps": {
+            "prepare.context": "done",
+            "skill.design": "done",
+            "lock.dimensions": "done",
+            "preview.tabs": "pending",
+            BUILD_AGENT: "done",
+        },
+    }
+    migrated = steps_map_from_data(raw)
+    assert migrated[PREVIEW_TABS] == "done"
+
+
 def test_set_step_build_agent_backfills_prep_chain() -> None:
     td = Path(tempfile.mkdtemp())
     ws = td / "App"
@@ -73,6 +89,7 @@ def test_set_step_build_agent_backfills_prep_chain() -> None:
     assert data["steps"][SKILL_ENRICH] == "done"
     assert data["steps"][SKILL_PAGES] == "done"
     assert data["steps"][SKILL_TOKENS] == "done"
+    assert data["steps"][PREVIEW_TABS] == "done"
 
 
 def test_prerequisites_ok_after_build_agent_done() -> None:

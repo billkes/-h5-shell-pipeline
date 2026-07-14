@@ -19,6 +19,14 @@ from batch.native_shell_naming import (  # noqa: E402
     uses_semantic_bridge_dir,
 )
 
+_V2_META = {
+    "ruleKey": "consonant_core",
+    "packageSeed": "mocko",
+    "affix": "prefix",
+    "lengthRange": [4, 12],
+    "joinStyles": {"swiftClass": "PascalCase"},
+}
+
 
 def test_native_bridge_folder_basename_standard_persona() -> None:
     assert native_bridge_folder_basename("美国人", "bthfc") == "Bridge"
@@ -64,10 +72,18 @@ def test_apply_rename_bridge_to_prefix_shell() -> None:
                     "appName": "Mockoo",
                     "packType": "h5_swift_shell",
                     "shellRuntime": "swift",
-                    "codeAntiCorrelation": {"dartCodePrefix": "mocko", "programmingStyle": "德国人"},
+                    "codeAntiCorrelation": {
+                        "dartCodePrefix": "mocko",
+                        "programmingStyle": "德国人",
+                        "namingRuleMeta": _V2_META,
+                    },
                 },
                 ensure_ascii=False,
             ),
+            encoding="utf-8",
+        )
+        (ws / "本包代码组合.json").write_text(
+            json.dumps({"namingRuleMeta": _V2_META}, ensure_ascii=False),
             encoding="utf-8",
         )
         changed = apply_native_bridge_folder_rename(ws, persona="德国人", prefix="mocko")

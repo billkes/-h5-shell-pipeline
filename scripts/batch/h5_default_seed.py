@@ -199,6 +199,30 @@ def sync_default_seed_stub(
     return dst
 
 
+def sync_main_bootstrap(project: Path, *, write: bool = True) -> Path | None:
+    """Ensure main.ts calls ensureBootstrapData() before mount when seed is required."""
+    if not is_h5_vite_project(project) or not requires_default_seed(project):
+        return None
+    main = h5_src_dir(project) / "main.ts"
+    seed = h5_src_dir(project) / "store" / "defaultSeed.ts"
+    if not main.is_file() or not seed.is_file():
+        return None
+    text = _read_text(main)
+    if "ensureBootstrapData" in text:
+        return main
+    import_line = "import { ensureBootstrapData } from './store/defaultSeed';"
+    css_import = "import './styles/global.css';"
+    if css_import in text and import_line not in text:
+        text = text.replace(css_import, f"{css_import}\n{import_line}")
+    elif import_line not in text:
+        text = import_line + "\n" + text
+    if "ensureBootstrapData()" not in text:
+        text = text.replace("createApp(App)", "ensureBootstrapData();\n\ncreateApp(App)", 1)
+    if write and text != _read_text(main):
+        main.write_text(text, encoding="utf-8")
+    return main
+
+
 def sync_settings_clear_bootstrap(
     project: Path,
     *,

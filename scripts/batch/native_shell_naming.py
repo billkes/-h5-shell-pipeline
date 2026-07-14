@@ -339,6 +339,13 @@ def collect_native_shell_naming_violations(workspace: Path) -> list[str]:
                 _collect_architecture_folder_violations(ws, app_dir, prefix=prefix)
             )
 
+    try:
+        from batch.csv_naming import collect_naming_rule_meta_violations
+
+        issues.extend(collect_naming_rule_meta_violations(ws))
+    except OSError:
+        pass
+
     return issues
 
 

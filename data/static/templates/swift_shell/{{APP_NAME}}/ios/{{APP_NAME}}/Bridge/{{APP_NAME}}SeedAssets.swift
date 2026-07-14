@@ -1,6 +1,7 @@
 import Foundation
 
 enum {{APP_NAME}}SeedAssets {
+    // Scaffold: bundled seed rasters live in ios/{AppName}/SeedBundle/ (fixed path — 编组 I).
     private static let seedFilenames: [String] = []
 
     /// Copy bundled seed photos into Documents/photos/seed/ (idempotent).

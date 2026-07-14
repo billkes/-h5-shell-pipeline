@@ -58,9 +58,17 @@ def build_lock_payload(
     spec = parse_architecture_from_csv(row.state_management, row.architecture_pattern)
     combo = _read_combo(workspace)
     prefix = str(combo.get("dartCodePrefix") or "").strip()
+    from batch.csv_naming import ensure_naming_rule_meta_v2
+
     meta = combo.get("namingRuleMeta")
     if not isinstance(meta, dict):
         meta = {}
+    meta = ensure_naming_rule_meta_v2(
+        meta,
+        package_seed=prefix,
+        rule_label=row.naming_obfuscation_rule,
+        batch_id=batch_id,
+    )
 
     folders = combo.get("architectureFolders")
     if not isinstance(folders, dict) or not folders:

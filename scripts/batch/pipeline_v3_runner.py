@@ -25,6 +25,7 @@ from batch.pipeline_steps import (
     DEV_H5_GATE,
     LOCK_DIMENSIONS,
     PREPARE_CONTEXT,
+    PREVIEW_TABS,
     SKILL_ADAPT,
     SKILL_DESIGN,
     SKILL_ENRICH,
@@ -269,6 +270,7 @@ class V3StepRunner:
         topology_block = (
             format_topology_block(ws, self.p.cfg.project_dir) if h5 else ""
         )
+        from batch.preview_tabs import format_preview_tabs_block
 
         return {
             "tool_flutter": tool,
@@ -308,6 +310,7 @@ class V3StepRunner:
             ),
             "business_depth_block": business_depth_block,
             "topology_block": topology_block,
+            "preview_tabs_block": format_preview_tabs_block(ws, ctx.name) if h5 else "",
         }
 
     def _step_prepare_context(self, ctx: AppContext) -> bool:
@@ -331,11 +334,45 @@ class V3StepRunner:
     def _step_lock_dimensions(self, ctx: AppContext) -> bool:
         return self.p._run_lock_dimensions(ctx)
 
+    def _step_preview_tabs(self, ctx: AppContext, *, resume: bool = False) -> bool:
+        if not is_h5_shell(ctx.pack_type):
+            return True
+        from batch.cursor_runner import run_agent
+        from batch.preview_tabs import verify_preview_tabs_outputs
+
+        kw = self._agent_pack_context(ctx)
+        prompt = self.p.prompts.preview_tabs_phase(resume=resume, **kw)
+        ok = run_agent(
+            self.p.cfg,
+            ctx.workspace,
+            prompt,
+            log_section_title=f"{ctx.name} · preview.tabs · Tab 明暗预览",
+        )
+        if ok:
+            from batch.preview_tabs import sync_preview_colors_after_tabs
+
+            sync_preview_colors_after_tabs(ctx.workspace, write=True)
+            issues = verify_preview_tabs_outputs(ctx.workspace, ctx.name)
+            if issues:
+                get_run_log().fail_banner("preview.tabs 产物校验未通过", issues)
+                ok = False
+        return ok
+
     def _step_design_system(self, ctx: AppContext) -> bool:
         return self.p._run_skill_design(ctx)
 
     def _step_build_agent(self, ctx: AppContext, *, resume: bool = False) -> bool:
         from batch.cursor_runner import run_agent
+        from batch.preview_tabs import verify_preview_tabs_outputs
+
+        if is_h5_shell(ctx.pack_type):
+            issues = verify_preview_tabs_outputs(ctx.workspace, ctx.name)
+            if issues:
+                get_run_log().fail_banner(
+                    "build.agent 硬依赖 preview.tabs 产物",
+                    issues,
+                )
+                return False
 
         kw = self._agent_pack_context(ctx)
         prompt = self.p.prompts.build_agent_phase(resume=resume, **kw)
@@ -358,7 +395,19 @@ class V3StepRunner:
         if ok:
             extra: dict[str, str] = {"phase_programmer_agent": "done"}
             if is_h5_shell(ctx.pack_type):
+                from batch.preview_fidelity_gate import verify_preview_approved_colors
+
+                color_issues = verify_preview_approved_colors(ctx.workspace, ctx.name)
+                if color_issues:
+                    get_run_log().fail_banner(
+                        "build.agent 后 preview-approved-colors 未通过",
+                        color_issues,
+                    )
+                    return False
                 extra["phase_h5_agent"] = "done"
+                from batch.h5_theme_tokens import sync_h5_global_theme
+
+                sync_h5_global_theme(ctx.workspace, write=True)
             update_state_fields(ctx.workspace, **extra)
         return ok
 
@@ -632,6 +681,9 @@ class V3StepRunner:
 
         issues.extend(collect_h5_plaza_purchase_violations(ws))
         issues.extend(collect_h5_default_seed_violations(ws))
+        from batch.preview_fidelity_gate import collect_preview_fidelity_violations
+
+        issues.extend(collect_preview_fidelity_violations(ws, ctx.name))
 
         hard = [i for i in issues if not i.startswith("UX Gate WARN")]
         if hard:
@@ -872,6 +924,7 @@ _STEP_HANDLERS = {
     SKILL_PAGES: V3StepRunner._step_skill_pages,
     SKILL_TOKENS: V3StepRunner._step_skill_tokens,
     LOCK_DIMENSIONS: V3StepRunner._step_lock_dimensions,
+    PREVIEW_TABS: V3StepRunner._step_preview_tabs,
     BUILD_AGENT: V3StepRunner._step_build_agent,
     PLAN_GATE: V3StepRunner._step_plan_gate,
     DEV_H5_BUILD: V3StepRunner._step_dev_h5_build,

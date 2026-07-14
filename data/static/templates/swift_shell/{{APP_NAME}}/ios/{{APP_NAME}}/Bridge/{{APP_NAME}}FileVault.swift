@@ -51,6 +51,7 @@ enum {{APP_NAME}}BundleMedia {
         guard !base.isEmpty, !ext.isEmpty else { return nil }
 
         let parent = (filename as NSString).deletingLastPathComponent
+        // Scaffold: "SeedBundle" is fixed (编组 I); do not rename to {prefix}_*.
         var subdirs: [String?] = ["SeedBundle", "assets/img"]
         if !parent.isEmpty, parent != "." {
             subdirs.insert(parent, at: 0)

@@ -138,6 +138,13 @@ def run_post_delivery(workspace: Path, *, fix: bool, sync_dev_url: bool) -> tupl
                 fixes.append(rel)
         except OSError:
             pass
+        try:
+            from batch.csv_naming import repair_naming_rule_meta_ledgers
+
+            for msg in repair_naming_rule_meta_ledgers(ws):
+                fixes.append(msg)
+        except OSError:
+            pass
         for rel in apply_shell_placeholders(ws, force=True):
             fixes.append(f"写入占位图: {rel}")
         try:
