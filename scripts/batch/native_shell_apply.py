@@ -39,12 +39,35 @@ def native_shell_layout_ok(workspace: Path, app_name: str) -> bool:
     ws = workspace.resolve()
     if not has_root_xcode_project(ws):
         return False
-    app_dir = ws / app_name
+    runtime = _runtime_from_workspace(ws)
+    app_dir = ws / "ios" / app_name if runtime == "swift" else ws / app_name
     if not app_dir.is_dir():
         return False
-    runtime = _runtime_from_workspace(ws)
     suffix = ".swift" if runtime == "swift" else ".m"
     return any(app_dir.rglob(f"*{suffix}"))
+
+
+def has_launch_screen(workspace: Path, runtime: str) -> bool:
+    """OC 用 LaunchScreen.storyboard；Swift 模板用 UILaunchScreen + LaunchBackground。"""
+    ws = workspace.resolve()
+    if list(ws.rglob("*LaunchScreen*.storyboard")):
+        return True
+    if runtime != "swift":
+        return False
+    has_ui_launch = False
+    for plist in ws.rglob("Info.plist"):
+        if "/build/" in str(plist):
+            continue
+        try:
+            text = plist.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        if "UILaunchScreen" in text:
+            has_ui_launch = True
+            break
+    if not has_ui_launch:
+        return False
+    return any(ws.rglob("**/LaunchBackground.colorset/Contents.json"))
 
 
 def clear_stale_native_shell(workspace: Path, app_name: str) -> list[str]:
@@ -173,8 +196,10 @@ def _maybe_xcodegen(staging: Path, app_name: str) -> None:
             capture_output=True,
             text=True,
         )
-    except FileNotFoundError:
-        return
+    except FileNotFoundError as exc:
+        raise RuntimeError(
+            "未找到 xcodegen：Swift 壳需在 lock.dimensions 前安装（brew install xcodegen）"
+        ) from exc
     if result.returncode != 0:
         raise RuntimeError(
             f"xcodegen 失败 (exit {result.returncode}):\n{result.stderr or result.stdout}"

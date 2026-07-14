@@ -698,8 +698,13 @@ class V3StepRunner:
             )
         if not list(ws.rglob("Info.plist")):
             issues.append("缺少 Info.plist")
-        if not list(ws.rglob("*LaunchScreen*.storyboard")):
-            issues.append("缺少 LaunchScreen.storyboard")
+        from batch.native_shell_apply import has_launch_screen
+
+        if not has_launch_screen(ws, runtime):
+            if runtime == "swift":
+                issues.append("缺少 LaunchScreen（storyboard 或 UILaunchScreen + LaunchBackground）")
+            else:
+                issues.append("缺少 LaunchScreen.storyboard")
 
         suffixes = (".swift",) if runtime == "swift" else (".m", ".mm", ".h")
         source_files = [

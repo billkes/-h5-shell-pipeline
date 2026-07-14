@@ -21,6 +21,7 @@ from batch.native_shell_apply import (  # noqa: E402
     clear_stale_native_shell,
     ensure_native_shell_scaffold,
     find_xcode_projects,
+    has_launch_screen,
     has_root_xcode_project,
     native_shell_layout_ok,
 )
@@ -124,3 +125,19 @@ def test_ensure_native_shell_scaffold_idempotent_when_layout_ok() -> None:
             force=False,
         )
         assert second == []
+
+
+def test_has_launch_screen_swift_accepts_ui_launch_screen() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        ws = Path(tmp)
+        ios = ws / "ios" / "Mockoo"
+        ios.mkdir(parents=True)
+        (ios / "Info.plist").write_text(
+            "<key>UILaunchScreen</key><dict><key>UIColorName</key><string>LaunchBackground</string></dict>",
+            encoding="utf-8",
+        )
+        colorset = ios / "Assets.xcassets" / "LaunchBackground.colorset"
+        colorset.mkdir(parents=True)
+        (colorset / "Contents.json").write_text("{}", encoding="utf-8")
+        assert has_launch_screen(ws, "swift")
+        assert not has_launch_screen(ws, "oc")
