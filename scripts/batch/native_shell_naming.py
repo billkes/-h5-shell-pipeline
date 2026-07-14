@@ -346,6 +346,13 @@ def collect_native_shell_naming_violations(workspace: Path) -> list[str]:
     except OSError:
         pass
 
+    try:
+        from batch.native_shell_obfuscation import collect_native_semantic_violations
+
+        issues.extend(collect_native_semantic_violations(ws))
+    except OSError:
+        pass
+
     return issues
 
 

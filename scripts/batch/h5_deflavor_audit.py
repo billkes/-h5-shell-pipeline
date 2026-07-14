@@ -123,6 +123,7 @@ def _scan_h5_src_patterns(project: Path) -> list[str]:
         (re.compile(r"eruda|vconsole", re.I), "H5: 禁止 eruda/vconsole 调试脚本"),
         (re.compile(r"scrollbar-thumb", re.I), "H5: 禁止 scrollbar-thumb 网页滚动条样式"),
         (re.compile(r"::-webkit-scrollbar[^{]*\{[^}]*display\s*:\s*block", re.I | re.S), "H5: 禁止 display:block 滚动条"),
+        (re.compile(r"<audio[^>]*\bcontrols\b", re.I), "H5: 禁止 <audio controls>，须用自定义 AudioPlayer"),
         (re.compile(r"isTextInteractionEnabled\s*=\s*false", re.I), "H5/壳: 禁止 isTextInteractionEnabled=false"),
     )
     for path in h5_src.rglob("*"):

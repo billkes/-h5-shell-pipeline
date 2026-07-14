@@ -65,13 +65,18 @@ def native_ios_app_src_dir(project: Path) -> Path | None:
 
 
 def native_bundled_img_dir(project: Path) -> Path | None:
-    """On-disk seed rasters for OC/Swift: ios/{AppName}/SeedBundle/."""
+    """On-disk seed rasters for OC/Swift: ios/{AppName}/{nativeSeedBundleDir}/."""
     if not requires_native_bundled_media(project):
         return None
     app = native_ios_app_src_dir(project)
     if not app:
         return None
-    return app / NATIVE_SEED_BUNDLE_SUBDIR
+    reg = _read_register(project)
+    cac = reg.get("codeAntiCorrelation") if isinstance(reg.get("codeAntiCorrelation"), dict) else {}
+    subdir = str(cac.get("nativeSeedBundleDir") or "").strip() if isinstance(cac, dict) else ""
+    if not subdir:
+        subdir = NATIVE_SEED_BUNDLE_SUBDIR
+    return app / subdir
 
 
 def legacy_h5_vault_dir(project: Path, prefix: str = "") -> Path:

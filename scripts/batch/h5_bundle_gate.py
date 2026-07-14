@@ -834,6 +834,13 @@ def verify_h5_bundle_soft(
         for item in verify_h5_deflavor_baseline(root):
             warnings.append(f"H5 Gate Deflavor：{item}")
         try:
+            from batch.h5_perf_audit import collect_h5_perf_warnings
+
+            for item in collect_h5_perf_warnings(root):
+                warnings.append(f"H5 Gate Perf：{item}")
+        except ImportError:
+            pass
+        try:
             from batch.welcome_canon import verify_h5_welcome_canon
 
             for item in verify_h5_welcome_canon(root):

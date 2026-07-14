@@ -101,6 +101,9 @@ def collect_loading_violations(workspace: Path) -> list[str]:
             "HostController" in p.name
             or "WebView" in p.name
             or "WebShell" in p.name
+            or "web_view" in p.name.lower()
+            or "shell_view" in p.name.lower()
+            or "bridge" in p.name.lower()
         )
     ]
     if not native_sources:
@@ -132,11 +135,13 @@ def run_post_delivery(workspace: Path, *, fix: bool, sync_dev_url: bool) -> tupl
         for rel in enforce_no_storekit(ws):
             fixes.append(f"移除 StoreKit 本地配置: {rel}")
         try:
-            from batch.native_shell_naming import apply_native_bridge_folder_rename
+            from batch.native_shell_obfuscation import apply_native_shell_obfuscation
 
-            for rel in apply_native_bridge_folder_rename(ws):
+            for rel in apply_native_shell_obfuscation(ws):
                 fixes.append(rel)
         except OSError:
+            pass
+        except (ValueError, FileNotFoundError):
             pass
         try:
             from batch.csv_naming import repair_naming_rule_meta_ledgers

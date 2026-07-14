@@ -82,7 +82,7 @@ def h5_dev_entry_url(*, port: int | None = None) -> str:
 
 _LOAD_REGISTER_RE = re.compile(r"- \(void\)\w+LoadRegister \{.*?\n\}", re.DOTALL)
 _SWIFT_ENTRY_RE = re.compile(
-    r"(static let h5EntryUrl = \")[^\"]+(\";?)",
+    r'(static let \w*[Hh]5[Ee]ntry[Uu]rl\w*\s*=\s*")[^"]+(")',
 )
 
 
@@ -114,7 +114,7 @@ def sync_native_hardcoded_h5_entry_url(workspace: Path, entry_url: str) -> list[
         if n and new_text != text:
             path.write_text(new_text, encoding="utf-8")
             changed.append(str(path.relative_to(ws)))
-    for path in sorted(ws.rglob("*ShellConfig.swift")):
+    for path in sorted(ws.rglob("*ShellConfig.swift")) + sorted(ws.rglob("*shell_config*.swift")):
         if "/build/" in str(path):
             continue
         try:

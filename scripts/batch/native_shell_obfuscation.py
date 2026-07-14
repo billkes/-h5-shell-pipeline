@@ -155,15 +155,24 @@ def build_native_obfuscation_map(workspace: Path, *, app_name: str = "") -> Nati
         if old == new:
             continue
         if entity == "file":
+            if not new.endswith(".swift"):
+                new = f"{new}.swift"
             file_renames[old] = new
         else:
             replacements[old] = new
 
-    deflavor = replacements.get(f"{app}WebViewDeflavor", f"{app}WebViewDeflavor")
+    deflavor_old = f"{app}WebViewDeflavor"
+    deflavor_new = replacements.get(deflavor_old, _t(meta, "class", "webview_deflavor"))
     apply_new = _t(meta, "method", "apply_deflavor")
     install_new = _t(meta, "method", "install_deflavor")
-    replacements[f"{deflavor}.apply"] = f"{deflavor}.{apply_new}"
-    replacements[f"{deflavor}.install"] = f"{deflavor}.{install_new}"
+    replacements[f"{deflavor_old}.apply"] = f"{deflavor_new}.{apply_new}"
+    replacements[f"{deflavor_old}.install"] = f"{deflavor_new}.{install_new}"
+    replacements[f"{deflavor_new}.apply"] = f"{deflavor_new}.{apply_new}"
+    replacements[f"{deflavor_new}.install"] = f"{deflavor_new}.{install_new}"
+    replacements["static func install()"] = f"static func {install_new}()"
+    replacements["static func apply(to webView: WKWebView)"] = (
+        f"static func {apply_new}(to webView: WKWebView)"
+    )
     if "apply" in replacements:
         del replacements["apply"]
     if "install" in replacements:
@@ -263,6 +272,8 @@ def collect_native_semantic_violations(workspace: Path) -> list[str]:
             f"Documents seed 路径仍用 photos/seed — 须为 `{obf.photos_seed_path}`"
         )
 
+    issues.extend(_collect_pbxproj_violations(ws, obf, app_name=app_name))
+
     return issues
 
 
@@ -284,8 +295,61 @@ def _patch_project_yml(ws: Path, seed_bundle_dir: str) -> None:
         f"path: ios/{{{{APP_NAME}}}}/{seed_bundle_dir}",
         text,
     )
-    text = text.replace("/SeedBundle", f"/{seed_bundle_dir}")
+    text = re.sub(
+        r"path:\s*ios/Rolioo/SeedBundle",
+        f"path: ios/Rolioo/{seed_bundle_dir}",
+        text,
+    )
+    if "/SeedBundle" in text:
+        text = text.replace("/SeedBundle", f"/{seed_bundle_dir}")
     yml.write_text(text, encoding="utf-8")
+
+
+def _regenerate_xcode_project(ws: Path, app_name: str) -> list[str]:
+    from batch.xcode_delivery import regenerate_xcodegen_project
+
+    label = app_name or ws.name
+    if regenerate_xcodegen_project(ws, app_name):
+        return [f"xcodegen: regenerate {label}.xcodeproj"]
+    yml = ws / "project.yml"
+    if yml.is_file():
+        return ["xcodegen: 未安装 — 请手动运行 `xcodegen generate --spec project.yml`"]
+    return []
+
+
+def _collect_pbxproj_violations(ws: Path, obf: NativeObfuscationMap, *, app_name: str = "") -> list[str]:
+    pbx_files = sorted(ws.glob("*.xcodeproj/project.pbxproj"))
+    if not pbx_files:
+        return ["缺少 *.xcodeproj — 混淆后须 xcodegen regenerate"]
+    app = app_name or _resolve_app_name(ws)
+    issues: list[str] = []
+    stale_markers = (
+        " Bridge;",
+        "path = Bridge;",
+        "path = SeedBundle;",
+        " SeedBundle;",
+        f"{app}App.swift",
+        "WebBridgeHandler.swift",
+        f"{app}FileVault.swift",
+    )
+    for pbx in pbx_files:
+        text = pbx.read_text(encoding="utf-8", errors="ignore")
+        for marker in stale_markers:
+            if marker in text:
+                issues.append(
+                    f"{pbx.parent.name}/project.pbxproj 仍引用混淆前路径 `{marker.strip()}` — "
+                    "须运行 xcodegen regenerate"
+                )
+                break
+        if obf.shell_dir not in text:
+            issues.append(
+                f"{pbx.parent.name}/project.pbxproj 未包含 shell 目录 `{obf.shell_dir}`"
+            )
+        if obf.seed_bundle_dir not in text:
+            issues.append(
+                f"{pbx.parent.name}/project.pbxproj 未包含 seed 目录 `{obf.seed_bundle_dir}`"
+            )
+    return issues
 
 
 def _patch_h5_seed_prefix(ws: Path, photos_seed_path: str) -> None:
@@ -338,11 +402,20 @@ def apply_native_shell_obfuscation(workspace: Path, *, app_name: str = "") -> li
 
     # 2) Rename Swift files.
     for old_name, new_name in sorted(obf.file_renames.items(), key=lambda kv: len(kv[0]), reverse=True):
+        if not new_name.endswith(".swift"):
+            new_name = f"{new_name}.swift"
         for path in list(app_dir.rglob(old_name)):
             dest = path.with_name(new_name)
             if path != dest:
                 path.rename(dest)
                 changed.append(f"file: {path.relative_to(ws)} → {dest.name}")
+        # Idempotent: fix files renamed without extension in a prior run.
+        stem = new_name.removesuffix(".swift")
+        for path in list(app_dir.rglob(stem)):
+            if path.is_file() and path.suffix != ".swift":
+                dest = path.with_name(new_name)
+                path.rename(dest)
+                changed.append(f"file-fix: {path.relative_to(ws)} → {dest.name}")
 
     # 3) Rename Bridge / SeedBundle directories.
     bridge = app_dir / "Bridge"
@@ -359,4 +432,6 @@ def apply_native_shell_obfuscation(workspace: Path, *, app_name: str = "") -> li
     _patch_project_yml(ws, obf.seed_bundle_dir)
     _patch_h5_seed_prefix(ws, obf.photos_seed_path)
     _persist_obfuscation_paths(ws, obf)
+    app = (app_name or _resolve_app_name(ws)).strip()
+    changed.extend(_regenerate_xcode_project(ws, app))
     return changed
