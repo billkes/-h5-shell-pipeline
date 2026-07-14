@@ -1,15 +1,14 @@
 {
   "apps": {
-    "Temioo": {
-      "topologyId": "T4_wizard",
-      "label": "Wizard pipeline",
+    "Teavoo": {
+      "topologyId": "T1_dashboard",
+      "label": "Dashboard-first",
       "batchId": "TEST-0714"
     }
   },
   "batchUsage": {
     "TEST-0714": [
-      "T3_timeline",
-      "T4_wizard"
+      "T1_dashboard"
     ]
   }
 }

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from batch.config import BatchConfig
 from batch.csv_tasks import CsvTaskRow, load_csv_tasks, load_task_csv_meta, output_workspace_exists
+from batch.registry import ensure_contentpack_registry
 from batch.task_audit import (
     audit_dimension_diversity,
     audit_programming_style_batch,
