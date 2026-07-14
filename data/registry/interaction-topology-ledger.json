@@ -1,14 +1,21 @@
 {
   "apps": {
     "Teavoo": {
-      "topologyId": "T1_dashboard",
-      "label": "Dashboard-first",
+      "topologyId": "T2_capture_first",
+      "label": "Capture-first",
+      "batchId": "TEST-0714"
+    },
+    "Rolioo": {
+      "topologyId": "T7_compare_board",
+      "label": "Compare board",
       "batchId": "TEST-0714"
     }
   },
   "batchUsage": {
     "TEST-0714": [
-      "T1_dashboard"
+      "T1_dashboard",
+      "T2_capture_first",
+      "T7_compare_board"
     ]
   }
 }

@@ -50,12 +50,30 @@
         "h5RouterPattern": "native-back-bridge",
         "h5ScreenPattern": "controller-view"
       }
+    },
+    "Rolioo": {
+      "batchId": "TEST-0714",
+      "hash": "1397c7008f7c0f0e",
+      "kit": {
+        "kitAtomSet": "btn/input/chip/card/appbar/modal",
+        "kitCssMethodology": "SUIT",
+        "kitAtomGranularity": "mid-level-14",
+        "kitDomShape": "text-only",
+        "kitJsPattern": "class-based",
+        "kitJsNamespace": "{Prefix}.notify.*",
+        "kitStorageAdapter": "raw-localStorage",
+        "kitMotionApproach": "web-animations-api",
+        "h5StateModel": "centralized-store",
+        "h5RouterPattern": "modal-stack",
+        "h5ScreenPattern": "component-instance"
+      }
     }
   },
   "hashes": {
     "64f2b0221f4fc218": "Buildioo",
     "87e31afa2f864d6f": "Prompio",
-    "783c503663d262ba": "Teavoo"
+    "783c503663d262ba": "Teavoo",
+    "1397c7008f7c0f0e": "Rolioo"
   },
   "classFingerprints": {}
 }
