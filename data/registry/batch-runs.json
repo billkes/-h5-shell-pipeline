@@ -1641,6 +1641,27 @@
           "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Seriyy-Swift/Seriyy"
         }
       ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-15_15-31-38-43069",
+      "startedAt": "2026-07-15 15:31:38",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Seriyy"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Seriyy",
+          "packType": "h5_swift_shell",
+          "container": "Seriyy-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Seriyy-Swift/Seriyy"
+        }
+      ]
     }
   ]
 }

@@ -337,6 +337,138 @@
       "registeredAt": "2026-07-14",
       "batchId": "TEST-0714",
       "usedAt": "2026-07-14"
+    },
+    {
+      "appName": "Seriyy",
+      "themeAngle": "Theme: 收藏匣; Track: 休闲生活; Audience: 年轻收集癖; Core scene: 生活藏品收集; Local feature: 系列进度评分; Product flow: Gallery hub + album board + Vault + Stats + story export.",
+      "appSlug": "seriyy",
+      "bundleId": "test.duckegg.ios",
+      "teamId": "995HYU84B7",
+      "provisioningProfile": "duckeggkaifaProfile",
+      "packType": "h5_swift_shell",
+      "shellRuntime": "swift",
+      "h5VaultPattern": "h5_modular_svg",
+      "h5VaultLayout": "assets_prefix_surfaces_glyphs",
+      "h5SourceRoot": "h5/",
+      "h5SiteUploadRoot": "h5_site/",
+      "h5SiteRoot": "h5_site/seriyy/",
+      "h5SiteEntry": "index.html",
+      "bundleEntryPath": "h5_site/seriyy/index.html",
+      "h5BuildCommand": "npm run build:deploy",
+      "h5EntryUrl": "http://192.168.11.74:5174/",
+      "h5EntryUrlDev": "http://192.168.11.74:5174/",
+      "h5EntryUrlProd": "https://test.darin.beauty/seriyy/",
+      "launchPlaceholderAsset": "native:Assets.xcassets/launch_placeholder.imageset/launch_placeholder.png",
+      "assetScheme": "seriyy-asset",
+      "bridgeDeckSelections": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "WKScriptMessageHandler.postMessage(JSON)",
+        "bridgeCallbackStyle": "evaluateJavaScript(callbackId(data))",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "WKURLSchemeHandler local vault",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentStart"
+      },
+      "bridgeCapabilities": [
+        "shellReady",
+        "readFile",
+        "writeFile",
+        "pickImage",
+        "takePhoto",
+        "saveImage",
+        "purchase",
+        "restorePurchases",
+        "mediaServe",
+        "openLegal",
+        "getProducts",
+        "ensureSeedAssets"
+      ],
+      "kitDeckSelections": {
+        "kitAtomSet": "btn/input/chip/card/appbar/modal",
+        "kitCssMethodology": "Utility-first",
+        "kitAtomGranularity": "atomic-heavy-30",
+        "kitDomShape": "text-only",
+        "kitJsPattern": "functional-pipe",
+        "kitJsNamespace": "{prefix}_kit.*",
+        "kitStorageAdapter": "wrapper-store",
+        "kitMotionApproach": "no-motion",
+        "h5StateModel": "imperative-dom",
+        "h5RouterPattern": "native-back-bridge",
+        "h5ScreenPattern": "functional-render"
+      },
+      "kitJsNamespaceResolved": "Turcd.ui",
+      "codeAntiCorrelation": {
+        "dartCodePrefix": "turcd",
+        "namingStyle": "screen_suffix",
+        "folderStyle": "by_feature",
+        "architecture": "layered",
+        "stateManagement": "bloc",
+        "codeOrganization": "fine_grained",
+        "fileNaming": "snake_case",
+        "importStyle": "package_prefix",
+        "constantsLayout": "single_file",
+        "iapModuleName": "WalletManager",
+        "reportModuleName": "AbuseReportHandler",
+        "constantsModuleName": "ThemeConfig",
+        "networkLayerName": "RestHelper",
+        "routeCoordinatorName": "FlowNavigator",
+        "utilityHelperName": "StringUtils",
+        "architectureFolders": {
+          "models": {
+            "role": "models",
+            "folderSuffix": "flux_pulse",
+            "folderBasename": "turcd_flux_pulse",
+            "stubBasename": "turcd_dock_wave_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "views": {
+            "role": "views",
+            "folderSuffix": "quill_unit",
+            "folderBasename": "turcd_quill_unit",
+            "stubBasename": "turcd_dock_strip_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "presenters": {
+            "role": "presenters",
+            "folderSuffix": "lane_link",
+            "folderBasename": "turcd_lane_link",
+            "stubBasename": "turcd_glyph_strip_anchor",
+            "stubClassSuffix": "Presenter"
+          }
+        },
+        "programmingStyle": "法国人",
+        "architecturePattern": "mvp",
+        "csvStateManagement": "Bloc",
+        "csvArchitecturePattern": "MVP",
+        "namingObfuscationRule": "双随机首段策略",
+        "namingRuleMeta": {
+          "ruleKey": "dual_random_head",
+          "packageSeed": "turcd",
+          "affix": "prefix",
+          "lengthRange": [
+            2,
+            4
+          ],
+          "joinStyles": {
+            "class": "pascal",
+            "record": "pascal",
+            "method": "camel",
+            "field": "camel",
+            "param": "camel",
+            "local": "camel",
+            "enum_value": "camel",
+            "file": "snake",
+            "folder": "snake"
+          },
+          "batchId": "TEST-0714",
+          "namingObfuscationRule": "双随机首段策略"
+        }
+      },
+      "name": "Seriyy",
+      "description": "Theme: 收藏匣; Track: 休闲生活; Audience: 年轻收集癖; Core scene: 生活藏品收集; Local feature: 系列进度评分; Product flow: Open Gallery hub with pinned/recent album cards and KPI; enter full-screen pannable album board (5-col grid wrap-pan); browse/filter all series in Vault; track series progress scores in Stats; export date-range story card for collectors.",
+      "registeredAt": "2026-07-15",
+      "batchId": "TEST-0714",
+      "usedAt": "2026-07-15"
     }
   ],
   "entries": []
