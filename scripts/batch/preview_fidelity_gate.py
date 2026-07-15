@@ -23,6 +23,13 @@ _HEX_RE = re.compile(r"#(?:[0-9A-Fa-f]{3}){1,2}\b")
 TAB_ROOT_MARKERS: dict[str, tuple[str, ...]] = {
     "hub": (
         "home-hero",
+        "gallery-hub",
+        "gallery-stage",
+        "gallery-stage-hero",
+        "kpi-strip",
+        "album-card",
+        "gallery-vault",
+        "vault-enter-btn",
         "float-sheet",
         "board-path",
         "tile-legend",

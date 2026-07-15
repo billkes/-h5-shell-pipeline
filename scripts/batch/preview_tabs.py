@@ -1,4 +1,4 @@
-"""Tab light/dark preview step — outputs under ``_preview/``."""
+"""Tab light/dark preview step — outputs under ``_preview/`` (tracked in per-app Git)."""
 
 from __future__ import annotations
 

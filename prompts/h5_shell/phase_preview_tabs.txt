@@ -57,6 +57,8 @@ English machine-readable summary with these sections (exact headings):
 
 **Pipeline post-step:** `preview-canonical.md` §Colors will be parsed into `skill-adapt/preview-approved-colors.json` automatically — tables must list light + dark hex tokens.
 
+**Git:** `_preview/`（含 HTML、canonical、壁纸源稿与 `out/*.png`）**须纳入 per-app 仓库**；`git.plan` 会一并提交。仅 `_preview/wallpaper/node_modules/` 在 `.gitignore` 中忽略。
+
 **Rerun semantics:** overwriting both `_preview/` files is expected when rerunning `preview.tabs`.
 
 Write both files completely before finishing.

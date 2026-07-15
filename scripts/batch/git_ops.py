@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import json
 import re
 import subprocess
 from pathlib import Path
@@ -63,6 +64,58 @@ def _flutter_ready(workspace: Path) -> bool:
     return fp is not None and (fp / "pubspec.yaml").is_file()
 
 
+def _is_h5_shell_workspace(workspace: Path) -> bool:
+    ws = workspace.expanduser().resolve()
+    reg = ws / "本包登记信息.json"
+    if reg.is_file():
+        try:
+            data = json.loads(reg.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            data = {}
+        if isinstance(data, dict):
+            from batch.pack_type import is_h5_shell
+
+            if is_h5_shell(str(data.get("packType") or "")):
+                return True
+    return (ws / "h5").is_dir() and (ws / "本包维度锁.json").is_file()
+
+
+def _git_sync_ready(workspace: Path) -> bool:
+    return _flutter_ready(workspace) or _is_h5_shell_workspace(workspace)
+
+
+_GITIGNORE_PREVIEW_DROP = frozenset({"**/_preview/", "**/_preview/**"})
+_GITIGNORE_WALLPAPER_NODE = "**/_preview/wallpaper/node_modules/"
+
+
+def sync_gitignore_h5_rules(repo_root: Path, static_dir: Path) -> bool:
+    """Ensure per-app .gitignore tracks ``_preview/`` but not wallpaper node_modules."""
+    repo_root = repo_root.expanduser().resolve()
+    dest = repo_root / ".gitignore"
+    if not dest.is_file():
+        body = _load_gitignore_template(static_dir)
+        if body:
+            dest.write_text(body + "\n", encoding="utf-8")
+            return True
+        return False
+    lines = dest.read_text(encoding="utf-8").splitlines()
+    changed = False
+    kept: list[str] = []
+    for line in lines:
+        if line.strip() in _GITIGNORE_PREVIEW_DROP:
+            changed = True
+            continue
+        kept.append(line)
+    if _GITIGNORE_WALLPAPER_NODE not in [ln.strip() for ln in kept]:
+        if kept and kept[-1].strip():
+            kept.append("")
+        kept.append(_GITIGNORE_WALLPAPER_NODE)
+        changed = True
+    if changed:
+        dest.write_text("\n".join(kept).rstrip() + "\n", encoding="utf-8")
+    return changed
+
+
 def _load_gitignore_template(static_dir: Path) -> str:
     path = static_dir / GITIGNORE_TEMPLATE
     if not path.is_file():
@@ -77,6 +130,7 @@ def _load_gitignore_template(static_dir: Path) -> str:
 def ensure_gitignore(repo_root: Path, static_dir: Path) -> None:
     dest = repo_root / ".gitignore"
     if dest.is_file():
+        sync_gitignore_h5_rules(repo_root, static_dir)
         return
     body = _load_gitignore_template(static_dir)
     if body:
@@ -179,11 +233,12 @@ def sync_phase_git(
     message = PHASE_COMMIT_MESSAGES.get(phase)
     if not message:
         return False
-    if not _flutter_ready(workspace):
+    if not _git_sync_ready(workspace):
         return False
 
     repo_root = repo_root_from_workspace(workspace)
     repo_root.mkdir(parents=True, exist_ok=True)
+    sync_gitignore_h5_rules(repo_root, static_dir)
 
     if init or not (repo_root / ".git").is_dir():
         ensure_git_repo(

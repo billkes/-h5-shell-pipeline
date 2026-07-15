@@ -350,8 +350,10 @@ class V3StepRunner:
         )
         if ok:
             from batch.preview_tabs import sync_preview_colors_after_tabs
+            from batch.git_ops import repo_root_from_workspace, sync_gitignore_h5_rules
 
             sync_preview_colors_after_tabs(ctx.workspace, write=True)
+            sync_gitignore_h5_rules(repo_root_from_workspace(ctx.workspace), self.p.cfg.static_dir)
             issues = verify_preview_tabs_outputs(ctx.workspace, ctx.name)
             if issues:
                 get_run_log().fail_banner("preview.tabs 产物校验未通过", issues)
