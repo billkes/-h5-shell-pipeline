@@ -67,13 +67,49 @@
         "h5RouterPattern": "modal-stack",
         "h5ScreenPattern": "component-instance"
       }
+    },
+    "Dawnii": {
+      "batchId": "TEST-0714",
+      "hash": "c0133f4d8b007e1c",
+      "kit": {
+        "kitAtomSet": "btn/input/chip/card/appbar/modal",
+        "kitCssMethodology": "SUIT",
+        "kitAtomGranularity": "composite-first-7",
+        "kitDomShape": "text-only",
+        "kitJsPattern": "functional-pipe",
+        "kitJsNamespace": "{Prefix}.ui.*",
+        "kitStorageAdapter": "proxy-auto-persist",
+        "kitMotionApproach": "no-motion",
+        "h5StateModel": "per-screen-scope",
+        "h5RouterPattern": "modal-stack",
+        "h5ScreenPattern": "functional-render"
+      }
+    },
+    "Seriyy": {
+      "batchId": "TEST-0714",
+      "hash": "49befac66d743bb5",
+      "kit": {
+        "kitAtomSet": "btn/input/chip/card/appbar/modal",
+        "kitCssMethodology": "Utility-first",
+        "kitAtomGranularity": "atomic-heavy-30",
+        "kitDomShape": "text-only",
+        "kitJsPattern": "functional-pipe",
+        "kitJsNamespace": "{prefix}_kit.*",
+        "kitStorageAdapter": "wrapper-store",
+        "kitMotionApproach": "no-motion",
+        "h5StateModel": "imperative-dom",
+        "h5RouterPattern": "native-back-bridge",
+        "h5ScreenPattern": "functional-render"
+      }
     }
   },
   "hashes": {
     "64f2b0221f4fc218": "Buildioo",
     "87e31afa2f864d6f": "Prompio",
     "783c503663d262ba": "Teavoo",
-    "1397c7008f7c0f0e": "Rolioo"
+    "1397c7008f7c0f0e": "Rolioo",
+    "c0133f4d8b007e1c": "Dawnii",
+    "49befac66d743bb5": "Seriyy"
   },
   "classFingerprints": {}
 }

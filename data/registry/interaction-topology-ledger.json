@@ -9,12 +9,24 @@
       "topologyId": "T7_compare_board",
       "label": "Compare board",
       "batchId": "TEST-0714"
+    },
+    "Dawnii": {
+      "topologyId": "T6_checklist_session",
+      "label": "Checklist session",
+      "batchId": "TEST-0714"
+    },
+    "Seriyy": {
+      "topologyId": "T3_timeline",
+      "label": "Timeline journey",
+      "batchId": "TEST-0714"
     }
   },
   "batchUsage": {
     "TEST-0714": [
       "T1_dashboard",
       "T2_capture_first",
+      "T3_timeline",
+      "T6_checklist_session",
       "T7_compare_board"
     ]
   }

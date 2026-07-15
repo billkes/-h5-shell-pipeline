@@ -59,9 +59,39 @@
         "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
         "bridgeInjectTiming": "WKUserScript atDocumentStart"
       }
+    },
+    "Dawnii": {
+      "batchId": "TEST-0714",
+      "hash": "9c9a8c5eb5a00556",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "WKScriptMessageHandler.postMessage(JSON)",
+        "bridgeCallbackStyle": "evaluateJavaScript(callbackId(data))",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "WKURLSchemeHandler local vault",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentStart"
+      }
+    },
+    "Seriyy": {
+      "batchId": "TEST-0714",
+      "hash": "9c9a8c5eb5a00556",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "WKScriptMessageHandler.postMessage(JSON)",
+        "bridgeCallbackStyle": "evaluateJavaScript(callbackId(data))",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "WKURLSchemeHandler local vault",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentStart"
+      }
     }
   },
   "hashes": {
-    "9c9a8c5eb5a00556": "Rolioo"
+    "9c9a8c5eb5a00556": "Seriyy"
   }
 }
