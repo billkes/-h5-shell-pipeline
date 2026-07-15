@@ -260,7 +260,7 @@ def enrich_detailed_log(log_path: Path, *, output_base: Path | None = None) -> N
     """Fold PASS agent blocks and inject TOC + duration table into *log_path*."""
     if not log_path.is_file():
         return
-    raw = log_path.read_text(encoding="utf-8")
+    raw = log_path.read_bytes().decode("utf-8", errors="replace")
     footer_match = _FOOTER_MARKER.search(raw)
     if footer_match:
         body = raw[: footer_match.start()]
