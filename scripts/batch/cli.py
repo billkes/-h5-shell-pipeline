@@ -15,9 +15,9 @@ SCRIPTS_ROOT = _scripts_root()
 if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
-from batch.batch_log import batch_log_session, make_batch_stamp
+from batch.batch_log import batch_log_session
 from batch.batch_runs import append_batch_run, batch_runs_path
-from batch.batch_tag import ensure_output_layout, report_paths
+from batch.batch_tag import ensure_output_layout, make_batch_stamp, report_paths
 from batch.config import BatchConfig
 from batch.csv_tasks import app_workspace_registry_entry, load_task_csv_meta, load_tasks_for_run
 from batch.orchestrator import BatchOrchestrator

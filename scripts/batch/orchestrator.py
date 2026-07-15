@@ -11,7 +11,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from batch.batch_tag import ensure_output_layout, report_paths
+from batch.batch_tag import ensure_output_layout, make_batch_stamp, report_paths
 from batch.config import BatchConfig, safe_dir_name
 from batch.csv_tasks import (
     CsvTaskRow,
@@ -25,7 +25,6 @@ from batch.flutter_ops import analyze_log_shows_success
 from batch.batch_log import (
     batch_log_session,
     format_log_timestamp,
-    make_batch_stamp,
 )
 from batch.batch_run_log import BatchRunLog, TaskRunContext, set_run_log, task_failure_headline
 from batch.registry import ensure_contentpack_registry, find_package_by_name

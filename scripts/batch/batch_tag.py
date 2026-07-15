@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime
 from pathlib import Path
 
 from batch.task_schema import reports_dir
 
 
-def make_batch_stamp() -> str:
-    return datetime.now().strftime("%Y-%m-%d_%H-%M")
+def make_batch_stamp(when: datetime | None = None) -> str:
+    """Wall-clock stamp unique per process (second + PID) for concurrent batch runs."""
+    moment = when or datetime.now()
+    return moment.strftime("%Y-%m-%d_%H-%M-%S") + f"-{os.getpid()}"
 
 
 def ensure_output_layout(output_root: Path) -> Path:

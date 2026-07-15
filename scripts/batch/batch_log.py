@@ -109,8 +109,9 @@ class _TeeStream:
 
 
 def make_batch_stamp(when: datetime | None = None) -> str:
-    moment = when or datetime.now()
-    return moment.strftime("%Y-%m-%d_%H-%M")
+    from batch.batch_tag import make_batch_stamp as _make_batch_stamp
+
+    return _make_batch_stamp(when)
 
 
 def detailed_log_path(output_base: Path, batch_stamp: str) -> Path:
