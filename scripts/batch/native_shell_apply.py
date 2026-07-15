@@ -291,11 +291,21 @@ def ensure_native_shell_scaffold(
                 regenerate_xcodegen_project(workspace, app_name)
             apply_workspace_ios_signing(cfg, workspace)
         if runtime == "swift":
-            from batch.native_shell_naming import apply_native_bridge_folder_rename
+            from batch.native_shell_naming import (
+                apply_native_architecture_folder_rename,
+                apply_native_bridge_folder_rename,
+            )
 
             for rel in apply_native_bridge_folder_rename(
                 workspace,
                 persona=row.programming_style,
+                prefix=prefix,
+                app_name=app_name,
+                runtime=runtime,
+            ):
+                log.append(rel)
+            for rel in apply_native_architecture_folder_rename(
+                workspace,
                 prefix=prefix,
                 app_name=app_name,
                 runtime=runtime,

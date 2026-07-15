@@ -822,7 +822,7 @@ class V3StepRunner:
         issues.extend(collect_native_launch_ui_violations(ws))
         from batch.native_shell_naming import collect_native_shell_naming_violations
 
-        issues.extend(collect_native_shell_naming_violations(ws))
+        issues.extend(collect_native_shell_naming_violations(ws, strict_semantic=True))
         from batch.native_ios_signing import collect_native_ios_signing_violations
 
         issues.extend(collect_native_ios_signing_violations(ws))

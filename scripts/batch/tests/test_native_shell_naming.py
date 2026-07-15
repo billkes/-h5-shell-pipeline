@@ -12,10 +12,12 @@ SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 from batch.native_shell_naming import (  # noqa: E402
+    apply_native_architecture_folder_rename,
     apply_native_bridge_folder_rename,
     collect_native_shell_naming_violations,
     collect_programming_style_sources,
     native_bridge_folder_basename,
+    resolve_native_bridge_folder_basename,
     uses_semantic_bridge_dir,
 )
 
@@ -166,3 +168,77 @@ def test_collect_programming_style_sources() -> None:
         sources = collect_programming_style_sources(ws)
         assert sources["本包登记信息.json"] == "法国人"
         assert sources["本包代码组合.json"] == "法国人"
+
+
+def test_resolve_native_bridge_folder_basename_prefers_native_shell_dir() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        ws = Path(tmp)
+        (ws / "本包登记信息.json").write_text(
+            json.dumps(
+                {
+                    "codeAntiCorrelation": {
+                        "dartCodePrefix": "turcd",
+                        "programmingStyle": "法国人",
+                        "nativeShellDir": "ty_bridge_shell_do",
+                    }
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        assert resolve_native_bridge_folder_basename(ws, "法国人", "turcd") == "ty_bridge_shell_do"
+
+
+def test_apply_architecture_folder_rename_from_template() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        ws = Path(tmp)
+        app = ws / "ios" / "Seriyy"
+        models = app / "turcd_ember_pulse" / "turcd_ember_pulse_leaf"
+        models.mkdir(parents=True)
+        (models / "WebContentSource.swift").write_text("// stub", encoding="utf-8")
+        (ws / "本包登记信息.json").write_text(
+            json.dumps(
+                {
+                    "appName": "Seriyy",
+                    "packType": "h5_swift_shell",
+                    "shellRuntime": "swift",
+                    "codeAntiCorrelation": {
+                        "dartCodePrefix": "turcd",
+                        "programmingStyle": "法国人",
+                        "architectureFolders": {
+                            "models": {
+                                "folderBasename": "turcd_flux_pulse",
+                                "stubBasename": "turcd_dock_wave_anchor",
+                            }
+                        },
+                    },
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        changed = apply_native_architecture_folder_rename(ws, prefix="turcd", app_name="Seriyy")
+        assert changed
+        assert (app / "turcd_flux_pulse" / "turcd_dock_wave_anchor" / "WebContentSource.swift").is_file()
+        assert not (app / "turcd_ember_pulse").is_dir()
+
+
+def test_apply_replacements_handles_static_func_signatures() -> None:
+    from batch.native_shell_obfuscation import _apply_replacements
+
+    replacements = {
+        "static func install()": "static func ddclinstallDeflavorBi()",
+        "static func apply(to webView: WKWebView)": (
+            "static func ptbdapplyDeflavorCl(to webView: WKWebView)"
+        ),
+    }
+    source = "\n".join(
+        [
+            "    static func install() {",
+            "    static func apply(to webView: WKWebView) {",
+        ]
+    )
+    out = _apply_replacements(source, replacements)
+    assert "static func install()" not in out
+    assert "ddclinstallDeflavorBi()" in out
+    assert "ptbdapplyDeflavorCl(to webView: WKWebView)" in out

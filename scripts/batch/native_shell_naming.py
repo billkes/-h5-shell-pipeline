@@ -24,13 +24,24 @@ FORBIDDEN_SEMANTIC_NATIVE_DIRS = frozenset(
     {"Bridge", "Modules", "WebContent", "WebView"}
 )
 
+# swift_shell 模板 MVP 默认架构目录（lock.dimensions 生成名不同，须对齐）
+_SWIFT_SHELL_TEMPLATE_ROLE_DIRS: dict[str, tuple[str, str]] = {
+    "models": ("ember_pulse", "ember_pulse_leaf"),
+    "views": ("quill_dock", "quill_dock_leaf"),
+    "presenters": ("pulse_mesh", "pulse_mesh_leaf"),
+    "controllers": ("pulse_mesh", "pulse_mesh_leaf"),
+    "viewmodels": ("pulse_mesh", "pulse_mesh_leaf"),
+}
+
 __all__ = [
     "STANDARD_BRIDGE_PERSONAS",
+    "apply_native_architecture_folder_rename",
     "apply_native_bridge_folder_rename",
     "build_native_shell_naming_prompt_block",
     "collect_native_shell_naming_violations",
     "collect_programming_style_sources",
     "native_bridge_folder_basename",
+    "resolve_native_bridge_folder_basename",
     "uses_semantic_bridge_dir",
 ]
 
@@ -46,6 +57,25 @@ def native_bridge_folder_basename(persona: str, prefix: str) -> str:
     if not re.fullmatch(r"[a-z]{4,6}", p):
         return "Bridge"
     return f"{p}_shell"
+
+
+def resolve_native_bridge_folder_basename(
+    workspace: Path,
+    persona: str,
+    prefix: str,
+) -> str:
+    """Prefer persisted nativeShellDir after obfuscation; else {prefix}_shell."""
+    ws = workspace.resolve()
+    for name in ("本包登记信息.json", "本包代码组合.json"):
+        data = _read_json(ws / name)
+        if not data:
+            continue
+        cac = data.get("codeAntiCorrelation")
+        if isinstance(cac, dict):
+            native_dir = str(cac.get("nativeShellDir") or "").strip()
+            if native_dir:
+                return native_dir
+    return native_bridge_folder_basename(persona, prefix)
 
 
 def _read_json(path: Path) -> dict[str, Any] | None:
@@ -232,6 +262,73 @@ def _collect_architecture_folder_violations(
     return issues
 
 
+def apply_native_architecture_folder_rename(
+    workspace: Path,
+    *,
+    prefix: str = "",
+    app_name: str = "",
+    runtime: str = "swift",
+) -> list[str]:
+    """Rename swift_shell template role dirs → architectureFolders lock names."""
+    ws = workspace.resolve()
+    prefix = (prefix or prefix_from_workspace(ws)).strip()
+    if not prefix:
+        return []
+
+    combo = _read_json(ws / "本包代码组合.json") or {}
+    reg = _read_json(ws / "本包登记信息.json") or {}
+    cac = reg.get("codeAntiCorrelation")
+    lock_payload: dict[str, Any] = dict(combo)
+    if isinstance(cac, dict):
+        lock_payload.setdefault("architectureFolders", cac.get("architectureFolders"))
+    folders = architecture_folders_from_lock(lock_payload)
+    if not folders:
+        return []
+
+    app = (app_name or _resolve_app_name(ws)).strip()
+    app_dir = native_app_dir(ws, app_name=app, runtime=runtime)
+    if app_dir is None:
+        return []
+
+    changed: list[str] = []
+    for role, entry in folders.items():
+        tpl = _SWIFT_SHELL_TEMPLATE_ROLE_DIRS.get(role)
+        if not tpl or not isinstance(entry, dict):
+            continue
+        folder_suffix, leaf_suffix = tpl
+        locked_folder = str(entry.get("folderBasename") or "").strip()
+        locked_leaf = str(entry.get("stubBasename") or "").strip()
+        if not locked_folder:
+            continue
+
+        src_folder = app_dir / f"{prefix}_{folder_suffix}"
+        dest_folder = app_dir / locked_folder
+        if src_folder.is_dir() and src_folder != dest_folder:
+            if dest_folder.exists():
+                raise FileExistsError(
+                    f"无法重命名 `{src_folder.name}/`：目标已存在 `{dest_folder.name}/`"
+                )
+            src_folder.rename(dest_folder)
+            changed.append(
+                f"dir: {src_folder.relative_to(ws)} → {dest_folder.relative_to(ws)}"
+            )
+        role_root = dest_folder if dest_folder.is_dir() else src_folder
+        if not role_root.is_dir() or not locked_leaf:
+            continue
+        src_leaf = role_root / f"{prefix}_{leaf_suffix}"
+        dest_leaf = role_root / locked_leaf
+        if src_leaf.is_dir() and src_leaf != dest_leaf:
+            if dest_leaf.exists():
+                raise FileExistsError(
+                    f"无法重命名 `{src_leaf.name}/`：目标已存在 `{dest_leaf.name}/`"
+                )
+            src_leaf.rename(dest_leaf)
+            changed.append(
+                f"dir: {src_leaf.relative_to(ws)} → {dest_leaf.relative_to(ws)}"
+            )
+    return changed
+
+
 def _resolve_app_name(workspace: Path) -> str:
     for name in ("本包登记信息.json", "register.json"):
         path = workspace / name
@@ -271,7 +368,11 @@ def native_app_dir(workspace: Path, *, app_name: str = "", runtime: str = "") ->
     return candidate if candidate.is_dir() else None
 
 
-def collect_native_shell_naming_violations(workspace: Path) -> list[str]:
+def collect_native_shell_naming_violations(
+    workspace: Path,
+    *,
+    strict_semantic: bool = False,
+) -> list[str]:
     """Flag Bridge/persona/layout naming issues for native H5 shells."""
     ws = workspace.resolve()
     reg_path = ws / "本包登记信息.json"
@@ -307,7 +408,7 @@ def collect_native_shell_naming_violations(workspace: Path) -> list[str]:
     if app_dir is None:
         return issues
 
-    expected = native_bridge_folder_basename(persona, prefix)
+    expected = resolve_native_bridge_folder_basename(ws, persona, prefix)
 
     if runtime == "swift":
         for bad in sorted(FORBIDDEN_SEMANTIC_NATIVE_DIRS):
@@ -349,7 +450,15 @@ def collect_native_shell_naming_violations(workspace: Path) -> list[str]:
     try:
         from batch.native_shell_obfuscation import collect_native_semantic_violations
 
-        issues.extend(collect_native_semantic_violations(ws))
+        reg_data = _read_json(ws / "本包登记信息.json") or {}
+        cac = reg_data.get("codeAntiCorrelation")
+        native_dir = (
+            str(cac.get("nativeShellDir") or "").strip()
+            if isinstance(cac, dict)
+            else ""
+        )
+        if strict_semantic or native_dir:
+            issues.extend(collect_native_semantic_violations(ws))
     except OSError:
         pass
 
