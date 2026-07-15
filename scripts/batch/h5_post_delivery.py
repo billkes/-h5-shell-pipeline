@@ -203,6 +203,13 @@ def run_post_delivery(workspace: Path, *, fix: bool, sync_dev_url: bool) -> tupl
         issues.extend(verify_h5_layout_contract(ws))
     except OSError:
         pass
+    try:
+        from batch.h5_visual_lock_gate import collect_h5_visual_lock_violations
+
+        app_name = str(_read_registration(ws).get("appName") or ws.name.split("-")[0] or "").strip()
+        issues.extend(collect_h5_visual_lock_violations(ws, app_name))
+    except OSError:
+        pass
     return fixes, issues
 
 
