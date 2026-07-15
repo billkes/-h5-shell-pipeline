@@ -281,7 +281,10 @@ def _apply_replacements(text: str, replacements: dict[str, str]) -> str:
     ordered = sorted(replacements.items(), key=lambda kv: len(kv[0]), reverse=True)
     out = text
     for old, new in ordered:
-        out = re.sub(rf"\b{re.escape(old)}\b", new, out)
+        if re.search(r"\W", old):
+            out = out.replace(old, new)
+        else:
+            out = re.sub(rf"\b{re.escape(old)}\b", new, out)
     return out
 
 
