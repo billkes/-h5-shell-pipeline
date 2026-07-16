@@ -122,3 +122,5 @@ def test_sync_default_seed_stub_creates_file(tmp_path: Path) -> None:
     text = path.read_text(encoding="utf-8")
     assert "demo_bootstrap_v1" in text
     assert "ensureBootstrapData" in text
+    assert "title:" in text
+    assert "Sample Rehearsal" in text
