@@ -603,6 +603,153 @@
       "registeredAt": "2026-07-16",
       "batchId": "TEST-0714",
       "usedAt": "2026-07-16"
+    },
+    {
+      "appName": "Meowio",
+      "fullName": "Meowio - Purr & Paws",
+      "themeAngle": "Theme: 虚拟猫咪三态评分养成; Track: 休闲游戏; Audience: 年轻爱猫用户; Core scene: 离线猫咪陪伴互动; Local feature: 三态评分与麦克风学舌",
+      "appSlug": "meowio",
+      "bundleId": "test.duckegg.ios",
+      "teamId": "995HYU84B7",
+      "provisioningProfile": "duckeggkaifaProfile",
+      "packType": "h5_swift_shell",
+      "shellRuntime": "swift",
+      "h5VaultPattern": "h5_modular_css",
+      "h5VaultLayout": "assets_images_flat",
+      "h5SourceRoot": "h5/",
+      "h5SiteUploadRoot": "h5_site/",
+      "h5SiteRoot": "h5_site/meowio/",
+      "h5SiteEntry": "index.html",
+      "bundleEntryPath": "h5_site/meowio/index.html",
+      "h5BuildCommand": "npm run build:deploy",
+      "h5EntryUrl": "http://192.168.11.74:5174/",
+      "h5EntryUrlDev": "http://192.168.11.74:5174/",
+      "h5EntryUrlProd": "https://test.darin.beauty/meowio/",
+      "launchPlaceholderAsset": "native:Assets.xcassets/launch_placeholder.imageset/launch_placeholder.png",
+      "assetScheme": "meowio-asset",
+      "bridgeDeckSelections": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "WKScriptMessageHandler.postMessage(JSON)",
+        "bridgeCallbackStyle": "evaluateJavaScript(callbackId(data))",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "WKURLSchemeHandler local vault",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentStart"
+      },
+      "bridgeCapabilities": [
+        "shellReady",
+        "readFile",
+        "writeFile",
+        "pickImage",
+        "saveImage",
+        "startRecording",
+        "stopRecording",
+        "purchase",
+        "restorePurchases",
+        "getProducts",
+        "mediaServe",
+        "openLegal"
+      ],
+      "kitDeckSelections": {
+        "kitAtomSet": "press/entry/pill/panel/header/overlay",
+        "kitCssMethodology": "Functional",
+        "kitAtomGranularity": "mid-level-14",
+        "kitDomShape": "text-only",
+        "kitJsPattern": "module-iife",
+        "kitJsNamespace": "{Prefix}.ui.*",
+        "kitStorageAdapter": "wrapper-store",
+        "kitMotionApproach": "css-only-active",
+        "h5StateModel": "event-bus-driven",
+        "h5RouterPattern": "hash-router",
+        "h5ScreenPattern": "template-clone"
+      },
+      "kitJsNamespaceResolved": "Nwmkh.ui",
+      "codeAntiCorrelation": {
+        "dartCodePrefix": "nwmkh",
+        "namingStyle": "screen_suffix",
+        "folderStyle": "by_feature",
+        "architecture": "layered",
+        "stateManagement": "bloc",
+        "codeOrganization": "fine_grained",
+        "fileNaming": "pascal_case",
+        "importStyle": "relative",
+        "constantsLayout": "single_file",
+        "iapModuleName": "GemStore",
+        "reportModuleName": "ContentReportService",
+        "constantsModuleName": "ThemeConfig",
+        "networkLayerName": "ApiService",
+        "routeCoordinatorName": "RouteRegistry",
+        "utilityHelperName": "ValidationUtils",
+        "architectureFolders": {
+          "views": {
+            "role": "views",
+            "folderSuffix": "sage_path",
+            "folderBasename": "nwmkh_sage_path",
+            "stubBasename": "nwmkh_ember_wave_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "interactors": {
+            "role": "interactors",
+            "folderSuffix": "mint_flow",
+            "folderBasename": "nwmkh_mint_flow",
+            "stubBasename": "nwmkh_flux_mesh_anchor",
+            "stubClassSuffix": "Interactor"
+          },
+          "presenters": {
+            "role": "presenters",
+            "folderSuffix": "prism_unit",
+            "folderBasename": "nwmkh_prism_unit",
+            "stubBasename": "nwmkh_arc_slot_anchor",
+            "stubClassSuffix": "Presenter"
+          },
+          "entities": {
+            "role": "entities",
+            "folderSuffix": "arc_slot_31",
+            "folderBasename": "nwmkh_arc_slot_31",
+            "stubBasename": "nwmkh_drift_lane_anchor",
+            "stubClassSuffix": "Entity"
+          },
+          "routers": {
+            "role": "routers",
+            "folderSuffix": "dock_path",
+            "folderBasename": "nwmkh_dock_path",
+            "stubBasename": "nwmkh_prism_slot_anchor",
+            "stubClassSuffix": "Router"
+          }
+        },
+        "programmingStyle": "美国人",
+        "architecturePattern": "viper",
+        "csvStateManagement": "Bloc",
+        "csvArchitecturePattern": "VIPER",
+        "namingObfuscationRule": "辅音核心策略",
+        "namingRuleMeta": {
+          "ruleKey": "consonant_core",
+          "packageSeed": "nwmkh",
+          "affix": "prefix",
+          "lengthRange": [
+            2,
+            4
+          ],
+          "joinStyles": {
+            "class": "pascal",
+            "record": "pascal",
+            "method": "camel",
+            "field": "camel",
+            "param": "camel",
+            "local": "camel",
+            "enum_value": "camel",
+            "file": "snake",
+            "folder": "snake"
+          },
+          "batchId": "TEST-0714",
+          "namingObfuscationRule": "辅音核心策略"
+        }
+      },
+      "name": "Meowio",
+      "description": "Theme: 虚拟猫咪三态评分养成; Track: 休闲游戏; Audience: 年轻爱猫用户; Core scene: 离线猫咪陪伴互动; Local feature: 三态评分与麦克风学舌; Product flow: Sanctuary stage with SVG cat rig and hotspot touch reactions (feed fish / tease wand / chin rub / stroke fur) plus hunger joy stamina bars; real-time mic dB analysis triggers meow or startle responses; polaroid studio captures current pose with dated frame and photo-wall gallery; album picker fur-color histogram match score; daily quest streak with coin rewards and health milestone diary; StoreKit 2 VIP pass + consumable coin packs with Restore Purchases; breed skin grid (orange/ragdoll/British/cow) and outfit accessory layers.",
+      "registeredAt": "2026-07-16",
+      "batchId": "TEST-0714",
+      "usedAt": "2026-07-16"
     }
   ],
   "entries": []

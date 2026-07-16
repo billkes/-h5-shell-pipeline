@@ -1830,6 +1830,48 @@
           "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Meowio-Swift/Meowio"
         }
       ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-16_12-10-20-62505",
+      "startedAt": "2026-07-16 12:10:20",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Meowio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Meowio",
+          "packType": "h5_swift_shell",
+          "container": "Meowio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Meowio-Swift/Meowio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0714",
+      "stamp": "2026-07-16_12-12-48-64820",
+      "startedAt": "2026-07-16 12:12:48",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Meowio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Meowio",
+          "packType": "h5_swift_shell",
+          "container": "Meowio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Meowio-Swift/Meowio"
+        }
+      ]
     }
   ]
 }
