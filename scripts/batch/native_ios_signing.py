@@ -39,7 +39,7 @@ def _yaml_key_pattern(key: str) -> str:
     return rf"^(\s*{re.escape(display)}\s*:\s*).*$"
 
 
-def _yaml_format_value(value: str) -> str:
+def _yaml_format_value(value: str, *, key: str = "") -> str:
     value = value.strip()
     if not value:
         return '""'
@@ -47,9 +47,28 @@ def _yaml_format_value(value: str) -> str:
         return '""'
     if value[0] in {'"', "'"}:
         return value
+    if "PROVISIONING_PROFILE" in key:
+        return json.dumps(value)
     if re.fullmatch(r"[A-Za-z0-9._-]+", value):
         return value
     return json.dumps(value)
+
+
+def _normalize_project_yml_signing(text: str) -> str:
+    """Repair split-line signing keys produced by partial YAML patches."""
+    text = re.sub(
+        r'("DEVELOPMENT_TEAM\[sdk=iphoneos\*\]":)\s*\n\s*([A-Z0-9]{10})',
+        r"\1 \2",
+        text,
+        flags=re.MULTILINE,
+    )
+    text = re.sub(
+        r'("PROVISIONING_PROFILE_SPECIFIER\[sdk=iphoneos\*\]":)\s*\n\s*([A-Za-z0-9_]+)',
+        r'\1 "\2"',
+        text,
+        flags=re.MULTILINE,
+    )
+    return text
 
 
 def _patch_project_yml_signing(
@@ -61,7 +80,7 @@ def _patch_project_yml_signing(
 ) -> bool:
     """Patch workspace-root project.yml Manual signing fields from registration."""
     original = project_yml.read_text(encoding="utf-8", errors="replace")
-    text = original
+    text = _normalize_project_yml_signing(original)
     pairs: list[tuple[str, str]] = [("CODE_SIGN_STYLE", "Manual")]
     if bundle_id:
         pairs.append(("PRODUCT_BUNDLE_IDENTIFIER", bundle_id))
@@ -73,7 +92,7 @@ def _patch_project_yml_signing(
         pairs.append(("PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]", profile))
 
     for key, raw_val in pairs:
-        val = _yaml_format_value(raw_val)
+        val = _yaml_format_value(raw_val, key=key)
         pattern = _yaml_key_pattern(key)
         if re.search(pattern, text, flags=re.MULTILINE):
             text = re.sub(pattern, rf"\g<1>{val}", text, flags=re.MULTILINE)
