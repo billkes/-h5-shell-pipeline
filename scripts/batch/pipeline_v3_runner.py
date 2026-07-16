@@ -386,6 +386,26 @@ class V3StepRunner:
         )
         if ok and is_native_ios_runtime(ctx.pack_type):
             try:
+                from batch.csv_naming import repair_naming_rule_meta_ledgers
+
+                for msg in repair_naming_rule_meta_ledgers(
+                    ctx.workspace, batch_id=self.p._batch_id()
+                ):
+                    print(f">>> build.agent: {msg}")
+            except OSError as exc:
+                print(f">>> build.agent: naming meta repair skipped: {exc}")
+            try:
+                from batch.h5_shell_placeholders import prefix_from_workspace
+                from batch.native_shell_naming import apply_native_architecture_folder_rename
+
+                prefix = prefix_from_workspace(ctx.workspace)
+                for rel in apply_native_architecture_folder_rename(
+                    ctx.workspace, prefix=prefix, app_name=ctx.name
+                ):
+                    print(f">>> build.agent: architecture rename → {rel}")
+            except (FileExistsError, OSError) as exc:
+                print(f">>> build.agent: architecture rename skipped: {exc}")
+            try:
                 from batch.native_shell_obfuscation import apply_native_shell_obfuscation
 
                 for rel in apply_native_shell_obfuscation(ctx.workspace, app_name=ctx.name):
