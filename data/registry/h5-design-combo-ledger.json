@@ -141,6 +141,54 @@
         "chart"
       ],
       "pageOverrideCount": 0
+    },
+    "Letioo": {
+      "batchId": "TEST-0714",
+      "fingerprintKey": "0b272c7b2c9004da",
+      "visualFingerprint": {
+        "primary": "#4f46e5",
+        "accent": "#16a34a",
+        "background": "#eef2ff",
+        "heading": "eb garamond",
+        "body": "crimson text",
+        "pattern": "horizontal scroll journey",
+        "style": "claymorphism (mobile)",
+        "category": "feature flag / config management"
+      },
+      "candidateId": "c3",
+      "style": "Claymorphism (Mobile)",
+      "category": "Feature Flag / Config Management",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web",
+        "chart"
+      ],
+      "pageOverrideCount": 0
+    },
+    "Meowio": {
+      "batchId": "TEST-0714",
+      "fingerprintKey": "b489ad93e702c59f",
+      "visualFingerprint": {
+        "primary": "#1e3a5f",
+        "accent": "#a16207",
+        "background": "#f8fafc",
+        "heading": "outfit",
+        "body": "outfit",
+        "pattern": "app store style landing",
+        "style": "feature-rich showcase",
+        "category": "mood tracker"
+      },
+      "candidateId": "c1",
+      "style": "Feature-Rich Showcase",
+      "category": "Mood Tracker",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web",
+        "chart"
+      ],
+      "pageOverrideCount": 0
     }
   },
   "fingerprints": {
@@ -150,6 +198,7 @@
     "0260f40ca145db0d": "Teavoo",
     "e3b6c0f576fee128": "Rolioo",
     "e46fa3726bb3263f": "Dawnii",
-    "b489ad93e702c59f": "Seriyy"
+    "b489ad93e702c59f": "Meowio",
+    "0b272c7b2c9004da": "Letioo"
   }
 }

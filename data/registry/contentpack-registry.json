@@ -469,6 +469,140 @@
       "registeredAt": "2026-07-15",
       "batchId": "TEST-0714",
       "usedAt": "2026-07-15"
+    },
+    {
+      "appName": "Letioo",
+      "fullName": "Letioo - Velvet & Spell",
+      "themeAngle": "Theme: Letter Brew 字母调酒拼词; Track: 教育娱乐; Audience: 欧洲年轻学习者; Core scene: 字母气泡拼词调酒; Local feature: Mood稀有度配方评分",
+      "appSlug": "letioo",
+      "bundleId": "test.duckegg.ios",
+      "teamId": "995HYU84B7",
+      "provisioningProfile": "duckeggkaifaProfile",
+      "packType": "h5_swift_shell",
+      "shellRuntime": "swift",
+      "h5VaultPattern": "h5_modular_css",
+      "h5VaultLayout": "assets_media_split",
+      "h5SourceRoot": "h5/",
+      "h5SiteUploadRoot": "h5_site/",
+      "h5SiteRoot": "h5_site/letioo/",
+      "h5SiteEntry": "index.html",
+      "bundleEntryPath": "h5_site/letioo/index.html",
+      "h5BuildCommand": "npm run build:deploy",
+      "h5EntryUrl": "http://192.168.11.74:5174/",
+      "h5EntryUrlDev": "http://192.168.11.74:5174/",
+      "h5EntryUrlProd": "https://test.darin.beauty/letioo/",
+      "launchPlaceholderAsset": "native:Assets.xcassets/launch_placeholder.imageset/launch_placeholder.png",
+      "assetScheme": "letioo-asset",
+      "bridgeDeckSelections": {
+        "webviewEngine": "IG 9:16 poster export",
+        "bridgeCallStyle": "custom cup themes.",
+        "bridgeCallbackStyle": "wkwebview_swift",
+        "bridgeEnvelope": "WKScriptMessageHandler.postMessage(JSON)",
+        "mediaServe": "evaluateJavaScript(callbackId(data))",
+        "bridgeErrorCode": "{action,data} minimal",
+        "bridgeInjectTiming": "WKURLSchemeHandler local vault"
+      },
+      "bridgeCapabilities": [
+        "shellReady",
+        "readFile",
+        "writeFile",
+        "startRecording",
+        "stopRecording",
+        "pickImage",
+        "takePhoto",
+        "saveImage",
+        "purchase",
+        "restorePurchases",
+        "mediaServe",
+        "openLegal"
+      ],
+      "kitDeckSelections": {
+        "kitAtomSet": "string enum (PERMISSION_DENIED)",
+        "kitCssMethodology": "WKUserScript atDocumentStart",
+        "kitAtomGranularity": "press/entry/pill/panel/header/overlay",
+        "kitDomShape": "Utility-first",
+        "kitJsPattern": "atomic-heavy-30",
+        "kitJsNamespace": "wrapper-div",
+        "kitStorageAdapter": "class-based",
+        "kitMotionApproach": "{Prefix}.ui.*",
+        "h5StateModel": "proxy-auto-persist",
+        "h5RouterPattern": "no-motion",
+        "h5ScreenPattern": "imperative-dom"
+      },
+      "kitJsNamespaceResolved": "Gcurc.ui",
+      "codeAntiCorrelation": {
+        "dartCodePrefix": "gcurc",
+        "namingStyle": "screen_suffix",
+        "folderStyle": "by_feature",
+        "architecture": "layered",
+        "stateManagement": "getx",
+        "codeOrganization": "fine_grained",
+        "fileNaming": "pascal_case",
+        "importStyle": "relative",
+        "constantsLayout": "scattered",
+        "iapModuleName": "TokenService",
+        "reportModuleName": "FeedbackReportService",
+        "constantsModuleName": "AppConstants",
+        "networkLayerName": "HttpClient",
+        "routeCoordinatorName": "NavigationHandler",
+        "utilityHelperName": "FormatHelper",
+        "architectureFolders": {
+          "models": {
+            "role": "models",
+            "folderSuffix": "open_pulse",
+            "folderBasename": "gcurc_open_pulse",
+            "stubBasename": "gcurc_quill_unit_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "views": {
+            "role": "views",
+            "folderSuffix": "quill_strip",
+            "folderBasename": "gcurc_quill_strip",
+            "stubBasename": "gcurc_open_node_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "viewmodels": {
+            "role": "viewmodels",
+            "folderSuffix": "open_strip",
+            "folderBasename": "gcurc_open_strip",
+            "stubBasename": "gcurc_prism_path_anchor",
+            "stubClassSuffix": "ViewModel"
+          }
+        },
+        "programmingStyle": "英国人",
+        "architecturePattern": "mvvm",
+        "csvStateManagement": "GetX",
+        "csvArchitecturePattern": "MVVM",
+        "namingObfuscationRule": "元音桥接策略",
+        "namingRuleMeta": {
+          "ruleKey": "vowel_bridge",
+          "packageSeed": "gcurc",
+          "affix": "infix",
+          "lengthRange": [
+            2,
+            3
+          ],
+          "joinStyles": {
+            "class": "pascal",
+            "record": "pascal",
+            "method": "camel",
+            "field": "camel",
+            "param": "camel",
+            "local": "camel",
+            "enum_value": "camel",
+            "file": "snake",
+            "folder": "snake"
+          },
+          "batchId": "TEST-0714",
+          "alphabet": "aeiou",
+          "namingObfuscationRule": "元音桥接策略"
+        }
+      },
+      "name": "Letioo",
+      "description": "Theme: Letter Brew 字母调酒拼词; Track: 教育娱乐; Audience: 欧洲年轻学习者; Core scene: 字母气泡拼词调酒; Local feature: Mood稀有度配方评分; Product flow: Select Mood (Chill/Glow/Focus/Velvet); tap letter bubbles into the glass cup to spell words; mix and validate against offline dictionary with Common/Rare/Epic scoring; unlock flip recipe cards in Book filtered by Mood/language/rarity; Daily 60s timed challenge with streak tracking and signature word; Studio for pronunciation check, IG 9:16 poster export, custom cup themes.",
+      "registeredAt": "2026-07-16",
+      "batchId": "TEST-0714",
+      "usedAt": "2026-07-16"
     }
   ],
   "entries": []

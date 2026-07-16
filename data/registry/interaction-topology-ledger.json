@@ -19,6 +19,16 @@
       "topologyId": "T3_timeline",
       "label": "Timeline journey",
       "batchId": "TEST-0714"
+    },
+    "Letioo": {
+      "topologyId": "T4_wizard",
+      "label": "Wizard pipeline",
+      "batchId": "TEST-0714"
+    },
+    "Meowio": {
+      "topologyId": "T5_workspace",
+      "label": "Single workspace",
+      "batchId": "TEST-0714"
     }
   },
   "batchUsage": {
@@ -26,8 +36,11 @@
       "T1_dashboard",
       "T2_capture_first",
       "T3_timeline",
+      "T4_wizard",
+      "T5_workspace",
       "T6_checklist_session",
-      "T7_compare_board"
+      "T7_compare_board",
+      "T8_reminder_ring"
     ]
   }
 }
