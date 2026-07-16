@@ -385,6 +385,13 @@ class V3StepRunner:
             log_section_title=f"{ctx.name} · Build Agent · 蓝图 + 实现",
         )
         if ok and is_native_ios_runtime(ctx.pack_type):
+            try:
+                from batch.native_shell_obfuscation import apply_native_shell_obfuscation
+
+                for rel in apply_native_shell_obfuscation(ctx.workspace, app_name=ctx.name):
+                    print(f">>> build.agent: native obfuscation → {rel}")
+            except (FileNotFoundError, ValueError, OSError) as exc:
+                print(f">>> build.agent: native obfuscation skipped: {exc}")
             shell_ok, issues = self._check_native_shell(ctx)
             if not shell_ok:
                 update_state_fields(
@@ -742,6 +749,13 @@ class V3StepRunner:
         ws = ctx.workspace
         runtime = h5_shell_runtime(ctx.pack_type)
         issues: list[str] = []
+        try:
+            from batch.native_ios_signing import sync_workspace_ios_signing_from_registration
+
+            for msg in sync_workspace_ios_signing_from_registration(ws, app_name=ctx.name):
+                print(f">>> native.check: {msg}")
+        except OSError as exc:
+            print(f">>> native.check: signing sync failed: {exc}")
         from batch.native_shell_apply import find_xcode_projects
 
         xcode_projects = find_xcode_projects(ws)
