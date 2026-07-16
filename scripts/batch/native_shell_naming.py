@@ -27,11 +27,13 @@ FORBIDDEN_SEMANTIC_NATIVE_DIRS = frozenset(
 # swift_shell 模板 MVP 默认架构目录（lock.dimensions 生成名不同，须对齐）
 _SWIFT_SHELL_TEMPLATE_ROLE_DIRS: dict[str, tuple[str, str]] = {
     "models": ("ember_pulse", "ember_pulse_leaf"),
+    "entities": ("ember_pulse", "ember_pulse_leaf"),
     "views": ("quill_dock", "quill_dock_leaf"),
     "presenters": ("pulse_mesh", "pulse_mesh_leaf"),
     "controllers": ("pulse_mesh", "pulse_mesh_leaf"),
     "viewmodels": ("pulse_mesh", "pulse_mesh_leaf"),
 }
+_STUB_ONLY_ARCH_ROLES = frozenset({"interactors", "routers"})
 
 __all__ = [
     "STANDARD_BRIDGE_PERSONAS",
@@ -291,41 +293,69 @@ def apply_native_architecture_folder_rename(
         return []
 
     changed: list[str] = []
+    claimed_templates: set[tuple[str, str]] = set()
+
     for role, entry in folders.items():
-        tpl = _SWIFT_SHELL_TEMPLATE_ROLE_DIRS.get(role)
-        if not tpl or not isinstance(entry, dict):
+        if not isinstance(entry, dict):
             continue
-        folder_suffix, leaf_suffix = tpl
         locked_folder = str(entry.get("folderBasename") or "").strip()
         locked_leaf = str(entry.get("stubBasename") or "").strip()
         if not locked_folder:
             continue
 
-        src_folder = app_dir / f"{prefix}_{folder_suffix}"
+        tpl = _SWIFT_SHELL_TEMPLATE_ROLE_DIRS.get(role)
+        stub_only = role in _STUB_ONLY_ARCH_ROLES or tpl is None
         dest_folder = app_dir / locked_folder
-        if src_folder.is_dir() and src_folder != dest_folder:
-            if dest_folder.exists():
-                raise FileExistsError(
-                    f"无法重命名 `{src_folder.name}/`：目标已存在 `{dest_folder.name}/`"
+
+        if tpl and tpl not in claimed_templates:
+            folder_suffix, _leaf_suffix = tpl
+            src_folder = app_dir / f"{prefix}_{folder_suffix}"
+            if src_folder.is_dir() and src_folder != dest_folder:
+                if dest_folder.exists():
+                    raise FileExistsError(
+                        f"无法重命名 `{src_folder.name}/`：目标已存在 `{dest_folder.name}/`"
+                    )
+                src_folder.rename(dest_folder)
+                changed.append(
+                    f"dir: {src_folder.relative_to(ws)} → {dest_folder.relative_to(ws)}"
                 )
-            src_folder.rename(dest_folder)
-            changed.append(
-                f"dir: {src_folder.relative_to(ws)} → {dest_folder.relative_to(ws)}"
-            )
-        role_root = dest_folder if dest_folder.is_dir() else src_folder
-        if not role_root.is_dir() or not locked_leaf:
+            claimed_templates.add(tpl)
+        elif stub_only and not dest_folder.is_dir():
+            dest_folder.mkdir(parents=True, exist_ok=True)
+            changed.append(f"mkdir: {dest_folder.relative_to(ws)}")
+
+        role_root = dest_folder if dest_folder.is_dir() else None
+        if role_root is None and tpl and tpl in claimed_templates:
+            folder_suffix, _ = tpl
+            fallback = app_dir / f"{prefix}_{folder_suffix}"
+            if fallback.is_dir():
+                role_root = fallback
+        if role_root is None or not locked_leaf:
             continue
-        src_leaf = role_root / f"{prefix}_{leaf_suffix}"
+
         dest_leaf = role_root / locked_leaf
-        if src_leaf.is_dir() and src_leaf != dest_leaf:
-            if dest_leaf.exists():
-                raise FileExistsError(
-                    f"无法重命名 `{src_leaf.name}/`：目标已存在 `{dest_leaf.name}/`"
+        if tpl:
+            _folder_suffix, leaf_suffix = tpl
+            src_leaf = role_root / f"{prefix}_{leaf_suffix}"
+            if src_leaf.is_dir() and src_leaf != dest_leaf:
+                if dest_leaf.exists():
+                    raise FileExistsError(
+                        f"无法重命名 `{src_leaf.name}/`：目标已存在 `{dest_leaf.name}/`"
+                    )
+                src_leaf.rename(dest_leaf)
+                changed.append(
+                    f"dir: {src_leaf.relative_to(ws)} → {dest_leaf.relative_to(ws)}"
                 )
-            src_leaf.rename(dest_leaf)
-            changed.append(
-                f"dir: {src_leaf.relative_to(ws)} → {dest_leaf.relative_to(ws)}"
-            )
+        elif stub_only:
+            dest_leaf.mkdir(parents=True, exist_ok=True)
+            if not any(dest_leaf.glob("*.swift")):
+                anchor = locked_leaf.replace(f"{prefix}_", "").replace("_anchor", "")
+                stub_name = f"{prefix}_{anchor}_stub.swift"
+                (dest_leaf / stub_name).write_text(
+                    "// Pipeline VIPER architecture anchor stub\nimport Foundation\n",
+                    encoding="utf-8",
+                )
+                changed.append(f"stub: {dest_leaf.relative_to(ws)}/{stub_name}")
     return changed
 
 
