@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from batch.h5_vite_scaffold import substitute_text
+from batch.preview_fidelity_gate import PREVIEW_IMPL_LOCK
 from batch.skill_pages import H5_PAGE_SPECS
 
 TEMPLATE_ROOT = (
@@ -74,7 +75,14 @@ SECTION_CSS_FRAGMENTS: dict[str, tuple[str, ...]] = {
 SPEC_REQUIRED_MARKERS: dict[str, tuple[str, ...]] = {
     "hub": ("kpi-strip", "chip-rail", "empty-state", "cta-primary"),
     "list": ("list-hero", "filter-chips", "list-toolbar", "empty-state", "run-card"),
-    "settings": ("settings-hero", "settings-wallet", "settings-menu"),
+    "settings": (
+        "settings-top",
+        "settings-hero",
+        "wallet-duo",
+        "settings-block",
+        "settings-wallet",
+        "settings-menu",
+    ),
 }
 
 
@@ -146,17 +154,21 @@ def compose_tab_root_vue(
 
     inner = "\n\n      ".join(body_parts)
     overlay = "\n    ".join(overlay_parts)
+    shell_extra = " settings-top" if page_type == "settings" else ""
     rendered = substitute_text(
         shell,
         {
             **values,
             "{{PAGE_TITLE}}": title,
+            "{{PAGE_SHELL_EXTRA_CLASSES}}": shell_extra,
             "{{BODY_SECTIONS}}": inner,
             "{{OVERLAY_SECTIONS}}": overlay,
         },
     )
     script = _render_script(page_type, values)
-    return f"{SCAFFOLD_START}\n{rendered}\n{SCAFFOLD_END}\n{script}"
+    return (
+        f"{PREVIEW_IMPL_LOCK}\n{SCAFFOLD_START}\n{rendered}\n{SCAFFOLD_END}\n{script}"
+    )
 
 
 def collect_css_fragments(section_ids: tuple[str, ...]) -> tuple[str, ...]:

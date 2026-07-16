@@ -1,3 +1,4 @@
+<div class="settings-block">
 <p class="c-{{PREFIX}}-settings-group-label">Wallet</p>
 <nav class="c-{{PREFIX}}-settings-menu" data-{{PREFIX}}-landmark="settings-menu">
   <button class="c-{{PREFIX}}-settings-row" type="button" @click="openStore">
@@ -48,3 +49,4 @@
   <button class="c-{{PREFIX}}-settings-dev" type="button" @click="openPlaza">Dev: Bridge Plaza</button>
   <!-- H5_PLAZA_DEV_ENTRANCE_END -->
 </nav>
+</div>

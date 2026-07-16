@@ -8,6 +8,7 @@ from batch.h5_page_sections import (
     resolve_tab_root_sections,
     verify_tab_root_blueprint,
 )
+from batch.preview_fidelity_gate import PREVIEW_IMPL_LOCK
 
 
 def test_blueprint_covers_all_tab_roots() -> None:
@@ -56,4 +57,8 @@ def test_compose_settings_has_wallet_and_menu() -> None:
     )
     assert "settings-wallet" in vue
     assert "settings-menu" in vue
+    assert "settings-top" in vue
+    assert "wallet-duo" in vue
+    assert "settings-block" in vue
+    assert PREVIEW_IMPL_LOCK in vue.splitlines()[0]
     assert "Coin Store" in vue
