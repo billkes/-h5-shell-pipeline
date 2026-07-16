@@ -6,7 +6,10 @@ import json
 from pathlib import Path
 
 from batch.config import BatchConfig
-from batch.native_ios_signing import collect_native_ios_signing_violations
+from batch.native_ios_signing import (
+    collect_native_ios_signing_violations,
+    sync_workspace_ios_signing_from_registration,
+)
 from batch.xcode_delivery import _patch_ios_app_build_settings
 
 
@@ -107,3 +110,54 @@ def test_collect_native_ios_signing_violations_automatic(tmp_path: Path) -> None
     issues = collect_native_ios_signing_violations(ws)
     assert any("Automatic" in issue for issue in issues)
     assert any("Manual" in issue for issue in issues)
+
+
+def test_sync_workspace_ios_signing_from_registration(tmp_path: Path) -> None:
+    ws = tmp_path / "Letioo"
+    ws.mkdir()
+    pbx = ws / "Letioo.xcodeproj" / "project.pbxproj"
+    _write_min_pbxproj(
+        pbx,
+        style="Automatic",
+        team='""',
+        profile='""',
+        bundle="com.example.old",
+    )
+    (ws / "project.yml").write_text(
+        "\n".join(
+            [
+                "name: Letioo",
+                "targets:",
+                "  Letioo:",
+                "    settings:",
+                "      base:",
+                "        PRODUCT_BUNDLE_IDENTIFIER: com.example.old",
+                "        CODE_SIGN_STYLE: Manual",
+                '        DEVELOPMENT_TEAM: ""',
+                '        "DEVELOPMENT_TEAM[sdk=iphoneos*]": ""',
+                '        PROVISIONING_PROFILE_SPECIFIER: ""',
+                '        "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]": ""',
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (ws / "本包登记信息.json").write_text(
+        json.dumps(
+            {
+                "bundleId": "test.duckegg.ios",
+                "teamId": "995HYU84B7",
+                "provisioningProfile": "duckeggkaifaProfile",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    changes = sync_workspace_ios_signing_from_registration(ws, app_name="Letioo")
+
+    yml = (ws / "project.yml").read_text(encoding="utf-8")
+    assert "995HYU84B7" in yml
+    assert "duckeggkaifaProfile" in yml
+    assert "test.duckegg.ios" in yml
+    assert any("project.yml" in c for c in changes)
+    assert any("pbxproj" in c for c in changes)
+    assert collect_native_ios_signing_violations(ws) == []
