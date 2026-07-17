@@ -17,6 +17,7 @@ IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".webp"})
 # AppIcon / Launch 等编组 A 真图：禁止缩放像素，仅允许保尺寸压缩。
 DIMENSION_LOCKED_NAMES = frozenset(
     {
+        "AppIcon.png",
         "AppIcon-1024.png",
         "launch_placeholder.png",
     }
@@ -122,9 +123,13 @@ def is_dimension_locked_asset(path: Path) -> bool:
     if name not in DIMENSION_LOCKED_NAMES:
         return False
     parent_chain = {p.name for p in path.parents}
-    if name == "AppIcon-1024.png" and "AppIcon.appiconset" in parent_chain:
+    parent_lower = {p.lower() for p in parent_chain}
+    if name in {"AppIcon.png", "AppIcon-1024.png"} and "AppIcon.appiconset" in parent_chain:
         return True
-    if name == "launch_placeholder.png" and "launch_placeholder.imageset" in parent_chain:
+    if name == "launch_placeholder.png" and (
+        "launch_placeholder.imageset" in parent_lower
+        or "LaunchPlaceholder.imageset" in parent_chain
+    ):
         return True
     return False
 
