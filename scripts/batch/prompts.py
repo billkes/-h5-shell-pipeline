@@ -262,51 +262,6 @@ class PromptBuilder:
         )
         return self._prepend_brain(brain, body)
 
-    def _build_agent_unified_intro(
-        self,
-        *,
-        name: str,
-        desc: str,
-        h5_shell: bool = False,
-        shell_runtime: str = "flutter",
-        resume: bool = False,
-        **_: object,
-    ) -> str:
-        runtime = (shell_runtime or "flutter").strip().lower()
-        if h5_shell:
-            part2 = {
-                "flutter": "H5 Flutter shell (WebView + Bridge) — no visible H5 business UI yet",
-                "swift": "H5 native Swift shell (WKWebView + Bridge)",
-                "oc": "H5 native Objective-C shell (WKWebView + Bridge)",
-            }.get(runtime, "H5 native shell (WebView + Bridge)")
-            part3_line = "3. H5 vault / legal / overlay / SPA"
-        else:
-            part2 = "Full Flutter implementation"
-            part3_line = ""
-        resume_block = (
-            "**RESUME:** Previous run interrupted. Inspect workspace checkpoints:\n"
-            "- Part 1 done if 功能文档.md, 视觉蓝图.md, 产包计划.md exist and are substantial\n"
-            "- Part 2 done if native/Flutter shell + lib/ match 产包计划\n"
-            + (
-                "- Part 3 done if `h5/src/` views + router exist (Vite source; deploy via dev.h5.build)\n"
-                if h5_shell
-                else ""
-            )
-            + "Continue from the first incomplete part only."
-            if resume
-            else ""
-        )
-        return self._fmt(
-            self._load("phase_build_agent.txt"),
-            {
-                "name": name,
-                "desc": desc,
-                "RESUME_BLOCK": resume_block,
-                "PART2_LABEL": part2,
-                "PART3_LINE": part3_line,
-            },
-        )
-
     def _build_agent_plan_body(
         self,
         *,
@@ -336,28 +291,24 @@ class PromptBuilder:
         topology_block: str = "",
         preview_tabs_block: str = "",
         resume: bool = False,
-        include_intro: bool = True,
         **_: object,
     ) -> str:
-        intro = ""
-        if include_intro:
-            resume_block = (
-                "**RESUME:** 上次 Agent 超时/失败。计划文档可能已部分存在 — "
-                "仅补全缺失或过短文件，勿重写已完整的产物。"
-                if resume
-                else ""
-            )
-            intro = self._fmt(
-                self._load("phase_build_agent_plan.txt"),
-                {"name": name, "desc": desc, "RESUME_BLOCK": resume_block},
-            )
+        # phase_pm_ui_plan.txt is the merged template (intro + plan body);
+        # filled in one pass — no Python-side concatenation.
+        resume_block = (
+            "**RESUME:** 上次 Agent 超时/失败。计划文档可能已部分存在 — "
+            "仅补全缺失或过短文件，勿重写已完整的产物。"
+            if resume
+            else ""
+        )
         tier = self.free_tier_block(tool_flutter=tool_flutter)
         plan_raw = self._load("phase_pm_ui_plan.txt")
-        plan_body = self._fmt(
+        return self._fmt(
             plan_raw,
             {
                 "name": name,
                 "desc": desc,
+                "RESUME_BLOCK": resume_block,
                 "PRODUCT_REQ_DOC": product_req_doc,
                 "CODE_COMBO_BLOCK": code_combo,
                 "LEGAL_AGREEMENT_BLOCK": legal_agreement_block,
@@ -384,7 +335,6 @@ class PromptBuilder:
                 "PREVIEW_TABS_BLOCK": preview_tabs_block,
             },
         )
-        return intro + "\n\n" + plan_body
 
     def preview_tabs_phase(self, *, resume: bool = False, **kwargs: object) -> str:
         """Lightweight Agent — static Tab preview HTML + preview-canonical.md."""
@@ -417,83 +367,6 @@ class PromptBuilder:
         )
         return self._prepend_brain(brain, body)
 
-    def _build_agent_impl_body(
-        self,
-        *,
-        tool_flutter: bool,
-        name: str,
-        desc: str,
-        dart_name: str,
-        prefix: str,
-        content_list: str,
-        p2_product_doc: str,
-        csv_iap_block: str = "",
-        csv_architecture_block: str = "",
-        csv_programming_style_block: str = "",
-        csv_naming_rule_block: str = "",
-        native_shell_naming_block: str = "",
-        naming_transform_block: str = "",
-        dimension_boundary_block: str = "",
-        p2_video_hint: str = "",
-        h5_shell: bool = False,
-        h5_shell_block_programmer: str = "",
-        resume: bool = False,
-        include_intro: bool = True,
-        **_: object,
-    ) -> str:
-        intro = ""
-        if include_intro:
-            resume_block = (
-                "**RESUME:** 上次实现子步超时/失败。代码可能不完整 — "
-                "在现有 lib/ 基础上继续，勿从零删改已正确的模块。"
-                if resume
-                else ""
-            )
-            intro = self._fmt(
-                self._load("phase_build_agent_impl.txt"),
-                {"name": name, "desc": desc, "RESUME_BLOCK": resume_block},
-            )
-        tier = self.free_tier_block(tool_flutter=tool_flutter)
-        if h5_shell:
-            impl_body = self._fmt(
-                self._load("phase_h5_shell_programmer.txt"),
-                {
-                    "name": name,
-                    "dart_name": dart_name,
-                    "FLUTTER_DART_PREFIX": prefix,
-                    "P2_PRODUCT_DOC": p2_product_doc,
-                    "CSV_IAP_BLOCK": csv_iap_block,
-                    "CSV_ARCHITECTURE_BLOCK": csv_architecture_block,
-                    "CSV_PROGRAMMING_STYLE_BLOCK": csv_programming_style_block,
-                    "CSV_NAMING_RULE_BLOCK": csv_naming_rule_block,
-                    "NAMING_TRANSFORM_BLOCK": naming_transform_block,
-                    "DIMENSION_BOUNDARY_BLOCK": dimension_boundary_block,
-                    "H5_SHELL_BLOCK": h5_shell_block_programmer,
-                },
-            )
-        else:
-            impl_body = self._fmt(
-                self._load("phase_programmer.txt"),
-                {
-                    "dart_name": dart_name,
-                    "name": name,
-                    "FLUTTER_DART_PREFIX": prefix,
-                    "content_list_escaped": content_list,
-                    "P2_PRODUCT_DOC": p2_product_doc,
-                    "CSV_IAP_BLOCK": csv_iap_block,
-                    "CSV_ARCHITECTURE_BLOCK": csv_architecture_block,
-                    "CSV_PROGRAMMING_STYLE_BLOCK": csv_programming_style_block,
-                    "CSV_NAMING_RULE_BLOCK": csv_naming_rule_block,
-                    "NAMING_TRANSFORM_BLOCK": naming_transform_block,
-                    "DIMENSION_BOUNDARY_BLOCK": dimension_boundary_block,
-                    "P2_VIDEO_HINT": p2_video_hint,
-                    "FREE_TIER_BLOCK": tier,
-                    "H5_SHELL_BLOCK": "",
-                    "COMPONENT_KIT_BLOCK": self.component_kit_block(),
-                },
-            )
-        return intro + "\n\n" + impl_body
-
     def _build_agent_shell_body(
         self,
         *,
@@ -512,33 +385,23 @@ class PromptBuilder:
         dimension_boundary_block: str = "",
         h5_shell_block_programmer: str = "",
         resume: bool = False,
-        include_intro: bool = True,
         **_: object,
     ) -> str:
         runtime = (shell_runtime or "flutter").strip().lower()
-        intro = ""
-        if include_intro:
-            resume_block = (
-                "**RESUME:** 上次壳实现子步超时/失败。壳代码可能不完整 — "
-                "在现有 native shell / Flutter shell 基础上继续，勿重做 H5 vault。"
-                if resume
-                else ""
-            )
-            intro = self._fmt(
-                self._load("phase_build_agent_shell.txt"),
-                {
-                    "name": name,
-                    "desc": desc,
-                    "SHELL_RUNTIME": runtime,
-                    "RESUME_BLOCK": resume_block,
-                },
-            )
+        # phase_h5_shell_*_programmer.txt are merged templates (intro + body);
+        # filled in one pass — no Python-side concatenation.
+        resume_block = (
+            "**RESUME:** 上次壳实现子步超时/失败。壳代码可能不完整 — "
+            "在现有 native shell / Flutter shell 基础上继续，勿重做 H5 vault。"
+            if resume
+            else ""
+        )
         template = {
             "flutter": "phase_h5_shell_programmer.txt",
             "swift": "phase_h5_shell_swift_programmer.txt",
             "oc": "phase_h5_shell_oc_programmer.txt",
         }.get(runtime, "phase_h5_shell_programmer.txt")
-        shell_body = self._fmt(
+        return self._fmt(
             self._load(template),
             {
                 "name": name,
@@ -557,9 +420,9 @@ class PromptBuilder:
                 "DIMENSION_BOUNDARY_BLOCK": dimension_boundary_block,
                 "H5_SHELL_BLOCK": h5_shell_block_programmer,
                 "SHELL_RUNTIME": runtime,
+                "RESUME_BLOCK": resume_block,
             },
         )
-        return intro + "\n\n" + shell_body
 
     def _build_agent_h5_body(
         self,
@@ -576,24 +439,20 @@ class PromptBuilder:
         icon_manifest_block: str = "",
         preview_tabs_block: str = "",
         resume: bool = False,
-        include_intro: bool = True,
         **_: object,
     ) -> str:
-        intro = ""
-        if include_intro:
-            resume_block = (
-                "**RESUME:** H5 子步未完成 — 在现有 vault 文件上继续，勿重做 native shell。"
-                if resume
-                else ""
-            )
-            intro = self._fmt(
-                self._load("phase_build_agent_h5.txt"),
-                {"name": name, "desc": desc, "RESUME_BLOCK": resume_block},
-            )
-        h5_body = self._fmt(
+        # phase_h5_implementer.txt is the merged template (intro + body);
+        # filled in one pass — no Python-side concatenation.
+        resume_block = (
+            "**RESUME:** H5 子步未完成 — 在现有 vault 文件上继续，勿重做 native shell。"
+            if resume
+            else ""
+        )
+        return self._fmt(
             self._load("phase_h5_implementer.txt"),
             {
                 "name": name,
+                "desc": desc,
                 "FLUTTER_DART_PREFIX": prefix,
                 "P2_PRODUCT_DOC": p2_product_doc,
                 "H5_SHELL_BLOCK": h5_shell_block,
@@ -603,57 +462,23 @@ class PromptBuilder:
                 "CSS_MOTION_BLOCK": css_motion_block,
                 "ICON_MANIFEST_BLOCK": icon_manifest_block,
                 "PREVIEW_TABS_BLOCK": preview_tabs_block,
+                "RESUME_BLOCK": resume_block,
             },
         )
-        return intro + "\n\n" + h5_body
 
-    def build_agent_phase(self, *, resume: bool = False, **kwargs: object) -> str:
-        """Single Build Agent prompt — plan + impl (+ H5) in one cursor-agent call."""
-        h5 = bool(kwargs.get("h5_shell"))
-        sections: list[str] = [
-            self._build_agent_unified_intro(resume=resume, **kwargs),  # type: ignore[arg-type]
-            "\n\n---\n\n# Part 1 — Plan & design artifacts\n\n",
-            self._build_agent_plan_body(
-                resume=resume, include_intro=False, **kwargs  # type: ignore[arg-type]
-            ),
-            "\n\n---\n\n# Part 2 — Implementation\n\n",
-        ]
-        if h5:
-            sections.append(
-                self._build_agent_shell_body(
-                    resume=resume, include_intro=False, **kwargs  # type: ignore[arg-type]
-                )
-            )
-            sections.append("\n\n---\n\n# Part 3 — H5 Vite source / legal\n\n")
-            sections.append(
-                self._build_agent_h5_body(
-                    resume=resume, include_intro=False, **kwargs  # type: ignore[arg-type]
-                )
-            )
-        else:
-            sections.append(
-                self._build_agent_impl_body(
-                    resume=resume, include_intro=False, **kwargs  # type: ignore[arg-type]
-                )
-            )
-        body = "".join(sections)
-        brain = self.global_brain_block(
-            name=str(kwargs.get("name", "")),
-            role_slug="build-agent",
-            role_focus=_PM_UI_PLAN_BRAIN_FOCUS + " " + _PROGRAMMER_BRAIN_FOCUS,
+    def build_agent_plan_only_phase(self, *, resume: bool = False, **kwargs: object) -> str:
+        """Plan-only Agent prompt — Part 1 (PM + UI + Plan + legal).
+
+        Runs only the plan/design artifacts sub-step (no shell code, no H5
+        vault). Used by the granular ``agent.plan`` V3 step.
+        """
+        body = self._build_agent_plan_body(
+            resume=resume, **kwargs  # type: ignore[arg-type]
         )
-        return self._prepend_brain(brain, body)
-
-    def build_agent_plan_phase(self, *, resume: bool = False, **kwargs: object) -> str:
-        """Legacy alias — prefer ``build_agent_phase`` for V3 single-call pipeline."""
-        return self.build_agent_phase(resume=resume, **kwargs)
-
-    def build_agent_impl_phase(self, *, resume: bool = False, **kwargs: object) -> str:
-        body = self._build_agent_impl_body(resume=resume, **kwargs)  # type: ignore[arg-type]
         brain = self.global_brain_block(
             name=str(kwargs.get("name", "")),
-            role_slug="build-agent-impl",
-            role_focus=_PROGRAMMER_BRAIN_FOCUS,
+            role_slug="build-agent-plan",
+            role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
         )
         return self._prepend_brain(brain, body)
 

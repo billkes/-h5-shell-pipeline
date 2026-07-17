@@ -20,12 +20,13 @@ from batch.pack_type import h5_shell_runtime, is_flutter_runtime, is_h5_shell, i
 from batch.pipeline_gates import verify_pm_ui_plan_outputs, write_plan_gate_report
 from batch.pipeline_steps import (
     ANALYZE,
-    BUILD_AGENT,
+    AGENT_H5,
+    AGENT_PLAN,
+    AGENT_SHELL,
     DEV_H5_BUILD,
     DEV_H5_GATE,
     LOCK_DIMENSIONS,
     PREPARE_CONTEXT,
-    PREVIEW_TABS,
     SKILL_ADAPT,
     SKILL_DESIGN,
     SKILL_ENRICH,
@@ -183,10 +184,10 @@ class V3StepRunner:
             print(f"  [{num}/{total}] 未知步骤 {step_id}")
             return False
 
-        resume_agent = step_id == BUILD_AGENT and not self.p.cfg.force_rerun
+        resume_agent = step_id in (AGENT_PLAN, AGENT_SHELL, AGENT_H5) and not self.p.cfg.force_rerun
 
         try:
-            if step_id == BUILD_AGENT:
+            if step_id in (AGENT_PLAN, AGENT_SHELL, AGENT_H5):
                 ok = handler(self, ctx, resume=resume_agent)
             else:
                 ok = handler(self, ctx)
@@ -270,7 +271,6 @@ class V3StepRunner:
         topology_block = (
             format_topology_block(ws, self.p.cfg.project_dir) if h5 else ""
         )
-        from batch.preview_tabs import format_preview_tabs_block
 
         return {
             "tool_flutter": tool,
@@ -310,7 +310,7 @@ class V3StepRunner:
             ),
             "business_depth_block": business_depth_block,
             "topology_block": topology_block,
-            "preview_tabs_block": format_preview_tabs_block(ws, ctx.name) if h5 else "",
+            "preview_tabs_block": "",
         }
 
     def _step_prepare_context(self, ctx: AppContext) -> bool:
@@ -334,55 +334,33 @@ class V3StepRunner:
     def _step_lock_dimensions(self, ctx: AppContext) -> bool:
         return self.p._run_lock_dimensions(ctx)
 
-    def _step_preview_tabs(self, ctx: AppContext, *, resume: bool = False) -> bool:
-        if not is_h5_shell(ctx.pack_type):
-            return True
-        from batch.cursor_runner import run_agent
-        from batch.preview_tabs import verify_preview_tabs_outputs
-
-        kw = self._agent_pack_context(ctx)
-        prompt = self.p.prompts.preview_tabs_phase(resume=resume, **kw)
-        ok = run_agent(
-            self.p.cfg,
-            ctx.workspace,
-            prompt,
-            log_section_title=f"{ctx.name} · preview.tabs · Tab 明暗预览",
-        )
-        if ok:
-            from batch.preview_tabs import sync_preview_colors_after_tabs
-            from batch.git_ops import repo_root_from_workspace, sync_gitignore_h5_rules
-
-            sync_preview_colors_after_tabs(ctx.workspace, write=True)
-            sync_gitignore_h5_rules(repo_root_from_workspace(ctx.workspace), self.p.cfg.static_dir)
-            issues = verify_preview_tabs_outputs(ctx.workspace, ctx.name)
-            if issues:
-                get_run_log().fail_banner("preview.tabs 产物校验未通过", issues)
-                ok = False
-        return ok
-
     def _step_design_system(self, ctx: AppContext) -> bool:
         return self.p._run_skill_design(ctx)
 
-    def _step_build_agent(self, ctx: AppContext, *, resume: bool = False) -> bool:
+    def _step_agent_plan(self, ctx: AppContext, *, resume: bool = False) -> bool:
+        """Granular agent.plan step — Part 1 only (PM + UI + Plan + legal MDs)."""
         from batch.cursor_runner import run_agent
-        from batch.preview_tabs import verify_preview_tabs_outputs
-
-        if is_h5_shell(ctx.pack_type):
-            issues = verify_preview_tabs_outputs(ctx.workspace, ctx.name)
-            if issues:
-                get_run_log().fail_banner(
-                    "build.agent 硬依赖 preview.tabs 产物",
-                    issues,
-                )
-                return False
 
         kw = self._agent_pack_context(ctx)
-        prompt = self.p.prompts.build_agent_phase(resume=resume, **kw)
+        prompt = self.p.prompts.build_agent_plan_only_phase(resume=resume, **kw)
+        return run_agent(
+            self.p.cfg,
+            ctx.workspace,
+            prompt,
+            log_section_title=f"{ctx.name} · Agent · Plan",
+        )
+
+    def _step_agent_shell(self, ctx: AppContext, *, resume: bool = False) -> bool:
+        """Granular agent.shell step — Part 2 (native/Flutter shell) + native hooks."""
+        from batch.cursor_runner import run_agent
+
+        kw = self._agent_pack_context(ctx)
+        prompt = self.p.prompts.build_agent_shell_phase(resume=resume, **kw)
         ok = run_agent(
             self.p.cfg,
             ctx.workspace,
             prompt,
-            log_section_title=f"{ctx.name} · Build Agent · 蓝图 + 实现",
+            log_section_title=f"{ctx.name} · Agent · Shell",
         )
         if ok and is_native_ios_runtime(ctx.pack_type):
             try:
@@ -391,9 +369,9 @@ class V3StepRunner:
                 for msg in repair_naming_rule_meta_ledgers(
                     ctx.workspace, batch_id=self.p._batch_id()
                 ):
-                    print(f">>> build.agent: {msg}")
+                    print(f">>> agent.shell: {msg}")
             except OSError as exc:
-                print(f">>> build.agent: naming meta repair skipped: {exc}")
+                print(f">>> agent.shell: naming meta repair skipped: {exc}")
             try:
                 from batch.h5_shell_placeholders import prefix_from_workspace
                 from batch.native_shell_naming import apply_native_architecture_folder_rename
@@ -402,56 +380,56 @@ class V3StepRunner:
                 for rel in apply_native_architecture_folder_rename(
                     ctx.workspace, prefix=prefix, app_name=ctx.name
                 ):
-                    print(f">>> build.agent: architecture rename → {rel}")
+                    print(f">>> agent.shell: architecture rename → {rel}")
             except (FileExistsError, OSError) as exc:
-                print(f">>> build.agent: architecture rename skipped: {exc}")
+                print(f">>> agent.shell: architecture rename skipped: {exc}")
             try:
                 from batch.native_shell_obfuscation import apply_native_shell_obfuscation
 
                 for rel in apply_native_shell_obfuscation(ctx.workspace, app_name=ctx.name):
-                    print(f">>> build.agent: native obfuscation → {rel}")
+                    print(f">>> agent.shell: native obfuscation → {rel}")
             except (FileNotFoundError, ValueError, OSError) as exc:
-                print(f">>> build.agent: native obfuscation skipped: {exc}")
+                print(f">>> agent.shell: native obfuscation skipped: {exc}")
             shell_ok, issues = self._check_native_shell(ctx)
             if not shell_ok:
                 update_state_fields(
                     ctx.workspace,
-                    phase_programmer_failure_reason="build.agent 后 native shell 预检未通过",
+                    phase_programmer_failure_reason="agent.shell 后 native shell 预检未通过",
                     phase_programmer_failure_details=issues,
                 )
-                get_run_log().fail_banner("build.agent 后 native shell 预检未通过", issues)
+                get_run_log().fail_banner("agent.shell 后 native shell 预检未通过", issues)
                 ok = False
         if ok:
-            extra: dict[str, str] = {"phase_programmer_agent": "done"}
-            if is_h5_shell(ctx.pack_type):
-                from batch.preview_fidelity_gate import verify_preview_approved_colors
-
-                color_issues = verify_preview_approved_colors(ctx.workspace, ctx.name)
-                if color_issues:
-                    get_run_log().fail_banner(
-                        "build.agent 后 preview-approved-colors 未通过",
-                        color_issues,
-                    )
-                    return False
-                extra["phase_h5_agent"] = "done"
-                from batch.h5_theme_tokens import sync_h5_global_theme
-
-                sync_h5_global_theme(ctx.workspace, write=True)
-            update_state_fields(ctx.workspace, **extra)
+            update_state_fields(ctx.workspace, phase_programmer_agent="done")
         return ok
 
-    def _step_agent_plan(self, ctx: AppContext, *, resume: bool = False) -> bool:
-        """Legacy alias → single build.agent call."""
-        return self._step_build_agent(ctx, resume=resume)
-
-    def _step_agent_impl(self, ctx: AppContext, *, resume: bool = False) -> bool:
-        return self._step_build_agent(ctx, resume=resume)
-
-    def _step_agent_shell(self, ctx: AppContext, *, resume: bool = False) -> bool:
-        return self._step_build_agent(ctx, resume=resume)
-
     def _step_agent_h5(self, ctx: AppContext, *, resume: bool = False) -> bool:
-        return self._step_build_agent(ctx, resume=resume)
+        """Granular agent.h5 step — Part 3 (H5 Vite source / legal / overlay) + h5 hooks."""
+        from batch.cursor_runner import run_agent
+
+        kw = self._agent_pack_context(ctx)
+        prompt = self.p.prompts.build_agent_h5_phase(resume=resume, **kw)
+        ok = run_agent(
+            self.p.cfg,
+            ctx.workspace,
+            prompt,
+            log_section_title=f"{ctx.name} · Agent · H5",
+        )
+        if ok:
+            from batch.preview_fidelity_gate import verify_preview_approved_colors
+
+            color_issues = verify_preview_approved_colors(ctx.workspace, ctx.name)
+            if color_issues:
+                get_run_log().fail_banner(
+                    "agent.h5 后 preview-approved-colors 未通过",
+                    color_issues,
+                )
+                return False
+            from batch.h5_theme_tokens import sync_h5_global_theme
+
+            sync_h5_global_theme(ctx.workspace, write=True)
+            update_state_fields(ctx.workspace, phase_h5_agent="done")
+        return ok
 
     def _step_prepare(self, ctx: AppContext) -> bool:
         """Legacy alias — full plan-phase prep chain."""
@@ -960,8 +938,9 @@ _STEP_HANDLERS = {
     SKILL_PAGES: V3StepRunner._step_skill_pages,
     SKILL_TOKENS: V3StepRunner._step_skill_tokens,
     LOCK_DIMENSIONS: V3StepRunner._step_lock_dimensions,
-    PREVIEW_TABS: V3StepRunner._step_preview_tabs,
-    BUILD_AGENT: V3StepRunner._step_build_agent,
+    AGENT_PLAN: V3StepRunner._step_agent_plan,
+    AGENT_SHELL: V3StepRunner._step_agent_shell,
+    AGENT_H5: V3StepRunner._step_agent_h5,
     PLAN_GATE: V3StepRunner._step_plan_gate,
     DEV_H5_BUILD: V3StepRunner._step_dev_h5_build,
     DEV_H5_GATE: V3StepRunner._step_dev_h5_gate,

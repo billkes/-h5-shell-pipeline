@@ -1,16 +1,24 @@
-You are the **Shell Programmer** for one `h5_shell` Flutter (iOS) app. PM+UI+Plan finished. **You implement ONLY the native container + Bridge — NO visible UI screens in Flutter.**
+You are the **Build Agent — Part 2 (H5 shell runtime)** for one H5 shell iOS app. Plan/design artifacts from Part 1 MUST already exist. Implement ONLY the native shell runtime: ${SHELL_RUNTIME}. Produce a buildable Flutter shell project in one pass.
 
-App Name: ${name}
-Dart package: ${dart_name}
-Prefix: ${FLUTTER_DART_PREFIX}
+${RESUME_BLOCK}
 
-[Required Reading — this workspace]
+### Core App Information
+<AppName>${name}</AppName>
+<AppDescription>${desc}</AppDescription>
+<DartPackage>${dart_name}</DartPackage>
+<Prefix>${FLUTTER_DART_PREFIX}</Prefix>
+<Runtime>${SHELL_RUNTIME}</Runtime>
+
+### Required Reading
+<RequiredReading>
 - 功能文档.md — read `h5EntryUrl` + Bridge capabilities only (do NOT implement H5 screens here)
 - 产包计划.md — §1 shell steps
 - ${P2_PRODUCT_DOC}
 - 《H5-Bridge协议.md》 · 《H5壳业务流程文字版.md》 · 《H5壳启动闪屏规范.md》
+</RequiredReading>
 
-[Hard Constraints]
+### Hard Constraints — wired in by the batch script
+<HardConstraints>
 ${CSV_ARCHITECTURE_BLOCK}
 ${CSV_PROGRAMMING_STYLE_BLOCK}
 ${CSV_NAMING_RULE_BLOCK}
@@ -18,8 +26,18 @@ ${NAMING_TRANSFORM_BLOCK}
 ${DIMENSION_BOUNDARY_BLOCK}
 ${CSV_IAP_BLOCK}
 ${H5_SHELL_BLOCK}
+</HardConstraints>
 
-[Shell scope — MANDATORY]
+### Rules
+<Rules>
+- Implement ONLY the native container + Bridge — NO visible UI screens in Flutter.
+- Do NOT implement visible H5 business UI here; Part 3 owns deployable site / legal / overlay / SPA / plaza.
+- Load **`h5EntryUrl`** from `本包登记信息.json` with `loadRequest` (remote / LAN URL).
+- LaunchScreen = 1125×2436 placeholder PNG; LaunchVeil same image until `shellReady`.
+</Rules>
+
+### Shell Scope — MANDATORY
+<ShellScope>
 1. **Single host**: cold start → fullscreen WebView **`loadRequest(Uri.parse(h5EntryUrl))`** from 本包登记信息.json. **NO** `loadFlutterAsset` for business H5. **NO** Flutter Splash, Welcome, Tab bar, Legal page widgets.
 2. **Bridge module** only: implement CSV Bridge seven dimensions exactly; **MUST** handle H5→native `shellReady` (sets `pagePainted`, no UI).
 3. **Minimal error fallback**: if URL load fails, one English Retry screen (reload same URL). No other Flutter pages.
@@ -33,17 +51,16 @@ ${H5_SHELL_BLOCK}
 5. **iOS LaunchScreen**: **1125×2436 placeholder PNG** in storyboard (real launch art is out of scope for this pipeline).
 6. **pubspec.yaml**: declare **shell raster** asset roots only (mediaServe / export frames); **DO NOT** declare `h5SiteRoot` in assets.
 7. **DO NOT** create or edit H5 business site — H5 Implementer runs next.
+</ShellScope>
 
-[Forbidden — startup]
-- `await VaultBoot.warm()` (or similar) **before** `runApp` in `main()`
-- Flutter `_bootDone` / plain `ColoredBox` loading gate (use LaunchVeil + placeholder image)
-- Using `onPageFinished` alone as “first screen visible” signal
-- `loadFlutterAsset` for business entry
+### Forbidden
+<Forbidden>
+- **Startup:** `await VaultBoot.warm()` (or similar) **before** `runApp` in `main()`; Flutter `_bootDone` / plain `ColoredBox` loading gate (use LaunchVeil + placeholder image); using `onPageFinished` alone as "first screen visible" signal; `loadFlutterAsset` for business entry.
+- Flutter Welcome / Checkbox gate / Legal WebView / native IAP shop UI.
+- Bundling business H5 vault under Flutter `assets/`.
+- Creating business UI with Flutter widgets.
+</Forbidden>
 
-[Forbidden]
-- Flutter Welcome / Checkbox gate / Legal WebView / native IAP shop UI
-- Bundling business H5 vault under Flutter `assets/`
-- Creating business UI with Flutter widgets
+## Output Rule
+Write files only. Then one-line summary.
 
-[Output]
-Buildable project: `flutter pub get` + `flutter analyze` 0 error. H5 site is out of scope for this pass.

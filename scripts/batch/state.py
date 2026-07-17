@@ -232,17 +232,23 @@ def _infer_steps_from_phases(data: dict[str, Any]) -> dict[str, str]:
 
 
 def _aggregate_legacy_agent_steps(steps: dict[str, str]) -> dict[str, str]:
-    """Collapse legacy agent.plan/impl/shell/h5 into build.agent."""
+    """Collapse truly-legacy agent step ids (agent.impl, plan.agent, dev.agent, dev.h5) into build.agent.
+
+    Note: ``agent.plan`` / ``agent.shell`` / ``agent.h5`` are V3 first-class
+    steps (not legacy) and are preserved as-is. Only ``agent.impl`` and the
+    older role aliases get aggregated, since V3 no longer exposes ``agent.impl``
+    as a runnable step (non-h5_shell packs fall back to single ``build.agent``).
+    """
     from batch.pipeline_steps import (
-        AGENT_H5,
         AGENT_IMPL,
-        AGENT_PLAN,
-        AGENT_SHELL,
         BUILD_AGENT,
+        DEV_AGENT,
+        DEV_H5,
+        PLAN_AGENT,
     )
 
     out = dict(steps)
-    legacy = (AGENT_PLAN, AGENT_IMPL, AGENT_SHELL, AGENT_H5)
+    legacy = (AGENT_IMPL, PLAN_AGENT, DEV_AGENT, DEV_H5)
     if not any(s in out for s in legacy):
         return out
     if out.get(BUILD_AGENT) in ("done", "failed", "running"):
@@ -250,22 +256,7 @@ def _aggregate_legacy_agent_steps(steps: dict[str, str]) -> dict[str, str]:
             out.pop(s, None)
         return out
 
-    has_h5 = AGENT_H5 in out or AGENT_SHELL in out
-    required: list[str] = [AGENT_PLAN] if AGENT_PLAN in out else []
-    if has_h5:
-        for s in (AGENT_SHELL, AGENT_H5):
-            if s in out:
-                required.append(s)
-    elif AGENT_IMPL in out:
-        required.append(AGENT_IMPL)
-    elif AGENT_SHELL in out:
-        required.append(AGENT_SHELL)
-
-    if not required:
-        for s in legacy:
-            out.pop(s, None)
-        return out
-
+    required = [s for s in legacy if s in out]
     statuses = [out.get(s, "pending") for s in required]
     if any(s == "failed" for s in statuses):
         out[BUILD_AGENT] = "failed"
@@ -275,6 +266,41 @@ def _aggregate_legacy_agent_steps(steps: dict[str, str]) -> dict[str, str]:
         out[BUILD_AGENT] = "failed"
     for s in legacy:
         out.pop(s, None)
+    return out
+
+
+def _expand_build_agent_to_granular(steps: dict[str, str]) -> dict[str, str]:
+    """Expand legacy ``build.agent`` status into granular ``agent.plan/shell/h5``.
+
+    V3 split ``build.agent`` into three independent agent steps. Old
+    ``.build-state.json`` files only carry the aggregated ``build.agent`` status;
+    this function backfills the granular step statuses so resume logic picks
+    up where the legacy single-call run left off:
+
+    - ``build.agent=done``    → all three granular steps ``done``
+    - ``build.agent=failed``  → ``agent.plan=failed``; ``agent.shell/h5=pending``
+    - ``build.agent=running`` → ``agent.plan=running``; ``agent.shell/h5=pending``
+    - ``build.agent`` absent  → no-op
+
+    Idempotent: existing granular statuses are preserved.
+    """
+    from batch.pipeline_steps import AGENT_H5, AGENT_PLAN, AGENT_SHELL, BUILD_AGENT
+
+    out = dict(steps)
+    legacy_status = out.get(BUILD_AGENT)
+    if not legacy_status:
+        return out
+
+    if legacy_status == "done":
+        for s in (AGENT_PLAN, AGENT_SHELL, AGENT_H5):
+            if s not in out:
+                out[s] = "done"
+    elif legacy_status in ("failed", "running"):
+        if AGENT_PLAN not in out:
+            out[AGENT_PLAN] = legacy_status
+        for s in (AGENT_SHELL, AGENT_H5):
+            if s not in out:
+                out[s] = "pending"
     return out
 
 
@@ -387,7 +413,8 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
         "dev.git",
     ):
         out.pop(old, None)
-    return _aggregate_legacy_agent_steps(out)
+    aggregated = _aggregate_legacy_agent_steps(out)
+    return _expand_build_agent_to_granular(aggregated)
 
 
 def steps_map_from_data(data: dict[str, Any]) -> dict[str, str]:

@@ -43,12 +43,17 @@ def test_dry_run_single_app() -> None:
 
 def test_pipeline_steps_h5_swift() -> None:
     sys.path.insert(0, str(SCRIPTS))
-    from batch.pipeline_steps import PREVIEW_TABS, steps_for_run
+    from batch.pipeline_steps import steps_for_run
 
     steps = steps_for_run(pack_type="h5_swift_shell")
-    assert "build.agent" in steps
-    assert PREVIEW_TABS in steps
-    assert steps.index(PREVIEW_TABS) < steps.index("build.agent")
+    assert "agent.plan" in steps
+    assert "agent.shell" in steps
+    assert "agent.h5" in steps
+    assert "build.agent" not in steps
+    assert "preview.tabs" not in steps
+    # 顺序: plan < shell < h5
+    assert steps.index("agent.plan") < steps.index("agent.shell")
+    assert steps.index("agent.shell") < steps.index("agent.h5")
     assert "skill.enrich" in steps
     assert "skill.pages" in steps
     assert "skill.tokens" in steps
@@ -63,7 +68,10 @@ def test_pipeline_steps_oc_shell() -> None:
     from batch.pipeline_steps import steps_for_run
 
     steps = steps_for_run(pack_type="h5_oc_shell")
-    assert "build.agent" in steps
+    assert "agent.plan" in steps
+    assert "agent.shell" in steps
+    assert "agent.h5" in steps
+    assert "build.agent" not in steps
     assert "native.check" in steps
 
 

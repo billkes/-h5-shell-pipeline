@@ -14,12 +14,10 @@ REQUIRED_H5_SHELL_PROMPTS = [
     "phase_h5_shell_programmer_block.txt",
     "phase_h5_kit_block.txt",
     "phase_h5_shell_programmer.txt",
+    "phase_h5_shell_swift_programmer.txt",
+    "phase_h5_shell_oc_programmer.txt",
     "phase_h5_implementer.txt",
-    "phase_build_agent.txt",
-    "phase_build_agent_plan.txt",
     "phase_pm_ui_plan.txt",
-    "phase_build_agent_shell.txt",
-    "phase_build_agent_h5.txt",
 ]
 
 

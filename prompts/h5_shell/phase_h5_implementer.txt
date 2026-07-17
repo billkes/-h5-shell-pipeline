@@ -1,9 +1,15 @@
-You are the **H5 Implementer** for one `h5_shell` app. Flutter shell + Bridge already exist and analyze passed. **Implement the full deployable H5 site (remote-first).**
+You are the **Build Agent — Part 3 (H5 Vite source / legal / overlay)** for one H5 shell app. Native shell runtime (Part 2) MUST exist. Implement business UI in **`h5/src/`** (Vue 3 + Vite). Pipeline step **`dev.h5.build`** compiles to `h5_site/{prefix}_entry.htm` — do not hand-edit deploy output. Produce the full deployable H5 site source in one pass.
 
-App Name: ${name}
-Prefix: ${FLUTTER_DART_PREFIX}
+${RESUME_BLOCK}
 
-[Required Reading]
+### Core App Information
+<AppName>${name}</AppName>
+<AppDescription>${desc}</AppDescription>
+<Prefix>${FLUTTER_DART_PREFIX}</Prefix>
+<TechStack>Vue 3 + Vite (vite-plugin-singlefile monolith)</TechStack>
+
+### Required Reading
+<RequiredReading>
 - `.cursor/rules/*.mdc` — **seven** iron rules for h5_shell
 - `_preview/*-tabs-preview.html` + `_preview/preview-canonical.md` — **PRIMARY visual + Tab IA** when present (structure-level HTML → Vue allowed)
 - 功能文档.md — **BR-xx rules + Primary Workflow steps** (MUST implement all); Screen Inventory; Bridge plaza matrix
@@ -14,8 +20,10 @@ Prefix: ${FLUTTER_DART_PREFIX}
 - data/static/component_kit/ — including **`shell/bridge_plaza`**
 - 《H5壳广场页规范.md》 · 《H5去风味规范.md》 · 《H5壳业务流程文字版.md》
 - ${P2_PRODUCT_DOC}
+</RequiredReading>
 
-[Hard Constraints]
+### Hard Constraints — wired in by the batch script
+<HardConstraints>
 ${PREVIEW_TABS_BLOCK}
 ${H5_SHELL_BLOCK}
 ${UX_CHECKLIST_BLOCK}
@@ -23,12 +31,25 @@ ${PAGE_OVERRIDES_BLOCK}
 ${TOKEN_IMPL_BLOCK}
 ${CSS_MOTION_BLOCK}
 ${ICON_MANIFEST_BLOCK}
+</HardConstraints>
 
-[H5 site — FORBIDDEN]
+### Rules
+<Rules>
+- **ONLY** write under `h5/src/` — never create or edit `h5_site/` (compiled by `dev.h5.build`).
+- Read 视觉蓝图.md §Ambient Canvas Canon + skill-adapt/ambient-canvas-brief.md before views.
+- Ship `u-{prefix}-ambient` layer per blueprint — not optional polish.
+- Read `design-system/*/stack-h5-vite.md` + `skill-adapt/design-tokens.css`.
+- Do NOT regenerate Part 1 plan files or redo full native shell unless broken.
+</Rules>
+
+### H5 Site — FORBIDDEN
+<H5SiteForbidden>
 - **DO NOT** create or edit files under `h5SiteRoot` (`h5_site/`) — deploy output only; pipeline `dev.h5.build` compiles from `h5/`.
 - **DO NOT** write `{prefix}_entry.htm`, `{prefix}_legal_bundled.js`, or `{prefix}_panels/` by hand.
+</H5SiteForbidden>
 
-[H5 site — MANDATORY]
+### H5 Site — MANDATORY
+<H5SiteMandatory>
 1. Write **Vue source** under **`h5SourceRoot`** (`h5/src/` from 本包登记信息.json). **Do NOT** hand-edit `h5_site/{prefix}_entry.htm` — it is Vite build output.
 2. **DO NOT** add `h5SiteRoot` to Flutter `pubspec.yaml` assets — site is deployed online / Vite dev server.
 3. **Follow h5VaultPattern** from 本包登记信息.json (monolith = vite-plugin-singlefile output).
@@ -43,11 +64,15 @@ ${ICON_MANIFEST_BLOCK}
 12. **No demo CTAs anywhere in H5 UI** — do **not** add Load demo / Import Demo Script / Try sample / `showDemo` / `loadDemo` / `importDemo` / `seedDemoData()` triggers on **any** route (Welcome, Hub, Settings, etc.). Onboarding = checkbox + Continue only; Hub primary CTA = real user flow (e.g. New Plan). `demoPlan` helpers may stay in `store/data.ts` for tests only — **never wired to visible buttons**.
 13. **Default seed data (编组 I)** — when 功能文档.md requires first-launch content: add `defaultSeed.ts` with `ensureBootstrapData()` and bundled images. **h5_oc_shell / h5_swift_shell**: write rasters to **`ios/{AppName}/SeedBundle/`**; seed code uses `vaultAssetPath('seed_….jpg')`. Flutter `h5_shell` may use `h5/assets/{prefix}_vault/`. Call `ensureBootstrapData()` in **`main.ts` before `createApp`** (and Welcome `continueFlow` if present). Hub KPIs must use `deriveHubKpis(finishedRuns)` in `store/data.ts` — **no** `|| 240` magic placeholders.
 14. **pickImage / attach media (wizard slides, profile photo, etc.)** — **never** call `bridgeCall('pickImage', { source: 'gallery' })` directly on button click. Copy/use `h5/src/components/MediaSourceSheet.vue` + `h5/src/lib/pickImage.ts` + `mediaPickUserMessage.ts`: bottom sheet with **Take Photo** (`source: 'camera'`) and **Choose from Library** (`source: 'gallery'`); per-target button shows **Opening…** + spinner while Bridge pending; `:active` press scale on attach buttons. User cancel = silent; permission errors = short English snackbar only. Add `{{PREFIX}}-mark-camera` / `{{PREFIX}}-mark-image` symbols to `index.html` sprite if missing.
+</H5SiteMandatory>
 
-[Icon sprite — MANDATORY]
-(Same as before — inline SVG sprite in entry, forbidden icon font libraries.)
+### Icon Sprite — MANDATORY
+<IconSprite>
+Inline SVG sprite in entry; forbidden icon font libraries.
+</IconSprite>
 
-[Must-have quality — implement BEFORE finishing]
+### Must-Have Quality — implement BEFORE finishing
+<MustHaveQuality>
 1. Export WYSIWYG shared builder; shell raster via mediaServe when needed.
 2. Store purchase barrier during `purchase` Bridge call.
 3. Filter chips with explicit light+dark tokens; **`global.css` MUST use `color-scheme: light dark` + `@media (prefers-color-scheme: dark)`** — never hardcode dark-only `:root`.
@@ -62,14 +87,17 @@ ${ICON_MANIFEST_BLOCK}
 12. **Tab-root scaffold (MANDATORY):** `sync_h5_page_scaffold` generates Hub / Runs / Settings `<template>` — **DO NOT rewrite**. Implement business in `views/*View.logic.ts` only. Wizard / Live / Export remain full Agent ownership.
 13. **Welcome / Legal scaffold (MANDATORY when routes exist):** pipeline syncs Welcome template + `WelcomeView.logic.ts` stub, `LegalOverlay.vue`, `lib/formatLegalBody.ts`, and `LEGAL:pipeline` CSS in `global.css` — **DO NOT** put legal kit classes only in `<style scoped>`. Legal body must come from PM `{App} Privacy/User Agreement.md` via `sync_h5_legal_bundled.py` and render with `formatLegalBody` (section + para HTML, **not** `<br>` dump). Header title = first line of bundled MD. Customize Welcome behavior in `WelcomeView.logic.ts` only.
 14. **Overlay router stack (MANDATORY when Screen Inventory includes hash overlays).**
+</MustHaveQuality>
 
-[Forbidden]
-- Flutter Dart UI changes except shell constants for h5EntryUrl if missing
-- Bundling site into Flutter assets
-- External legal URLs as primary display
-- `<input type="file">`, system `<select>`, `alert/confirm`
-- Exposing plaza in Tab bar or home hub (when `#/plaza` is declared)
-- Leaving an obvious plaza entrance in production code without `H5_PLAZA_DEV_ENTRANCE_*` markers (when `#/plaza` is declared)
+### Forbidden
+<Forbidden>
+- Flutter Dart UI changes except shell constants for h5EntryUrl if missing.
+- Bundling site into Flutter assets.
+- External legal URLs as primary display.
+- `<input type="file">`, system `<select>`, `alert/confirm`.
+- Exposing plaza in Tab bar or home hub (when `#/plaza` is declared).
+- Leaving an obvious plaza entrance in production code without `H5_PLAZA_DEV_ENTRANCE_*` markers (when `#/plaza` is declared).
+</Forbidden>
 
-[Output]
-Complete Vue source under `h5/src/`; `dev.h5.build` will compile to `h5SiteRoot`. One sentence summary of screens implemented.
+## Output Rule
+Write files only. Then one-line summary.

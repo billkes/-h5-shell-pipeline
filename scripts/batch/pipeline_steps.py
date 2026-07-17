@@ -57,8 +57,9 @@ V3_STEPS: tuple[str, ...] = (
     SKILL_PAGES,
     SKILL_TOKENS,
     LOCK_DIMENSIONS,
-    PREVIEW_TABS,
-    BUILD_AGENT,
+    AGENT_PLAN,
+    AGENT_SHELL,
+    AGENT_H5,
     PLAN_GATE,
     DEV_H5_BUILD,
     DEV_H5_GATE,
@@ -69,10 +70,10 @@ V3_STEPS: tuple[str, ...] = (
     GIT_DEV,
 )
 
-AGENT_STEPS: tuple[str, ...] = (PREVIEW_TABS, BUILD_AGENT)
+AGENT_STEPS: tuple[str, ...] = (AGENT_PLAN, AGENT_SHELL, AGENT_H5)
 
 _LEGACY_AGENT_STEP_IDS: frozenset[str] = frozenset(
-    {AGENT_PLAN, AGENT_IMPL, AGENT_SHELL, AGENT_H5, PLAN_AGENT, DEV_AGENT, DEV_H5}
+    {AGENT_IMPL, PLAN_AGENT, DEV_AGENT, DEV_H5}
 )
 
 STEP_LABELS: dict[str, str] = {
@@ -84,11 +85,11 @@ STEP_LABELS: dict[str, str] = {
     SKILL_TOKENS: "skill.tokens · 设计 Token 同步",
     LOCK_DIMENSIONS: "锁维度 + 工程准备",
     PREVIEW_TABS: "Tab 明暗预览 · 静态 HTML",
-    BUILD_AGENT: "Build Agent · 蓝图 + 实现（单次调用）",
-    AGENT_PLAN: "Agent · 蓝图与计划文档（legacy）",
+    BUILD_AGENT: "Build Agent · 蓝图 + 实现（legacy 单次调用）",
+    AGENT_PLAN: "Agent · 蓝图与计划文档",
     AGENT_IMPL: "Agent · Flutter 实现（legacy）",
-    AGENT_SHELL: "Agent · H5 原生壳（legacy）",
-    AGENT_H5: "Agent · H5 vault / legal（legacy）",
+    AGENT_SHELL: "Agent · H5 原生壳",
+    AGENT_H5: "Agent · H5 vault / legal",
     PLAN_GATE: "产出校验 + 主题登记",
     DEV_H5_BUILD: "Vite 编译 · h5 → h5_site 单文件",
     DEV_H5_GATE: "H5 bundle + UX 门禁",
@@ -109,6 +110,9 @@ STEP_TO_PHASE: dict[str, str] = {
     LOCK_DIMENSIONS: PM_UI_PLAN_PHASE,
     PREVIEW_TABS: PM_UI_PLAN_PHASE,
     BUILD_AGENT: PM_UI_PLAN_PHASE,
+    AGENT_PLAN: PM_UI_PLAN_PHASE,
+    AGENT_SHELL: PM_UI_PLAN_PHASE,
+    AGENT_H5: PM_UI_PLAN_PHASE,
     PLAN_GATE: PM_UI_PLAN_PHASE,
     DEV_H5_BUILD: PM_UI_PLAN_PHASE,
     DEV_H5_GATE: PM_UI_PLAN_PHASE,
@@ -128,7 +132,9 @@ PHASE_STEPS: dict[str, tuple[str, ...]] = {
         SKILL_PAGES,
         SKILL_TOKENS,
         LOCK_DIMENSIONS,
-        BUILD_AGENT,
+        AGENT_PLAN,
+        AGENT_SHELL,
+        AGENT_H5,
         PLAN_GATE,
         DEV_H5_BUILD,
         DEV_H5_GATE,
@@ -144,10 +150,19 @@ PHASE_STEPS: dict[str, tuple[str, ...]] = {
 
 
 def steps_for_run(*, pack_type: str) -> tuple[str, ...]:
-    """Return ordered step ids for this app + config."""
+    """Return ordered step ids for this app + config.
+
+    h5_shell packs run the granular three-step agent chain (plan/shell/h5).
+    Non-h5_shell packs have no agent steps in V3 (the new pipeline only
+    produces h5_shell packs; legacy single-call ``build.agent`` remains
+    available via ``parse_step_range`` for manual debugging).
+    """
     steps: list[str] = []
+    is_h5 = is_h5_shell(pack_type)
     for step in V3_STEPS:
-        if step in (DEV_H5_BUILD, DEV_H5_GATE, PREVIEW_TABS) and not is_h5_shell(pack_type):
+        if step in (DEV_H5_BUILD, DEV_H5_GATE) and not is_h5:
+            continue
+        if step in (AGENT_PLAN, AGENT_SHELL, AGENT_H5) and not is_h5:
             continue
         if step in (PUBGET, ANALYZE) and not is_flutter_runtime(pack_type):
             continue
@@ -198,14 +213,14 @@ def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
         "skill.tokens": SKILL_TOKENS,
         "lock.dimensions": LOCK_DIMENSIONS,
         "preview.tabs": PREVIEW_TABS,
-        "build.agent": BUILD_AGENT,
-        "plan.agent": BUILD_AGENT,
-        "dev.agent": BUILD_AGENT,
-        "agent.plan": BUILD_AGENT,
+        "build.agent": AGENT_PLAN,
+        "plan.agent": AGENT_PLAN,
+        "dev.agent": AGENT_PLAN,
+        "agent.plan": AGENT_PLAN,
         "agent.impl": BUILD_AGENT,
-        "agent.shell": BUILD_AGENT,
-        "agent.h5": BUILD_AGENT,
-        "dev.h5": BUILD_AGENT,
+        "agent.shell": AGENT_SHELL,
+        "agent.h5": AGENT_H5,
+        "dev.h5": AGENT_H5,
         "dev.fix": ANALYZE,
         "plan.git": GIT_PLAN,
         "dev.git": GIT_DEV,

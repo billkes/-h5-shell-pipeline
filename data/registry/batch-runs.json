@@ -2082,6 +2082,69 @@
           "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
         }
       ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_03-57-02-2404",
+      "startedAt": "2026-07-18 03:57:02",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_04-17-10-26796",
+      "startedAt": "2026-07-18 04:17:10",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Peopio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Peopio",
+          "packType": "h5_swift_shell",
+          "container": "Peopio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Peopio-Swift\\Peopio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_04-36-32-57416",
+      "startedAt": "2026-07-18 04:36:32",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Peopio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Peopio",
+          "packType": "h5_swift_shell",
+          "container": "Peopio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Peopio-Swift\\Peopio"
+        }
+      ]
     }
   ]
 }

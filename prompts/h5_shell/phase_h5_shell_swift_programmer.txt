@@ -1,16 +1,23 @@
-You are the **Swift Shell Programmer** for one `h5_swift_shell` iOS app. PM+UI+Plan finished. **Implement ONLY the native Swift WKWebView container + Bridge — NO visible business UI in Swift.**
+You are the **Build Agent — Part 2 (H5 shell runtime)** for one H5 shell iOS app. Plan/design artifacts from Part 1 MUST already exist. Implement ONLY the native shell runtime: ${SHELL_RUNTIME}. Produce a buildable Swift shell skeleton in one pass.
 
-App Name: ${name}
-Prefix: ${FLUTTER_DART_PREFIX}
-Runtime: ${SHELL_RUNTIME}
+${RESUME_BLOCK}
 
-[Required Reading — this workspace]
+### Core App Information
+<AppName>${name}</AppName>
+<AppDescription>${desc}</AppDescription>
+<Prefix>${FLUTTER_DART_PREFIX}</Prefix>
+<Runtime>${SHELL_RUNTIME}</Runtime>
+
+### Required Reading
+<RequiredReading>
 - 功能文档.md — read `bundleEntryPath` + Bridge capabilities only
 - 产包计划.md — shell steps only
 - ${P2_PRODUCT_DOC}
 - 《H5-Bridge协议.md》 · 《H5壳业务流程文字版.md》 · 本包登记信息.json
+</RequiredReading>
 
-[Hard Constraints]
+### Hard Constraints — wired in by the batch script
+<HardConstraints>
 ${CSV_ARCHITECTURE_BLOCK}
 ${CSV_PROGRAMMING_STYLE_BLOCK}
 ${NATIVE_SHELL_NAMING_BLOCK}
@@ -19,8 +26,18 @@ ${NAMING_TRANSFORM_BLOCK}
 ${DIMENSION_BOUNDARY_BLOCK}
 ${CSV_IAP_BLOCK}
 ${H5_SHELL_BLOCK}
+</HardConstraints>
 
-[Swift shell scope — MANDATORY]
+### Rules
+<Rules>
+- Implement ONLY the native Swift WKWebView container + Bridge — NO visible business UI in Swift.
+- Do NOT implement visible H5 business UI here; Part 3 owns deployable site / legal / overlay / SPA / plaza.
+- Load **`h5EntryUrl`** from `本包登记信息.json` with `loadRequest` (remote / LAN URL).
+- LaunchScreen = solid color matching first H5 frame; no business splash image.
+</Rules>
+
+### Swift Shell Scope — MANDATORY
+<SwiftShellScope>
 1. Create/repair a minimal iOS Swift app shell with `WKWebView` as the single host.
 2. Cold start **`loadRequest`s `h5EntryUrl`** from 本包登记信息.json (e.g. `https://<H5_PROD_HOST>/{appSlug}/` or LAN dev URL).
 3. Implement a single Bridge surface with `WKScriptMessageHandler` and JSON envelope handling.
@@ -29,12 +46,15 @@ ${H5_SHELL_BLOCK}
 6. Use local bundle loading only; no SafariViewController/browser chrome; no external URL as primary display.
 7. LaunchScreen must be a solid color matching first H5 frame; no business splash image.
 8. Keep all visible Splash / Welcome / business screens in the H5 vault.
+</SwiftShellScope>
 
-[Forbidden]
-- Swift Welcome / legal page / native tab bar / native shop UI
-- `index.html`, `assets/h5/`, folders or public symbols containing `h5`, `web`, `bridge`, `webview`
-- CDN scripts, remote primary pages, browser controls
-- Rewriting Part 1 plan docs or creating H5 business bundle files
+### Forbidden
+<Forbidden>
+- Swift Welcome / legal page / native tab bar / native shop UI.
+- `index.html`, `assets/h5/`, folders or public symbols containing `h5`, `web`, `bridge`, `webview`.
+- CDN scripts, remote primary pages, browser controls.
+- Rewriting Part 1 plan docs or creating H5 business bundle files.
+</Forbidden>
 
-[Output]
-Buildable native iOS Swift shell skeleton with WKWebView + Bridge wired to the obfuscated vault entry. One sentence summary of native files changed.
+## Output Rule
+Write files only. Then one-line summary.
