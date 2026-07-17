@@ -29,6 +29,16 @@
       "topologyId": "T5_workspace",
       "label": "Single workspace",
       "batchId": "TEST-0714"
+    },
+    "Peopio": {
+      "topologyId": "T4_wizard",
+      "label": "Wizard pipeline",
+      "batchId": "TEST-0717"
+    },
+    "Yeario": {
+      "topologyId": "T8_reminder_ring",
+      "label": "Reminder ring",
+      "batchId": "TEST-0717"
     }
   },
   "batchUsage": {
@@ -40,6 +50,11 @@
       "T5_workspace",
       "T6_checklist_session",
       "T7_compare_board",
+      "T8_reminder_ring"
+    ],
+    "TEST-0717": [
+      "T2_capture_first",
+      "T4_wizard",
       "T8_reminder_ring"
     ]
   }
