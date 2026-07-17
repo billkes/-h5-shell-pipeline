@@ -2019,6 +2019,69 @@
           "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Peopio-Swift/Peopio"
         }
       ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_03-13-08-65380",
+      "startedAt": "2026-07-18 03:13:08",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Yeario"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Yeario",
+          "packType": "h5_swift_shell",
+          "container": "Yeario-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Yeario-Swift\\Yeario"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_03-25-31-61520",
+      "startedAt": "2026-07-18 03:25:31",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_03-28-33-2404",
+      "startedAt": "2026-07-18 03:28:33",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
     }
   ]
 }

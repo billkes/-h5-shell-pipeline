@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -37,7 +38,7 @@ def maybe_write_logo_brief(
     try:
         proc = subprocess.run(
             [
-                "python3",
+                sys.executable,
                 str(script),
                 query,
                 "--design-brief",

@@ -237,13 +237,37 @@
         "chart"
       ],
       "pageOverrideCount": 0
+    },
+    "Monthio": {
+      "batchId": "TEST-0717",
+      "fingerprintKey": "0260f40ca145db0d",
+      "visualFingerprint": {
+        "primary": "#0f172a",
+        "accent": "#16a34a",
+        "background": "#020617",
+        "heading": "playfair display",
+        "body": "source serif 4",
+        "pattern": "horizontal scroll journey",
+        "style": "bauhaus (包豪斯)",
+        "category": "mood tracker"
+      },
+      "candidateId": "c3",
+      "style": "Bauhaus (包豪斯)",
+      "category": "Mood Tracker",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web",
+        "chart"
+      ],
+      "pageOverrideCount": 0
     }
   },
   "fingerprints": {
     "fd72cab6adc3eb1b": "Buildioo",
     "166d818d57938832": "Prompio",
     "f5c43d52e6b0b02a": "Temioo",
-    "0260f40ca145db0d": "Teavoo",
+    "0260f40ca145db0d": "Monthio",
     "e3b6c0f576fee128": "Rolioo",
     "e46fa3726bb3263f": "Yeario",
     "b489ad93e702c59f": "Meowio",

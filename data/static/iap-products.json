@@ -50,7 +50,7 @@
       },
       {
         "index": 6,
-        "price": 9.90,
+        "price": 9.9,
         "originalPrice": null,
         "coins": 1190,
         "name": "Service Tier 6",
@@ -165,13 +165,6 @@
         "originalPrice": 49.99,
         "coins": 6990,
         "name": "Promo Tier 7"
-      },
-      {
-        "index": 8,
-        "promoPrice": 79.99,
-        "originalPrice": 99.99,
-        "coins": 14990,
-        "name": "Promo Tier 8"
       }
     ]
   }

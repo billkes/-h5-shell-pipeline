@@ -477,7 +477,6 @@ def main(argv: list[str] | None = None) -> int:
 def _render_images_for_output(project_dir: Path, output_base: Path) -> None:
     render_script = project_dir / "scripts" / "render_image_prompts_local.py"
     if not render_script.is_file():
-        print(f"警告: 未找到 {render_script}")
         return
     manifests = sorted(output_base.rglob("image_prompts.json"))
     if not manifests:

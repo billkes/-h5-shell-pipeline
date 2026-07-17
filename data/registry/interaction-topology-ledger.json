@@ -39,6 +39,11 @@
       "topologyId": "T8_reminder_ring",
       "label": "Reminder ring",
       "batchId": "TEST-0717"
+    },
+    "Monthio": {
+      "topologyId": "T5_workspace",
+      "label": "Single workspace",
+      "batchId": "TEST-0717"
     }
   },
   "batchUsage": {
@@ -55,6 +60,7 @@
     "TEST-0717": [
       "T2_capture_first",
       "T4_wizard",
+      "T5_workspace",
       "T8_reminder_ring"
     ]
   }

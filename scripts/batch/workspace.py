@@ -6,6 +6,7 @@ import json
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from batch.config import BatchConfig
@@ -211,7 +212,7 @@ def alloc_code_combo(cfg: BatchConfig, workspace: Path) -> None:
             f"（无法生成 {combo.name}）"
         )
     result = subprocess.run(
-        ["python3", str(script), str(cfg.contentpack_registry), str(workspace)],
+        [sys.executable, str(script), str(cfg.contentpack_registry), str(workspace)],
         check=False,
         capture_output=True,
         text=True,
