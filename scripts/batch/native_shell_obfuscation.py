@@ -426,6 +426,13 @@ def apply_native_shell_obfuscation(workspace: Path, *, app_name: str = "") -> li
     if bridge.is_dir() and not shell.is_dir():
         bridge.rename(shell)
         changed.append(f"dir: Bridge/ → {obf.shell_dir}/")
+    elif not shell.is_dir():
+        prefix = prefix_from_workspace(ws)
+        if prefix:
+            legacy_shell = app_dir / f"{prefix}_shell"
+            if legacy_shell.is_dir() and legacy_shell.name != obf.shell_dir:
+                legacy_shell.rename(shell)
+                changed.append(f"dir: {legacy_shell.name}/ → {obf.shell_dir}/")
     seed = app_dir / "SeedBundle"
     seed_dest = app_dir / obf.seed_bundle_dir
     if seed.is_dir() and not seed_dest.is_dir():
