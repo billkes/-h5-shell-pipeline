@@ -189,8 +189,13 @@ def _run_apply_script(
 
 
 def _maybe_xcodegen(staging: Path, app_name: str) -> None:
+    import platform
+
     project_yml = staging / "project.yml"
     if not project_yml.is_file():
+        return
+    if platform.system() != "Darwin":
+        print(f"  >>> xcodegen: 仅 macOS 支持，跳过（{platform.system()}）")
         return
     try:
         result = subprocess.run(

@@ -371,7 +371,11 @@ class FlutterPipeline:
     def _run_lock_dimensions(self, ctx: AppContext) -> bool:
         from batch.workspace import write_layout_manifest
 
-        self._prepare_dimensions(ctx)
+        try:
+            self._prepare_dimensions(ctx)
+        except Exception as exc:
+            get_run_log().detail(f"prepare_dimensions 失败: {exc}")
+            return False
         if not self._prepare_programmer_workspace(ctx):
             return False
         if is_h5_shell(ctx.pack_type):

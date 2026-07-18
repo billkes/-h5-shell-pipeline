@@ -180,7 +180,7 @@ class BatchConfig:
     cursor_agent_output_format: str = "stream-json"
     cursor_agent_stream_partial: bool = True
     cursor_agent_sandbox: bool = True
-    cursor_agent_phase_timeout_sec: int = 600
+    cursor_agent_phase_timeout_sec: int = 1800
     cursor_agent_idle_timeout_sec: int = 300
     agent_provider: str = "cursor"
     iflow_url: str = "ws://localhost:8090/acp"
@@ -195,7 +195,7 @@ class BatchConfig:
     iflow_auth_method_id: str = ""
     iflow_auth_method_info: dict[str, object] = field(default_factory=dict)
     iflow_heartbeat_sec: int = 60
-    iflow_phase_timeout_sec: int = 600
+    iflow_phase_timeout_sec: int = 1800
     iflow_idle_timeout_sec: int = 300
     iflow_max_retries: int = 1
     iflow_retry_delay_sec: int = 20
