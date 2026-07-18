@@ -24,4 +24,5 @@ output/
 task.csv.name-pools.json
 
 # iFlow CLI session files（本地运行时生成，勿提交）
-.iflow/
+.iflow/acp/sessions/*.json
+!.iflow/acp/sessions/settings.json
