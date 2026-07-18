@@ -10,7 +10,6 @@ from pathlib import Path
 from batch.component_kit_index import (
     extract_override_ids_from_blueprint,
     extract_selection_ids_from_blueprint,
-    extract_selection_ids_from_plan,
     extract_selection_ids_from_visual_lock,
     extract_selection_screen_refs,
     extract_tokens_from_overrides,
@@ -26,7 +25,7 @@ from batch.selection_requirements import (
 
 VISUAL_BLUEPRINT_FILE = "视觉蓝图.md"
 VISUAL_LOCK_FILE = "本包视觉锁.json"
-PLAN_FILE = "产包计划.md"
+
 SPEC_FILE = "功能文档.md"
 
 # 1=core HARD, 2=screen coverage HARD, 3=screens column HARD
@@ -95,7 +94,6 @@ def _verify_selection_id_consistency(
     blueprint_ids: set[str],
     lock_ids: set[str],
     override_ids: set[str],
-    plan_ids: set[str],
     *,
     pack_type: str = "",
 ) -> list[str]:
@@ -127,11 +125,7 @@ def _verify_selection_id_consistency(
             f"[SEL-005] Overrides 含 Selection 外 id（{sorted(orphan_overrides)}）"
         )
 
-    missing_plan = blueprint_ids - plan_ids
-    if missing_plan:
-        issues.append(
-            f"[SEL-004] 产包计划 §2.x 未覆盖 Selection id（缺: {sorted(missing_plan)}）"
-        )
+
 
     issues.extend(
         f"[SEL-006] {msg}"
@@ -230,7 +224,6 @@ def verify_selection_plan(
     h5 = h5_shell if h5_shell is not None else is_h5_shell(pt)
 
     blueprint_text = _read_text(workspace / VISUAL_BLUEPRINT_FILE)
-    plan_text = _read_text(workspace / PLAN_FILE)
     spec_text = _read_text(workspace / SPEC_FILE)
 
     lock_data: dict = {}
@@ -253,14 +246,11 @@ def verify_selection_plan(
         normalize_component_id(i)
         for i in extract_override_ids_from_blueprint(blueprint_text)
     }
-    plan_ids = {
-        normalize_component_id(i) for i in extract_selection_ids_from_plan(plan_text)
-    }
 
     issues: list[str] = []
     issues.extend(
         _verify_selection_id_consistency(
-            blueprint_ids, lock_ids, override_ids, plan_ids, pack_type=pt
+            blueprint_ids, lock_ids, override_ids, pack_type=pt
         )
     )
 

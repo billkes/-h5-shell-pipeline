@@ -324,7 +324,7 @@ class BatchConfig:
             cursor_agent_sandbox=os.environ.get("CURSOR_AGENT_SANDBOX", "1") == "1",
             cursor_agent_phase_timeout_sec=max(
                 0,
-                int(os.environ.get("CURSOR_AGENT_PHASE_TIMEOUT_SEC", "600")),
+                int(os.environ.get("CURSOR_AGENT_PHASE_TIMEOUT_SEC", "1800")),
             ),
             cursor_agent_idle_timeout_sec=max(
                 0,
@@ -358,7 +358,7 @@ class BatchConfig:
             ),
             iflow_phase_timeout_sec=max(
                 0,
-                int(os.environ.get("IFLOW_PHASE_TIMEOUT_SEC", "600")),
+                int(os.environ.get("IFLOW_PHASE_TIMEOUT_SEC", "1800")),
             ),
             iflow_idle_timeout_sec=max(
                 0,

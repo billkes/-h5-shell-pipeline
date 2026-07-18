@@ -10,7 +10,6 @@ from batch.component_kit_index import (
     _extract_md_section,
     extract_override_ids_from_blueprint,
     extract_selection_ids_from_blueprint,
-    extract_selection_ids_from_plan,
     extract_selection_ids_from_visual_lock,
     extract_tokens_from_overrides,
     normalize_component_id,
@@ -21,7 +20,6 @@ from batch.welcome_canon import WELCOME_LAYOUT_VARIANTS
 
 VISUAL_BLUEPRINT_FILE = "视觉蓝图.md"
 VISUAL_LOCK_FILE = "本包视觉锁.json"
-PLAN_FILE = "产包计划.md"
 SPEC_FILE = "功能文档.md"
 
 # Paired color tokens used in Overrides but often omitted from Agent-generated locks.
@@ -199,13 +197,6 @@ def _override_row(cid: str) -> str:
     )
 
 
-def _plan_row(order: int, cid: str) -> str:
-    return (
-        f"| {order} | `{cid}` | "
-        f"data/static/component_kit/{cid}.md |"
-    )
-
-
 def _sync_blueprint_selection(
     blueprint_text: str,
     canonical: set[str],
@@ -258,38 +249,6 @@ def _sync_blueprint_overrides(
     return blueprint_text, changes
 
 
-def _sync_plan_selection(
-    plan_text: str,
-    canonical: set[str],
-) -> tuple[str, list[str]]:
-    changes: list[str] = []
-    current = {
-        normalize_component_id(i)
-        for i in extract_selection_ids_from_plan(plan_text)
-    }
-    missing = sorted(canonical - current)
-    if not missing:
-        return plan_text, changes
-    order = len(current)
-    rows: list[str] = []
-    for cid in missing:
-        order += 1
-        rows.append(_plan_row(order, cid))
-    match = re.search(
-        r"(?is)(§2\.x\s+Component\s*&\s*Baseline\s*Implementation\s*Order.*?)"
-        r"(\n#{1,3}\s*§?[34]\b|\n###\s*§?[34]\b|\Z)",
-        plan_text,
-    )
-    if not match:
-        return plan_text, changes
-    block = match.group(1)
-    insert_block = "\n".join(rows) + "\n"
-    updated = plan_text.replace(block, block + insert_block, 1)
-    for cid in missing:
-        changes.append(f"产包计划.md §2.x +{cid}")
-    return updated, changes
-
-
 def sync_selection_artifacts(
     workspace: Path,
     *,
@@ -317,17 +276,9 @@ def sync_selection_artifacts(
         changes.extend(c2)
         changes.extend(_sync_color_tokens_for_overrides(lock_data, blueprint_text))
 
-    plan_path = workspace / PLAN_FILE
-    plan_text = _read_text(plan_path)
-    if plan_text:
-        plan_text, c3 = _sync_plan_selection(plan_text, canonical)
-        changes.extend(c3)
-
     if changes:
         _write_lock(workspace, lock_data)
         if blueprint_path.is_file() and blueprint_text:
             blueprint_path.write_text(blueprint_text, encoding="utf-8")
-        if plan_path.is_file() and plan_text:
-            plan_path.write_text(plan_text, encoding="utf-8")
 
     return changes

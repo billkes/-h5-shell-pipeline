@@ -2145,6 +2145,510 @@
           "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Peopio-Swift\\Peopio"
         }
       ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_13-31-52-62908",
+      "startedAt": "2026-07-18 13:31:52",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_13-32-11-62908",
+      "startedAt": "2026-07-18 13:32:11",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_13-40-38-62908",
+      "startedAt": "2026-07-18 13:40:38",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_13-41-23-62908",
+      "startedAt": "2026-07-18 13:41:23",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_13-45-49-61620",
+      "startedAt": "2026-07-18 13:45:49",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_13-47-28-44436",
+      "startedAt": "2026-07-18 13:47:28",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_13-48-17-40672",
+      "startedAt": "2026-07-18 13:48:17",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_13-53-45-62520",
+      "startedAt": "2026-07-18 13:53:45",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_13-54-38-44244",
+      "startedAt": "2026-07-18 13:54:38",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_13-58-06-61580",
+      "startedAt": "2026-07-18 13:58:06",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_14-00-50-45732",
+      "startedAt": "2026-07-18 14:00:50",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_14-07-20-61540",
+      "startedAt": "2026-07-18 14:07:20",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_14-10-49-60472",
+      "startedAt": "2026-07-18 14:10:49",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_14-14-52-66468",
+      "startedAt": "2026-07-18 14:14:52",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_14-17-49-66492",
+      "startedAt": "2026-07-18 14:17:49",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_14-18-49-60232",
+      "startedAt": "2026-07-18 14:18:49",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_14-23-11-65380",
+      "startedAt": "2026-07-18 14:23:11",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_14-26-38-63072",
+      "startedAt": "2026-07-18 14:26:38",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_14-33-25-63008",
+      "startedAt": "2026-07-18 14:33:25",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_14-49-50-56236",
+      "startedAt": "2026-07-18 14:49:50",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_14-50-07-56236",
+      "startedAt": "2026-07-18 14:50:07",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_15-10-10-63184",
+      "startedAt": "2026-07-18 15:10:10",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_15-53-29-66632",
+      "startedAt": "2026-07-18 15:53:29",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-18_15-53-56-66632",
+      "startedAt": "2026-07-18 15:53:56",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Monthio-Swift\\Monthio"
+        }
+      ]
     }
   ]
 }

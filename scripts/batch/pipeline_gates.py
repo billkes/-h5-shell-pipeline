@@ -725,36 +725,7 @@ def verify_pm_ui_plan_outputs(
         if h5_shell and "ux-checklist" not in vtext.lower() and "ambient canvas" not in vtext.lower():
             _soft("视觉蓝图.md 应引用 ux-checklist 或 Ambient Canvas enrich 产物")
 
-    for name, min_size in (
-        ("产包计划.md", 300),
-        ("资源计划.md", 150),
-    ):
-        path = workspace / name
-        if not path.is_file():
-            _hard(f"缺少 {name}")
-        elif path.stat().st_size < min_size:
-            _soft(f"{name} 内容过短（<{min_size} 字符）")
 
-    plan = workspace / "产包计划.md"
-    if plan.is_file():
-        text = plan.read_text(encoding="utf-8", errors="replace")
-        for marker in ("§1", "§2", "§3", "§4", "§5"):
-            if marker not in text:
-                _soft(f"产包计划.md 缺少 {marker} 章节标记")
-        if _plan_repeats_sdk_lock(text):
-            _soft("产包计划.md 不应重复锁定 flutter/dart SDK（已由 pubspec / 批次规范锁定）")
-        if _plan_has_per_step_checkpoints(text):
-            _soft("产包计划.md §3 应为 Final Gate，禁止每步验收/analyze checkpoint")
-        from batch.component_kit_index import verify_plan_component_order
-
-        for issue in verify_plan_component_order(text):
-            _soft(issue)
-        if "§3" in text and not re.search(
-            r"final\s+gate|flutter\s+analyze|max_analyze_fix_rounds|0\s+.*error",
-            text,
-            re.I,
-        ):
-            _soft("产包计划.md §3 应描述 Final Gate（flutter analyze 0 error + max_analyze_fix_rounds）")
 
     spec = workspace / "功能文档.md"
     if spec.is_file():

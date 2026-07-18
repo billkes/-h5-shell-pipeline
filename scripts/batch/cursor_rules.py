@@ -190,13 +190,13 @@ def _component_kit_body(workspace: Path, combo: dict[str, Any], *, h5_shell: boo
             "## 实现顺序（MUST）",
             f"0. `component_kit/baseline.md` {platform}（{baseline_path}）",
             "1. §Component Selection 所列 id — 逐个读 `{category}/{id}.md`",
-            "2. 屏幕级布局（`产包计划.md` §2.x Component & Baseline Implementation Order 之后）",
+            "2. 屏幕级布局（视觉蓝图 §Per-screen Layout 之后）",
             "",
             "## 禁止",
             "- Selection 外自造共享 UI 组件",
             "",
             "## Plan Gate（SEL 规则摘要）",
-            "- 蓝图 Selection = 视觉锁 componentSelection = Overrides = 产包计划 §2.x",
+            "- 蓝图 Selection = 视觉锁 componentSelection = Overrides",
             "- 功能场景必选组件见 selection_requirements.py（Export/IAP/Welcome/列表/h5 shell）",
             "- Overrides typography/color token 须在 本包视觉锁 中定义",
             "- 未读 kit md 即手写 Material 默认 Button / TextField / Chip / SnackBar",
@@ -410,7 +410,7 @@ def _write_component_kit_rule(
 ) -> None:
     globs = (
         "lib/**,data/static/component_kit/**,"
-        f"{VISUAL_BLUEPRINT_FILE},{VISUAL_LOCK_FILE},产包计划.md"
+        f"{VISUAL_BLUEPRINT_FILE},{VISUAL_LOCK_FILE}"
     )
     _write_mdc(
         rules_dir,

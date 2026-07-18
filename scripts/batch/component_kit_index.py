@@ -485,17 +485,6 @@ def verify_component_kit_blueprint(
     return issues
 
 
-def verify_plan_component_order(plan_text: str) -> list[str]:
-    """Plan gate: §2 must describe component implementation order."""
-    if not re.search(
-        r"component\s*&\s*baseline\s*implementation\s*order|组件.*baseline.*实现顺序",
-        plan_text,
-        re.I,
-    ):
-        return ["产包计划.md §2 须含 Component & Baseline Implementation Order"]
-    return []
-
-
 def format_kit_index_for_prompt(root: Path | None = None) -> str:
     """Compact component_kit index for prompt injection."""
     entries = scan_component_kit(root)

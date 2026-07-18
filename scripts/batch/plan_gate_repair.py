@@ -24,8 +24,6 @@ _HARD_FILE_MAP: tuple[tuple[str, str, str], ...] = (
     ("缺少 视觉蓝图", "视觉蓝图.md", "补写视觉蓝图.md V2 章节"),
     ("缺少 本包视觉锁", "本包视觉锁.json", "补写本包视觉锁.json V2 字段"),
     ("缺少 design-system MASTER", "design-system", "补写 design-system/*/MASTER.md"),
-    ("缺少 产包计划", "产包计划.md", "补写产包计划.md §1–§5"),
-    ("缺少 资源计划", "资源计划.md", "补写资源计划.md"),
 )
 
 
@@ -59,8 +57,7 @@ def _priority_for_issue(issue: str) -> tuple[int, str, str]:
         return 50, "补全视觉蓝图.md 对应 V2 章节深度", "soft"
     if "Data Contract" in issue or "数据契约" in issue:
         return 60, "在功能文档.md 增加 Data Contract / 数据契约 章节", "soft"
-    if "产包计划" in issue:
-        return 70, "补全产包计划.md 缺失 § 标记与 Final Gate 描述", "soft"
+
     if issue.startswith("[SPEC-"):
         return 35, "按 SPEC 缺口补写功能文档.md 业务深度", "soft"
     return 80, "按拒因最小改动修复对应 deliverable", "soft"
@@ -103,8 +100,6 @@ def pick_soft_repair_target(soft: list[str]) -> RepairTarget | None:
     files = ("功能文档.md",)
     if issue.startswith("[SEL-") or "视觉蓝图" in issue or "Component Selection" in issue:
         files = ("视觉蓝图.md", "本包视觉锁.json")
-    elif "产包计划" in issue:
-        files = ("产包计划.md",)
     return RepairTarget(
         issue=issue,
         priority=ranked[0][0],
