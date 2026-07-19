@@ -117,24 +117,14 @@ def pick_repair_target(*, hard: list[str], soft: list[str]) -> RepairTarget | No
     return pick_soft_repair_target(soft)
 
 
-def _read_snippet(path: Path, *, limit: int = 1200) -> str:
-    if not path.is_file():
-        return "(file missing)"
-    text = path.read_text(encoding="utf-8", errors="replace")
-    if len(text) <= limit:
-        return text
-    return text[:limit] + "\n…(truncated)…"
-
-
 def build_repair_prompt(
     workspace: Path,
     target: RepairTarget,
     *,
     app_name: str,
     desc: str,
-    topology_block: str = "",
-    business_depth_block: str = "",
     project_dir: Path | None = None,
+    **_: object,
 ) -> str:
     """Build a minimal Agent prompt for one targeted plan.gate fix."""
     from batch.agent_spec_index import (

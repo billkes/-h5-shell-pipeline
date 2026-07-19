@@ -224,93 +224,27 @@ class V3StepRunner:
     # ── Prepare + Agent sub-steps ─────────────────────────────────────
 
     def _agent_pack_context(self, ctx: AppContext) -> dict[str, object]:
-        """Shared kwargs for build_agent_*_phase prompts."""
-        from batch.csv_prompt_blocks import dimension_boundary_block
-        from batch.workspace import code_combo_block, dart_prefix
+        """Minimal kwargs for V3 prompts (norms live in skill-input/agent-spec-index.md)."""
+        from batch.workspace import dart_prefix
 
-        ws = ctx.workspace
-        tool = ctx.pack_type == "tool_flutter"
-        video = ctx.pack_type == "videostream"
         h5 = is_h5_shell(ctx.pack_type)
-        prefix = dart_prefix(ws)
-        combo = code_combo_block(ws)
-        content_preview = ""
-        cl = ws / "默认内容列表.json"
-        if cl.is_file():
-            content_preview = cl.read_text(encoding="utf-8")[:5000]
-
         if h5:
             product_doc = "H5壳Flutter产品要求.md"
-            p2_doc = "H5壳Flutter产品要求.md"
-            video_hint = ""
-            p2_video = ""
-        elif tool:
+        elif ctx.pack_type == "tool_flutter":
             product_doc = "工具包Flutter产品要求.md"
-            p2_doc = product_doc
-            video_hint = ""
-            p2_video = ""
-        elif video:
+        elif ctx.pack_type == "videostream":
             product_doc = "视频流包产品要求.md"
-            p2_doc = product_doc
-            video_hint = "\n[VIDEO STREAM — video-specific feed/detail innovations required]"
-            p2_video = "\n[VIDEO STREAM PACK — videostream type]"
         else:
             product_doc = "图文包产品要求.md"
-            p2_doc = product_doc
-            video_hint = ""
-            p2_video = ""
-
-        h5_block = self.p._h5_shell_block_for(ctx)
-        from batch.selection_requirements import format_required_selection_block
-        from batch.spec_business_depth import format_business_depth_block
-        from batch.interaction_topology import format_topology_block
-
-        business_depth_block = (
-            format_business_depth_block(ws) if h5 else ""
-        )
-        topology_block = (
-            format_topology_block(ws, self.p.cfg.project_dir) if h5 else ""
-        )
 
         return {
-            "tool_flutter": tool,
             "name": ctx.name,
             "desc": ctx.desc,
             "dart_name": ctx.dart_name,
-            "prefix": prefix,
-            "content_list": content_preview,
+            "prefix": dart_prefix(ctx.workspace),
             "product_req_doc": product_doc,
-            "code_combo": combo,
-            "legal_agreement_block": self.p._legal_agreement_block_for(ctx, tool),
-            "video_hint": video_hint,
-            "csv_architecture_block": self.p._csv_architecture_block_for(ctx),
-            "csv_programming_style_block": self.p._csv_programming_style_block_for(ctx),
-            "csv_naming_rule_block": self.p._csv_naming_rule_block_for(ctx),
-            "native_shell_naming_block": self.p._csv_native_shell_naming_block_for(ctx),
-            "csv_full_name_block": self.p._csv_full_name_block_for(ctx),
-            "csv_iap_block": self.p._csv_iap_block_for(ctx),
-            "design_system_block": self.p._design_system_block(ctx),
-            "designer_lock_block": self.p._designer_lock_block(ctx),
-            "ambient_canvas_block": self.p._ambient_canvas_block(ctx),
-            "ux_checklist_block": self.p._ux_checklist_block(ctx),
-            "pages_block": self.p._pages_block(ctx),
-            "token_impl_block": self.p._token_impl_block(ctx),
-            "css_motion_block": self.p._css_motion_block(ctx),
-            "icon_manifest_block": self.p._icon_manifest_block(ctx),
-            "naming_transform_block": self.p._naming_transform_block(ctx),
-            "dimension_boundary_block": dimension_boundary_block(),
-            "p2_product_doc": p2_doc,
-            "p2_video_hint": p2_video,
-            "h5_shell": h5,
+            "p2_product_doc": product_doc,
             "shell_runtime": h5_shell_runtime(ctx.pack_type) if h5 else "flutter",
-            "h5_shell_block": h5_block,
-            "h5_shell_block_programmer": self.p._h5_shell_block_for(ctx, programmer=True),
-            "required_selection_block": format_required_selection_block(
-                ws, pack_type=ctx.pack_type
-            ),
-            "business_depth_block": business_depth_block,
-            "topology_block": topology_block,
-            "preview_tabs_block": "",
         }
 
     def _step_prepare_context(self, ctx: AppContext) -> bool:
@@ -557,14 +491,11 @@ class V3StepRunner:
                     f">>> plan.gate repair 轮次 {round_no}/{max_rounds} "
                     f"({target.category}): {target.issue}"
                 )
-                kw = self._agent_pack_context(ctx)
                 prompt = build_repair_prompt(
                     ws,
                     target,
                     app_name=ctx.name,
                     desc=ctx.desc,
-                    topology_block=kw.get("topology_block", ""),
-                    business_depth_block=kw.get("business_depth_block", ""),
                     project_dir=self.p.cfg.project_dir,
                 )
                 from batch.cursor_runner import run_agent

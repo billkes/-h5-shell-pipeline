@@ -75,36 +75,6 @@ def verify_preview_tabs_outputs(project: Path, app_name: str) -> list[str]:
     return issues
 
 
-def format_preview_tabs_block(project: Path, app_name: str) -> str:
-    """Inject into build.agent prompts when preview artifacts exist."""
-    html = preview_html_path(project, app_name)
-    canonical = preview_canonical_path(project)
-    if not html.is_file() or not canonical.is_file():
-        return (
-            "[Preview Tabs — HARD DEPENDENCY]\n"
-            "Expected `_preview/{appSlug}-tabs-preview.html` + `_preview/preview-canonical.md` "
-            "from `preview.tabs`. Missing — do NOT freestyle UI; rerun `preview.tabs` first."
-        )
-    rel_html = html.relative_to(project).as_posix()
-    rel_canonical = canonical.relative_to(project).as_posix()
-    excerpt = canonical.read_text(encoding="utf-8", errors="ignore")[:4000]
-    return (
-        "[Preview Tabs — PRIMARY visual + Tab IA source (overrides bare MASTER freeform)]\n"
-        f"- Static preview HTML: `{rel_html}` — **copy layout, hierarchy, copy skeleton, colors into Vue**\n"
-        f"- Machine canonical: `{rel_canonical}` — Tab routes, color tokens, typography, allowed MASTER deviations\n"
-        "- Part 1 deliverables (Screen Inventory, 视觉蓝图.md, 本包视觉锁.json) **MUST align** with preview-canonical\n"
-        "- Part 3 H5: structure-level HTML → Vue translation allowed; wire real Bridge/store/router after scaffold\n"
-        "- Each tab-root `*View.vue` **first line**: `<!-- PREVIEW-IMPL:locked -->`; reuse preview HTML class names "
-        "(home-hero, float-sheet, board-path, …) — **not** generic page-stack scaffold\n"
-        "- **Do NOT** hand-edit `h5/src/styles/global.css` `THEME:pipeline` block — colors truth = "
-        "`skill-adapt/preview-approved-colors.json` (pipeline syncs via `sync_h5_global_theme`)\n"
-        "- Enrich `preview-approved-colors.json` if needed; update `本包视觉锁.json` colorTokens / ambientCanvas\n"
-        "\n--- preview-canonical excerpt ---\n"
-        f"{excerpt.strip()}\n"
-        "--- end excerpt ---"
-    )
-
-
 def count_tabs_in_canonical(project: Path) -> int | None:
     path = preview_canonical_path(project)
     if not path.is_file():

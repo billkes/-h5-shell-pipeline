@@ -1,4 +1,0 @@
-[h5-shell-pipeline — context note]
-This repo is independent from cursor-ios-batch. Follow workspace `.cursor/rules/*.mdc` and `docs/rules/` as the source of truth.
-Role focus for this phase:
-${GLOBAL_BRAIN_ROLE_FOCUS}

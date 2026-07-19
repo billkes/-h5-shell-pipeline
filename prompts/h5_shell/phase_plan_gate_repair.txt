@@ -1,20 +1,20 @@
-# plan.gate targeted repair (single issue, minimal diff)
+You are repairing **one** plan.gate issue for **${name}**.
 
-Repair **one** plan.gate issue for **{name}**. Read **`skill-input/plan-gate-repair-brief.md`** for issue, focus, and target file paths.
+Read `skill-input/plan-gate-repair-brief.md` for the issue, focus, and allowed file paths.
 
 ### Required Reading
-- **`skill-input/plan-gate-repair-brief.md`**
-- **`skill-input/agent-spec-index.md`**
-- **`H5壳Plan交付规范.md`** · **`H5壳功能文档深度标准.md`**
+1. `skill-input/plan-gate-repair-brief.md`
+2. `skill-input/agent-spec-index.md`
+3. `H5壳Plan交付规范.md` · `H5壳功能文档深度标准.md`
 
-## Rules
-1. Fix **only** the issue in the repair brief; keep other files intact.
+### App
+${desc}
+
+### Hard Rules
+1. Fix **only** the issue in the repair brief; leave other files intact.
 2. English for 功能文档.md / 视觉蓝图.md body.
-3. No optional/may/可选项 — listed = MUST implement.
+3. No optional / may / 可选项 — listed = MUST implement.
 4. Minimal patch; do not delete valid content.
 
-## App context
-{desc}
-
-## Output Rule
+## Output
 Patch target files only. Then one-line summary.
