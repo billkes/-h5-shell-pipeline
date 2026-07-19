@@ -12,5 +12,5 @@ def test_enrich_domain_query_appends_focus_hint() -> None:
     assert ux.startswith(base)
     assert icons.startswith(base)
     assert "accessibility" in ux
-    assert "svg" in icons
+    assert "phosphor" in icons
     assert len(ux) < len(base) + 80

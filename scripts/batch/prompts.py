@@ -4,7 +4,7 @@ V3 plan agent steps:
 
 * ``phase_agent_plan_spec.txt`` — agent.plan.spec
 * ``phase_agent_plan_docs.txt`` — agent.plan.docs
-* ``phase_agent_plan_pack.txt`` — agent.plan.pack (视觉蓝图 pending rework)
+* ``phase_agent_plan_pack.txt`` — agent.plan.pack (JSON ledgers only; no 视觉蓝图)
 * ``phase_h5_shell_programmer.txt`` — agent.shell
 * ``phase_h5_implementer.txt`` — agent.h5
 * ``phase_plan_gate_repair.txt`` — plan.gate repair

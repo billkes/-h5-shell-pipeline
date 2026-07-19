@@ -12,7 +12,7 @@ ${desc}
 
 ### Hard Rules
 1. Fix **only** the issue in the repair brief; leave other files intact.
-2. English for 功能文档.md / 视觉蓝图.md body.
+2. English for 功能文档.md body; patch 视觉蓝图.md only if that legacy file already exists (h5_shell 新包不产蓝图).
 3. No optional / may / 可选项 — listed = MUST implement.
 4. Minimal patch; do not delete valid content.
 

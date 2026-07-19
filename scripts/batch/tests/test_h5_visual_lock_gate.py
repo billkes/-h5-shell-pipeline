@@ -48,12 +48,20 @@ def _write_css(ws: Path, *, primary: str = "#EA580C", dark_bg: str = "#120E0C") 
   --demo-primary: {primary};
   --demo-bg: #FFFBF7;
   --demo-fg: #431407;
+  --demo-background: #FFFBF7;
+  --demo-foreground: #431407;
+  --demo-on-primary: #FFFFFF;
+  --demo-on-ambient: #431407;
 }}
 @media (prefers-color-scheme: dark) {{
   :root {{
     --demo-primary: {primary};
     --demo-bg: {dark_bg};
     --demo-fg: #FFFFFF;
+    --demo-background: {dark_bg};
+    --demo-foreground: #FFFFFF;
+    --demo-on-primary: #FFFFFF;
+    --demo-on-ambient: #FFFFFF;
   }}
 }}
 /* THEME:end */

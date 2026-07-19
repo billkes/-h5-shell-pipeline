@@ -35,5 +35,6 @@ def test_format_search_md_icons_includes_h5_landing() -> None:
     }
     text = _format_search_md("icons", "test app", result, h5_prefix="buildioo")
     assert "H5 Delivery Canon" in text
-    assert "buildioo-mark-home" in text
+    assert "@phosphor-icons/vue" in text
+    assert "House" in text
     assert "Import Code" in text

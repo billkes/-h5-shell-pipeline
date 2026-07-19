@@ -18,5 +18,10 @@ def test_icon_manifest_uses_early_dart_prefix(tmp_path: Path) -> None:
     designer = {"iconStyle": "Phosphor outlined regular"}
     manifest = _build_icon_sprite_manifest(ws, candidate, designer)
     assert manifest["prefix"] == "eebun"
-    for entry in manifest["symbols"]:
-        assert entry["symbolId"].startswith("eebun-mark-")
+    assert manifest["delivery"] == "phosphor-vue"
+    assert manifest["package"] == "@phosphor-icons/vue"
+    for entry in manifest["icons"]:
+        assert entry["component"]
+        assert entry["package"] == "@phosphor-icons/vue"
+    # Legacy symbols[] maps symbolId → Phosphor component name (not sprite id).
+    assert manifest["symbols"][0]["symbolId"] == "House"

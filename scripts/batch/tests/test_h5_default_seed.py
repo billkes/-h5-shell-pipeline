@@ -114,13 +114,8 @@ def test_collect_missing_vault_asset(tmp_path: Path) -> None:
     assert any("seed_slide_cs101.jpg" in i for i in issues)
 
 
-def test_sync_default_seed_stub_creates_file(tmp_path: Path) -> None:
+def test_sync_default_seed_stub_is_agent_owned(tmp_path: Path) -> None:
+    """No repo template — Agent implements defaultSeed.ts per H5壳Vite工程规范."""
     project = _seed_project(tmp_path, with_seed=False)
     path = sync_default_seed_stub(project, app_name="Demo", write=True)
-    assert path is not None
-    assert path.is_file()
-    text = path.read_text(encoding="utf-8")
-    assert "demo_bootstrap_v1" in text
-    assert "ensureBootstrapData" in text
-    assert "title:" in text
-    assert "Sample Rehearsal" in text
+    assert path is None

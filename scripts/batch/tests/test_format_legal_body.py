@@ -37,4 +37,4 @@ def test_vite_legal_format_norm_doc_exists() -> None:
     doc = Path(__file__).resolve().parents[3] / "docs" / "H5壳Vite工程规范.md"
     text = doc.read_text(encoding="utf-8")
     assert "formatLegalBody" in text
-    assert "legal-section" in text
+    assert "section / para / meta" in text

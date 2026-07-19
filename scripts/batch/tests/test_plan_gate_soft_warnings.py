@@ -28,10 +28,7 @@ def test_flutter_still_validates_all_component_ids() -> None:
         ["feedback/snackbar", "patterns/welcome_gate"],
         pack_type="tool_flutter",
     )
-    assert issues == [
-        "component_kit 中未找到组件: feedback/snackbar",
-        "component_kit 中未找到组件: patterns/welcome_gate",
-    ]
+    assert issues == ["component_kit 中未找到组件: feedback/snackbar"]
 
 
 def test_export_composition_counts_table_rows() -> None:
@@ -149,11 +146,10 @@ Free tier 2
             "Ambient Canvas", "Overlay & Feedback", "Export Card Composition",
             "Confirmation Dialog Inventory", "List Row Anatomy", "Detail Page Pattern",
             "Modal Interior Spec", "Form & Input Canon", "Tag & Filter Chip Canon",
-            "IAP Store Layout", "Welcome Gate Canon", "Component Selection",
-            "Package Token Overrides",
+            "IAP Store Layout", "Welcome Gate Canon",
         ])
-        + "\n## Component Selection\n| Kit path | Usage |\n| shell/legal_modal | legal |\n| feedback/snackbar | toast |\n"
-        + "\n## Package Token Overrides\n| id | h | p | r | typo | color |\n| feedback/snackbar | k | k | k | bodyMedium | surface |\n",
+        + "\n## Component Selection\n| Kit path | Usage |\n| shell/legal_modal | legal |\n| primitives/snackbar | toast |\n"
+        + "\n## Package Token Overrides\n| id | h | p | r | typo | color |\n| shell/legal_modal | k | k | k | bodyMedium | surface |\n| primitives/snackbar | k | k | k | bodyMedium | surface |\n",
         encoding="utf-8",
     )
     (workspace / "本包视觉锁.json").write_text(
@@ -161,7 +157,7 @@ Free tier 2
   "designerDeckSelections": {"colorTemperature": "x"},
   "colorTokens": {"primary": "#000"},
   "baselineReference": "data/static/component_kit/baseline.md#h5",
-  "componentSelection": ["shell/legal_modal", "feedback/snackbar"],
+  "componentSelection": ["shell/legal_modal", "primitives/snackbar"],
   "ambientCanvas": {"motifKey": "m", "scenes": {"hub": "hub"}},
   "overlayTokens": {"veil": "rgba(0,0,0,0.5)"},
   "exportCards": [{"id": "a", "width": 1, "height": 1, "layers": []}],

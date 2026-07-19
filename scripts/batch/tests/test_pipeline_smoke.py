@@ -32,13 +32,13 @@ def test_batch_imports() -> None:
 def test_task_list() -> None:
     proc = _run(["task", "list"])
     assert proc.returncode == 0, proc.stderr or proc.stdout
-    assert "Buildioo" in proc.stdout
+    assert "Monthio" in proc.stdout
 
 
 def test_dry_run_single_app() -> None:
-    proc = _run(["--dry-run", "--name", "Buildioo"])
+    proc = _run(["--dry-run", "--name", "Monthio"])
     assert proc.returncode == 0, proc.stderr or proc.stdout
-    assert "dry" in proc.stdout.lower() or "Buildioo" in proc.stdout
+    assert "dry" in proc.stdout.lower() or "Monthio" in proc.stdout
 
 
 def test_pipeline_steps_h5_swift() -> None:
