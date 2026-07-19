@@ -12,6 +12,7 @@ REQUIRED_H5_SHELL_PROMPTS = [
     "phase_h5_implementer.txt",
     "phase_pm_ui_plan.txt",
     "phase_plan_gate_repair.txt",
+    "phase_h5_build_repair.txt",
 ]
 
 

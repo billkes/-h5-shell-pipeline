@@ -6,11 +6,12 @@ import json
 from pathlib import Path
 from typing import Literal
 
-AgentPhase = Literal["plan", "shell", "h5", "preview", "repair"]
+AgentPhase = Literal["plan", "shell", "h5", "preview", "repair", "h5_build_repair"]
 
 SPEC_INDEX_REL = "skill-input/agent-spec-index.md"
 BRAIN_FOCUS_REL = "skill-input/agent-brain-focus.md"
 REPAIR_BRIEF_REL = "skill-input/plan-gate-repair-brief.md"
+H5_BUILD_REPAIR_BRIEF_REL = "skill-input/h5-build-repair-brief.md"
 
 _PLAN_NORM_DOCS: tuple[str, ...] = (
     "docs/H5壳Plan交付规范.md",
@@ -241,6 +242,7 @@ def _norm_docs_for_phase(phase: AgentPhase) -> list[str]:
         "h5": _H5_NORM_DOCS,
         "preview": _PREVIEW_NORM_DOCS,
         "repair": _PLAN_NORM_DOCS,
+        "h5_build_repair": _H5_NORM_DOCS,
     }
     return list(mapping.get(phase, ()))
 
@@ -345,9 +347,21 @@ def write_agent_spec_index(
             _section("Tab preview (when present)", _collect_preview_paths(workspace, app_name))
         )
 
-    if phase == "h5":
+    if phase in ("h5", "h5_build_repair"):
         lines.extend(_section("skill.adapt (H5)", _collect_skill_adapt_paths(workspace)))
         lines.extend(_section("Per-route specs", _collect_page_paths(workspace, app_name)))
+        h5_dir = workspace / "h5"
+        if h5_dir.is_dir():
+            lines.extend(
+                _section(
+                    "H5 source (repair scope)",
+                    [
+                        p
+                        for rel in ("h5/package.json", "h5/vite.config.ts", "h5/src")
+                        if (p := _existing(workspace, rel))
+                    ],
+                )
+            )
 
     out_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
     return out_path
@@ -384,6 +398,55 @@ def write_plan_gate_repair_brief(
             "- `skill-input/agent-spec-index.md`",
             "- `H5壳Plan交付规范.md`",
             "- `H5壳功能文档深度标准.md`",
+            "",
+        ]
+    )
+    out_path.write_text("\n".join(lines), encoding="utf-8")
+    return out_path
+
+
+def write_h5_build_repair_brief(
+    workspace: Path,
+    *,
+    issues: list[str],
+    focus: str,
+    round_no: int,
+    max_rounds: int,
+) -> Path:
+    workspace = workspace.expanduser().resolve()
+    out_path = workspace / H5_BUILD_REPAIR_BRIEF_REL
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        "# h5.build repair brief",
+        "",
+        f"**Round:** {round_no}/{max_rounds}",
+        f"**Focus:** {focus}",
+        "",
+        "## Build errors",
+        "",
+    ]
+    for issue in issues:
+        lines.append(f"```")
+        lines.append(issue)
+        lines.append("```")
+        lines.append("")
+    lines.extend(
+        [
+            "## Allowed paths",
+            "",
+            "- `h5/**` (Vue/TS/Vite only)",
+            "",
+            "## Forbidden",
+            "",
+            "- `h5_site/` (pipeline deploy output)",
+            "- Plan docs (`功能文档.md`, `视觉蓝图.md`, …)",
+            "- Native shell (`ios/`, `android/`, …)",
+            "",
+            "## Norm docs",
+            "",
+            "- `skill-input/agent-spec-index.md`",
+            "- `H5壳Vite工程规范.md`",
+            "- `H5壳H5实现检查清单.md`",
             "",
         ]
     )

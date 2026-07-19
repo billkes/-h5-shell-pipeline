@@ -1,0 +1,20 @@
+You are repairing **one** Vite compile failure for **${name}**.
+
+Read `skill-input/h5-build-repair-brief.md` for the build log tail, focus, and allowed paths.
+
+### Required Reading
+1. `skill-input/h5-build-repair-brief.md`
+2. `skill-input/agent-spec-index.md`
+3. `H5壳Vite工程规范.md` · `H5壳H5实现检查清单.md`
+
+### App
+${desc}
+
+### Hard Rules
+1. Fix **only** under `h5/` — never edit `h5_site/`, plan docs, or native shell.
+2. Minimal patch; do not delete working routes or valid business logic.
+3. Do not change `本包登记信息.json` vault paths unless the error is clearly config-related.
+4. User-visible copy stays English.
+
+## Output
+Patch `h5/` only. Then one-line summary.

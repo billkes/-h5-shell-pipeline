@@ -569,13 +569,74 @@ class V3StepRunner:
                     print(f"       {line}")
         return True
 
+    def _run_h5_build_with_repair(self, ctx: AppContext) -> tuple[bool, object]:
+        """Vite build with optional H5-source Agent repair (default max 3 rounds)."""
+        from batch.h5_build_repair import (
+            H5BuildGateResult,
+            append_h5_build_repair_history,
+            build_h5_build_repair_prompt,
+            h5_build_repair_enabled,
+            h5_build_repair_max_rounds,
+            is_repairable_build_failure,
+            write_h5_build_report,
+        )
+        from batch.h5_vite_build import run_h5_vite_build
+
+        ws = ctx.workspace
+        max_rounds = h5_build_repair_max_rounds()
+        build_round = 0
+
+        def _compile(*, skip_install: bool) -> H5BuildGateResult:
+            nonlocal build_round
+            build_round += 1
+            ok, issues = run_h5_vite_build(ws, skip_install=skip_install)
+            result = H5BuildGateResult(ok=ok, issues=issues, build_round=build_round)
+            write_h5_build_report(ws, result, max_repair_rounds=max_rounds)
+            return result
+
+        gate_result = _compile(skip_install=False)
+
+        if h5_build_repair_enabled() and max_rounds > 0:
+            for round_no in range(1, max_rounds + 1):
+                if gate_result.ok:
+                    break
+                if not is_repairable_build_failure(gate_result.issues):
+                    break
+                print(
+                    f">>> dev.h5.build repair 轮次 {round_no}/{max_rounds}: "
+                    f"{gate_result.issues[0][:120]}"
+                )
+                prompt = build_h5_build_repair_prompt(
+                    ws,
+                    gate_result.issues,
+                    app_name=ctx.name,
+                    desc=ctx.desc,
+                    round_no=round_no,
+                    max_rounds=max_rounds,
+                    project_dir=self.p.cfg.project_dir,
+                )
+                from batch.cursor_runner import run_agent
+
+                agent_ok = run_agent(
+                    self.p.cfg,
+                    ws,
+                    prompt,
+                    log_section_title=f"{ctx.name} · H5 Build Repair · 轮次 {round_no}",
+                )
+                append_h5_build_repair_history(
+                    ws,
+                    round_no=round_no,
+                    issues=gate_result.issues,
+                    agent_ok=agent_ok,
+                )
+                gate_result = _compile(skip_install=True)
+
+        return gate_result.ok, gate_result
+
     def _step_dev_h5_build(self, ctx: AppContext) -> bool:
         if not is_h5_shell(ctx.pack_type):
             return True
-        from batch.h5_vite_build import (
-            cleanup_stale_h5_site_sources,
-            run_h5_vite_build,
-        )
+        from batch.h5_vite_build import cleanup_stale_h5_site_sources
         from batch.sync_h5_legal_bundled import sync_h5_legal_bundled
         from batch.h5_theme_tokens import sync_h5_global_theme
         from batch.h5_page_scaffold import sync_h5_page_scaffold
@@ -604,10 +665,10 @@ class V3StepRunner:
         for rel in cleanup_stale_h5_site_sources(ws):
             print(f">>> dev.h5.build: removed stale {rel}")
 
-        ok, issues = run_h5_vite_build(ws)
+        ok, gate_result = self._run_h5_build_with_repair(ctx)
         if not ok:
             print(">>> dev.h5.build 未通过:")
-            for item in issues:
+            for item in gate_result.issues:
                 print(f"       {item}")
         return ok
 

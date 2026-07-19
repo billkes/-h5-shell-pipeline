@@ -90,7 +90,7 @@ STEP_LABELS: dict[str, str] = {
     AGENT_SHELL: "Agent · H5 原生壳",
     AGENT_H5: "Agent · H5 vault / legal",
     PLAN_GATE: "产出校验 + 主题登记",
-    DEV_H5_BUILD: "Vite 编译 · h5 → h5_site 单文件",
+    DEV_H5_BUILD: "Vite 编译修复 · h5 → h5_site（max 3 轮）",
     GIT_PLAN: "Git 提交（计划产物）",
     PUBGET: "flutter pub get",
     ANALYZE: "flutter analyze",
