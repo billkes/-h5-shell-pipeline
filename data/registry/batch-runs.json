@@ -2754,6 +2754,111 @@
           "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Monthio-Swift/Monthio"
         }
       ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-19_15-28-23-58825",
+      "startedAt": "2026-07-19 15:28:23",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Monthio-Swift/Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-19_16-25-50-58825",
+      "startedAt": "2026-07-19 16:25:50",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Monthio-Swift/Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-19_18-29-04-97012",
+      "startedAt": "2026-07-19 18:29:04",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Monthio-Swift/Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-19_18-29-15-97012",
+      "startedAt": "2026-07-19 18:29:15",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Monthio-Swift/Monthio"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-19_18-45-47-13683",
+      "startedAt": "2026-07-19 18:45:47",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Monthio"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Monthio",
+          "packType": "h5_swift_shell",
+          "container": "Monthio-Swift",
+          "workspace": "/Users/ios-dev/Desktop/projects/h5-shell-pipeline/output/Monthio-Swift/Monthio"
+        }
+      ]
     }
   ]
 }

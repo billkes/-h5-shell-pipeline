@@ -5,15 +5,18 @@ from __future__ import annotations
 from batch.skill_pages import H5_PAGE_SPECS
 
 # Canonical section order per tab-root page type (maps to H5_PAGE_SPECS layout intent).
+# Hub sections are a superset; topology trims via TOPOLOGY_EXCLUDE / TOPOLOGY_HUB_SECTIONS.
 TAB_ROOT_BLUEPRINT: dict[str, tuple[str, ...]] = {
     "hub": (
         "hub-hero",
+        "primary-zone",
         "kpi-strip-hub",
         "wizard-lane",
         "chip-rail-hub",
         "feature-bento",
         "cta-stack-hub",
         "draft-list",
+        "contextual-feed",
     ),
     "list": (
         "list-hero",
@@ -31,12 +34,64 @@ TAB_ROOT_BLUEPRINT: dict[str, tuple[str, ...]] = {
     ),
 }
 
+# Per-topology hub section sets — product-bound, not one chip dashboard for all.
+TOPOLOGY_HUB_SECTIONS: dict[str, tuple[str, ...]] = {
+    "T1_dashboard": (
+        "hub-hero",
+        "kpi-strip-hub",
+        "feature-bento",
+        "cta-stack-hub",
+        "contextual-feed",
+    ),
+    "T2_capture_first": (
+        "hub-hero",
+        "primary-zone",
+        "cta-stack-hub",
+        "contextual-feed",
+    ),
+    "T3_timeline": (
+        "hub-hero",
+        "primary-zone",
+        "contextual-feed",
+        "cta-stack-hub",
+    ),
+    "T4_wizard": (
+        "hub-hero",
+        "wizard-lane",
+        "draft-list",
+        "cta-stack-hub",
+    ),
+    "T5_workspace": (
+        "hub-hero",
+        "primary-zone",
+        "cta-stack-hub",
+        "contextual-feed",
+    ),
+    "T6_checklist_session": (
+        "hub-hero",
+        "primary-zone",
+        "cta-stack-hub",
+        "contextual-feed",
+    ),
+    "T7_compare_board": (
+        "hub-hero",
+        "primary-zone",
+        "cta-stack-hub",
+    ),
+    "T8_reminder_ring": (
+        "hub-hero",
+        "primary-zone",
+        "contextual-feed",
+        "cta-stack-hub",
+    ),
+}
+
 TOPOLOGY_EXCLUDE: dict[tuple[str, str], frozenset[str]] = {
     ("hub", "default"): frozenset({"wizard-lane"}),
 }
 
 SPEC_REQUIRED_MARKERS: dict[str, tuple[str, ...]] = {
-    "hub": ("kpi-strip", "chip-rail", "empty-state", "cta-primary"),
+    "hub": ("primary-zone", "empty-state", "cta-primary"),
     "list": ("list-hero", "filter-chips", "list-toolbar", "empty-state", "run-card"),
     "settings": (
         "settings-top",
@@ -49,6 +104,8 @@ SPEC_REQUIRED_MARKERS: dict[str, tuple[str, ...]] = {
 
 
 def resolve_tab_root_sections(page_type: str, topology: str) -> tuple[str, ...]:
+    if page_type == "hub" and topology in TOPOLOGY_HUB_SECTIONS:
+        return TOPOLOGY_HUB_SECTIONS[topology]
     base = TAB_ROOT_BLUEPRINT.get(page_type, ())
     excluded = TOPOLOGY_EXCLUDE.get((page_type, topology), frozenset())
     return tuple(s for s in base if s not in excluded)
@@ -83,4 +140,11 @@ def verify_tab_root_blueprint() -> list[str]:
             continue
         if not markers:
             issues.append(f"blueprint: SPEC_REQUIRED_MARKERS[{page_type}] is empty")
+    for topo_id, sections in TOPOLOGY_HUB_SECTIONS.items():
+        if not sections:
+            issues.append(f"blueprint: TOPOLOGY_HUB_SECTIONS[{topo_id}] is empty")
+        if "primary-zone" not in sections and "kpi-strip-hub" not in sections and "wizard-lane" not in sections:
+            issues.append(
+                f"blueprint: TOPOLOGY_HUB_SECTIONS[{topo_id}] missing a primary surface"
+            )
     return issues

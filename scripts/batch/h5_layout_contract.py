@@ -136,9 +136,17 @@ def build_layout_block(prefix: str) -> str:
 }}
 
 .page-full {{
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
   padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom));
   box-sizing: border-box;
+  color: var(--{p}-foreground);
+}}
+
+[data-{p}-scene='splash'] .page-full,
+[data-{p}-scene='welcome'] .page-full {{
+  color: var(--{p}-on-ambient);
 }}
 
 .page-stack {{

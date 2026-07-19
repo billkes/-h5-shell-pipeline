@@ -40,8 +40,8 @@ CANONICAL_H5_PAGES: tuple[str, ...] = tuple(
 
 H5_PAGE_QUERY_HINTS: dict[str, str] = {
     "splash": "splash launch loading brand intro animation",
-    "welcome": "welcome onboarding legal consent first-run gate",
-    "hub": "home dashboard hub navigation tab root category chips browse",
+    "welcome": "welcome onboarding scene immersion legal consent first-run gate",
+    "hub": "home tab-root signature primary zone product identity workspace",
     "list": "list catalog filter search results browse items records",
     "detail": "detail record item view edit notes attachments photos",
     "store": "in-app purchase store consumable credits paywall ribbon",
@@ -91,46 +91,58 @@ H5_PAGE_SPECS: dict[str, dict[str, Any]] = {
             "Navigation: auto-route to welcome or hub after veil dismiss",
         ],
     },
+    # welcome / hub: static stubs only — real content from page_scene_spec builders.
     "welcome": {
         "layout": {
-            "Max Width": "480px centered card on full-bleed wash",
-            "Layout": "Single column consent gate; no Tab bar",
-            "Sections": "1. Value prop hero, 2. Privacy/User links, 3. Continue CTA",
+            "Max Width": "480px centered on full-bleed ambient wash",
+            "Layout": "Product-bound onboarding; no Tab bar",
+            "Sections": "1. Scene immersion, 2. Signature value beat, 3. Consent + Continue",
         },
-        "spacing": {"Content Density": "Low — one decision per screen"},
-        "typography": {"Scale": "H1 value prop + body legal copy"},
-        "colors": {"Strategy": "Primary CTA on muted card; links use accent"},
+        "spacing": {"Content Density": "Low — one emotional beat at a time"},
+        "typography": {"Scale": "Display scene headline + body; legal ≥ labelMedium"},
+        "colors": {"Strategy": "Emotional arc from designerSeeds; CTA on final beat"},
         "components": [
+            "Required: product-bound onboarding (see Scene Brief — not a fixed template)",
             "Required: persist first-run flag in local storage",
             "Avoid: Tab bar before Continue",
             "Avoid: Paywall or store entry on welcome",
         ],
-        "unique_components": ["welcome gate card", "legal link row", "optional mock import chip"],
+        "unique_components": [
+            "product-bound onboarding stage",
+            "scene-immersion hero",
+            "legal consent row",
+        ],
         "recommendations": [
-            "Show once per install unless data cleared",
-            "Continue routes to hub tab root",
+            "Derive pattern from coreScene + audience — do not copy another pack",
+            "Continue routes to Tab 1",
             "Listing URLs must match in-app Privacy/User pages",
         ],
     },
     "hub": {
         "layout": {
             "Max Width": "100% with safe-area padding",
-            "Layout": "Tab root — category chips + KPI strip + module cards",
-            "Sections": "1. Greeting/header, 2. Category chips, 3. Quick actions, 4. Recent items teaser",
+            "Layout": "Tab 1 root — topology-bound primary zone (not generic dashboard)",
+            "Sections": "1. Contextual header, 2. Primary zone, 3. Quick actions, 4. Contextual feed",
         },
-        "spacing": {"Content Density": "Medium — scan-friendly chip grid"},
-        "typography": {"Scale": "H2 section titles + chip labels"},
-        "colors": {"Strategy": "Chips use secondary; cards on background; CTA accent for primary action"},
+        "spacing": {"Content Density": "Medium — hierarchy around primary zone"},
+        "typography": {"Scale": "Contextual greeting + domain status"},
+        "colors": {"Strategy": "Primary zone accent; semantic status; elevated feed"},
         "components": [
             "Required: bottom Tab bar visible (≥3 tabs)",
-            "Required: chip tap → list route with filter context",
+            "Required: primary zone matches interactionTopology + coreScene",
             "Avoid: Bridge plaza entry on hub",
+            "Avoid: generic chip+KPI template when topology forbids it",
         ],
-        "unique_components": ["category chip rail", "KPI/stat strip", "recent items carousel"],
+        "unique_components": [
+            "topology primary zone",
+            "contextual greeting",
+            "workflow quick actions",
+            "contextual feed",
+        ],
         "recommendations": [
-            "Anchor navigation for the product's core scene",
-            "Empty hub must still show chips + CTA to add first item",
-            "Use MASTER pattern sections for hero/features rhythm",
+            "Tab 1 = product identity after Welcome",
+            "Empty hub still shows primary zone skeleton + CTA",
+            "Signature H5 interaction must be reachable here",
         ],
     },
     "list": {
@@ -441,7 +453,30 @@ def _generic_page_spec(page: str) -> dict[str, Any]:
     }
 
 
-def _page_spec(page: str) -> dict[str, Any]:
+def _page_spec(
+    page: str,
+    ctx: dict[str, Any] | None = None,
+    row: CsvTaskRow | None = None,
+) -> dict[str, Any]:
+    """Resolve page spec — welcome/hub are product-bound generators."""
+    if page in ("welcome", "hub") and ctx is not None and row is not None:
+        from batch.page_scene_spec import build_hub_scene_spec, build_welcome_scene_spec
+
+        if page == "welcome":
+            return build_welcome_scene_spec(
+                ctx,
+                audience=row.audience,
+                core_scene=row.core_scene,
+                local_feature=row.local_feature,
+                product_flow=row.product_flow,
+            )
+        return build_hub_scene_spec(
+            ctx,
+            audience=row.audience,
+            core_scene=row.core_scene,
+            local_feature=row.local_feature,
+            product_flow=row.product_flow,
+        )
     return H5_PAGE_SPECS.get(page) or _generic_page_spec(page)
 
 
@@ -452,7 +487,7 @@ def _format_h5_page_override_md(
     row: CsvTaskRow,
 ) -> str:
     """Write H5 page overrides locally — do not delegate to uupm generic landing search."""
-    spec = _page_spec(page)
+    spec = _page_spec(page, ctx, row)
     project = candidate.get("project_name") or row.name
     page_title = page.replace("-", " ").replace("_", " ").title()
     page_type = H5_PAGE_TYPE_LABELS.get(page, page_title)
@@ -483,6 +518,21 @@ def _format_h5_page_override_md(
         lines.append("### Design System Anchors")
         lines.append("")
         lines.extend(pattern_lines)
+        lines.append("")
+
+    scene_brief = str(spec.get("scene_brief") or "").strip()
+    if scene_brief:
+        lines.append("### Scene Brief")
+        lines.append("")
+        lines.append(scene_brief)
+        lines.append("")
+
+    guidance = str(spec.get("pattern_guidance") or "").strip()
+    guidance_heading = str(spec.get("guidance_heading") or "Pattern Guidance").strip()
+    if guidance:
+        lines.append(f"### {guidance_heading}")
+        lines.append("")
+        lines.append(guidance)
         lines.append("")
 
     for section_key, heading in (

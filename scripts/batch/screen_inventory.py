@@ -25,6 +25,18 @@ _ROUTE_FROM_SCREEN: tuple[tuple[str, str], ...] = (
 _NATIVE_ROW_MARKERS = frozenset({"—", "-", "n/a", "na", ""})
 
 
+def _extract_markdown_section(spec_text: str, heading_re: str) -> str:
+    """Extract body under a markdown heading. Heading match is line-anchored (no DOTALL)."""
+    match = re.search(rf"(?im)^#+\s*{heading_re}\s*$", spec_text)
+    if not match:
+        return ""
+    rest = spec_text[match.end() :]
+    next_heading = re.search(r"(?m)^#+\s", rest)
+    if next_heading:
+        return rest[: next_heading.start()]
+    return rest
+
+
 def normalize_h5_route(raw: str) -> str | None:
     """Normalize `#/welcome`, `/welcome`, `welcome` → `/welcome`."""
     text = (raw or "").strip()
@@ -116,11 +128,55 @@ def ambient_scene_min_rows(routes: frozenset[str]) -> int:
 
 
 def optional_blueprint_sections(routes: frozenset[str]) -> dict[str, str]:
-    """Blueprint V2 sections gated by Screen Inventory routes."""
+    """Blueprint V2 sections gated by Screen Inventory routes.
+
+    Hub Home Canon is gated in ``filter_blueprint_v2_sections`` via tab-root detection
+    (not a single fixed route — Tab 1 may be ``#/today`` / ``#/hub`` / …).
+    """
     return {
         "Welcome Gate Canon": "/welcome",
         "IAP Store Layout": "/store",
     }
+
+
+_TAB_ROOT_HINT_ROUTES = frozenset(
+    {"/hub", "/home", "/prepare", "/today", "/circle", "/workspace"}
+)
+
+
+def parse_tab1_route(spec_text: str) -> str | None:
+    """Return Tab 1 hash route from Screen Inventory purpose column or Tab navigation table."""
+    # Screen Inventory rows: purpose / Entry cell often ends with "Tab 1"
+    for line in _extract_markdown_section(spec_text, r".*screen\s+inventory.*").splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 2:
+            continue
+        if re.match(r"^:?-+:?$", cells[0]):
+            continue
+        purpose = cells[-1] if cells else ""
+        if re.search(r"\btab\s*1\b", purpose, re.I):
+            route = normalize_h5_route(cells[0])
+            if route:
+                return route
+
+    # Tab navigation table: | 1 | Label | `#/today` | ...
+    for line in _extract_markdown_section(spec_text, r".*tab\s+navigation.*").splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 3:
+            continue
+        if not re.fullmatch(r"1", cells[0]):
+            continue
+        # Prefer explicit hash/path cells — never treat the label ("Today") as a route.
+        route_cells = [c for c in cells[1:] if "#" in c or c.startswith("/")]
+        for cell in route_cells:
+            route = normalize_h5_route(cell)
+            if route:
+                return route
+    return None
 
 
 def filter_blueprint_v2_sections(
@@ -128,8 +184,11 @@ def filter_blueprint_v2_sections(
     routes: frozenset[str],
 ) -> tuple[str, ...]:
     gates = optional_blueprint_sections(routes)
+    has_tab_root = bool(routes.intersection(_TAB_ROOT_HINT_ROUTES))
     out: list[str] = []
     for section in sections:
+        if section == "Hub Home Canon" and not has_tab_root:
+            continue
         required_route = gates.get(section)
         if required_route and required_route not in routes:
             continue
@@ -202,16 +261,13 @@ def route_to_page_slug(route: str) -> str:
 
 def parse_h5_route_list(spec_text: str) -> list[str]:
     """Ordered H5 routes from Screen Inventory table (deduped, stable order)."""
-    match = re.search(
-        r"(?is)(?:^|\n)#+\s*.*screen\s+inventory.*?\n(.*?)(?:\n#+\s|\Z)",
-        spec_text,
-    )
-    if not match:
+    section = _extract_markdown_section(spec_text, r".*screen\s+inventory.*")
+    if not section.strip():
         return []
 
     routes: list[str] = []
     seen: set[str] = set()
-    for line in match.group(1).splitlines():
+    for line in section.splitlines():
         if not line.strip().startswith("|"):
             continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
@@ -252,11 +308,23 @@ def parse_h5_route_list(spec_text: str) -> list[str]:
 
 
 def page_slugs_from_spec(spec_text: str) -> list[str]:
-    """Ordered unique design-system page slugs derived from Screen Inventory."""
+    """Ordered unique design-system page slugs derived from Screen Inventory.
+
+    Tab 1 routes (e.g. `#/today`) always map to the product-bound `hub` page override.
+    """
+    tab1 = parse_tab1_route(spec_text)
     slugs: list[str] = []
     seen: set[str] = set()
     for route in parse_h5_route_list(spec_text):
-        slug = route_to_page_slug(route)
+        if tab1 and route == tab1:
+            slug = "hub"
+        else:
+            slug = route_to_page_slug(route)
+            # Also treat common Tab1 aliases as hub when inventory marks Tab 1 elsewhere
+            if tab1 is None and slug in ("today", "home", "hub", "prepare", "circle"):
+                # keep route_to_page_slug mapping for /hub|/home|/prepare;
+                # only force hub when purpose said Tab 1 (handled above)
+                pass
         if slug in seen:
             continue
         seen.add(slug)

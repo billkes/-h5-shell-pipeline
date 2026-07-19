@@ -20,6 +20,7 @@ VISUAL_BLUEPRINT_V2_SECTIONS: tuple[str, ...] = (
     "Tag & Filter Chip Canon",
     "IAP Store Layout",
     "Welcome Gate Canon",
+    "Hub Home Canon",
     "Component Selection",
     "Package Token Overrides",
 )
@@ -261,8 +262,10 @@ def _verify_visual_blueprint_depth(
             issues.append("视觉蓝图.md Overlay & Feedback 须含表格（≥2 数据行）")
 
     from batch.welcome_canon import verify_welcome_blueprint_section
+    from batch.hub_canon import verify_hub_blueprint_section
 
     issues.extend(verify_welcome_blueprint_section(visual_text, spec_text=spec_text))
+    issues.extend(verify_hub_blueprint_section(visual_text, spec_text=spec_text))
     issues.extend(
         _verify_ambient_canvas_section(
             visual_text,

@@ -42,6 +42,18 @@ def collect_page_spec_file_index(project: Path, app_name: str) -> dict[str, list
     ux = ds / "ux-checklist.md"
     if ux.is_file():
         out["design_system_root"].append(_rel(project, ux))
+    for brief_name in (
+        "style-brief.md",
+        "typography-brief.md",
+        "color-brief.md",
+        "motion-brief.md",
+        "h5-interface-brief.md",
+    ):
+        brief = ds / brief_name
+        if brief.is_file():
+            rel_path = _rel(project, brief)
+            if rel_path not in out["design_system_root"]:
+                out["design_system_root"].append(rel_path)
     pages_dir = ds / "pages"
     if pages_dir.is_dir():
         for path in sorted(pages_dir.glob("*.md")):
@@ -52,6 +64,7 @@ def collect_page_spec_file_index(project: Path, app_name: str) -> dict[str, list
         "视觉蓝图.md",
         "本包视觉锁.json",
         "skill-input/context.json",
+        "skill-adapt/kit-skeleton.css",
     ):
         hit = _existing(project, rel)
         if hit:
@@ -96,7 +109,8 @@ def format_page_implementation_prompt_block(workspace: Path, app_name: str) -> s
         "[H5 page specs — read files below; this block is an index only]",
         "- Create full `h5/` per `docs/H5壳Vite工程规范.md` (no repo code template).",
         "- Norm prose lives in the listed paths (and in RequiredReading repo docs).",
-        "- Pipeline does not generate page Vue/CSS; Agent owns markup/styles.",
+        "- Pipeline generates kit skeleton at `skill-adapt/kit-skeleton.css`; Agent extends into `h5/src/styles/kit.css`.",
+        "- All interactive elements MUST use `c-{prefix}-btn|input|checkbox|link|chip` — no bare `<button>`/`<input>`/`<a>`.",
         "",
     ]
 

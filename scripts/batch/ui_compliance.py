@@ -45,7 +45,11 @@ def welcome_gate_block() -> str:
         "- Plan MUST author 视觉蓝图.md **Welcome Gate Canon** table + "
         "本包视觉锁.json **welcomeSpec** (layoutVariant + trustBulletSource ≥2). "
         "Implementer MUST fill brand/trust slots — not minimal 18+ line only.\n"
-        "- H5 gate: `verify_h5_welcome_canon()` in plan/dev gates.\n"
+        "- Welcome / Tab1 specs are **product-bound** (coreScene × audience × "
+        "topology) — do not copy another pack's onboarding or hub pattern.\n"
+        "- Plan MUST author **Hub Home Canon** for Tab 1 (primary zone + empty + "
+        "signature binding). H5 gates: `verify_h5_welcome_canon()` / "
+        "`verify_h5_hub_canon()`.\n"
     )
 
 

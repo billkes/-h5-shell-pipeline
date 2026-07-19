@@ -12,7 +12,11 @@ def test_build_theme_block_has_light_and_dark() -> None:
     block = build_theme_block("demo", {"primary": "#EA580C", "background": "#0F172A", "foreground": "#FFF"})
     assert "color-scheme: light dark" in block
     assert "@media (prefers-color-scheme: dark)" in block
-    assert "--demo-fg: #0F172A" in block
+    assert "--demo-fg: #FFF" in block
+    assert "--demo-background: #F5F5F7" in block
+    assert "--demo-foreground:" in block
+    assert "--demo-on-primary:" in block
+    assert "--demo-on-ambient:" in block
 
 
 def test_sync_h5_global_theme(tmp_path: Path) -> None:

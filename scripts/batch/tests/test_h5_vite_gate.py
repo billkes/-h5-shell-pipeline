@@ -39,6 +39,15 @@ def _write_vite_project(root: Path) -> Path:
     )
     (h5 / "package.json").write_text('{"name":"demo-h5"}', encoding="utf-8")
     (project / "design-system" / "app" / "ux-checklist.md").write_text("# ux", encoding="utf-8")
+    (project / "功能文档.md").write_text(
+        "## Screen Inventory\n\n| Route | Screen |\n| --- | --- |\n| #/welcome | Welcome |\n",
+        encoding="utf-8",
+    )
+    (h5 / "src" / "router").mkdir(parents=True, exist_ok=True)
+    (h5 / "src" / "router" / "index.ts").write_text(
+        "{ path: '/welcome', name: 'welcome', meta: { scene: 'welcome' } },\n",
+        encoding="utf-8",
+    )
 
     (h5 / "src" / "legal" / "demo_legal_bundled.ts").write_text(
         'export const LEGAL = { privacy: "Children\'s Privacy\\nNo collection.", '
@@ -67,25 +76,55 @@ void formatLegalBody;
     (h5 / "src" / "views" / "WelcomeView.vue").write_text(
         """
 <template>
-  <div>
-    <h1>Welcome</h1>
-    <ul><li>One</li><li>Two</li></ul>
-    <a @click.prevent="openLegal('privacy')">Privacy</a>
-    <input v-model="checked" type="checkbox" />
-    <span>I am 18 or older</span>
-    <button :disabled="!checked">Continue</button>
+  <div class="page-full">
+    <h1 v-if="currentStep === 0" class="c-demo-welcome-title">Welcome</h1>
+    <p v-if="currentStep === 1" class="c-demo-welcome-beat">Value beat</p>
+    <ul v-if="currentStep === 2" class="c-demo-welcome-trust"><li>One</li><li>Two</li></ul>
+    <div v-if="currentStep === 3">
+      <a @click.prevent="openLegal('privacy')">Privacy Agreement</a>
+      <input v-model="checked" type="checkbox" />
+      <span>I am 18 or older</span>
+      <button :disabled="!checked">Continue</button>
+    </div>
+    <button v-if="currentStep < 3" type="button" @click="goNext">Next</button>
   </div>
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
 const checked = ref(false);
+const currentStep = ref(0);
+function goNext() { currentStep.value += 1; }
 function openLegal(doc: string) { location.hash = '#/legal?doc=' + doc; }
 </script>
+<style scoped>
+.c-demo-welcome-title { animation: demo-fade 0.2s ease; }
+@keyframes demo-fade { from { opacity: 0; } to { opacity: 1; } }
+</style>
 """,
         encoding="utf-8",
     )
     (h5 / "src" / "styles" / "global.css").write_text(
         """
+/* THEME:pipeline — auto-synced; do not hand-edit */
+:root {
+  --demo-bg: #F5F5F7;
+  --demo-fg: #0F172A;
+  --demo-background: #F5F5F7;
+  --demo-foreground: #0F172A;
+  --demo-on-primary: #FFFFFF;
+  --demo-on-ambient: #F8FAFC;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --demo-bg: #020617;
+    --demo-fg: #F8FAFC;
+    --demo-background: #020617;
+    --demo-foreground: #F8FAFC;
+    --demo-on-primary: #FFFFFF;
+    --demo-on-ambient: #F8FAFC;
+  }
+}
+/* THEME:end */
 .c-demo-legal-scroll {
   mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
   scrollbar-width: none;

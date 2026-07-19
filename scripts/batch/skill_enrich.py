@@ -21,6 +21,17 @@ _CHART_KEYWORDS = re.compile(
     re.I,
 )
 
+# Default ui-ux-pro-max domain briefs (skill.enrich).
+ENRICH_DOMAINS: tuple[tuple[str, str, int], ...] = (
+    ("ux", "ux-checklist.md", 8),
+    ("icons", "icon-brief.md", 6),
+    ("web", "h5-interface-brief.md", 6),
+    ("style", "style-brief.md", 4),
+    ("typography", "typography-brief.md", 4),
+    ("color", "color-brief.md", 4),
+    ("gsap", "motion-brief.md", 4),
+)
+
 _PRE_DELIVERY = """## Pre-Delivery Checklist (ui-ux-pro-max)
 
 - [ ] Contrast 4.5:1 minimum for body text
@@ -70,7 +81,7 @@ def run_skill_enrich(
     workspace: Path,
     row: CsvTaskRow,
 ) -> Path:
-    """Generate ux/icons/web/chart briefs under design-system/{slug}/."""
+    """Generate ux/icons/web/style/typography/color/gsap briefs under design-system/{slug}/."""
     if not integration_enabled(cfg, "enrich_domains"):
         ds_dir = design_system_dir_for_app(workspace, row.name)
         ds_dir.mkdir(parents=True, exist_ok=True)
@@ -88,11 +99,7 @@ def run_skill_enrich(
     ds_dir = design_system_dir_for_app(workspace, row.name)
     ds_dir.mkdir(parents=True, exist_ok=True)
 
-    domains: list[tuple[str, str, int]] = [
-        ("ux", "ux-checklist.md", 8),
-        ("icons", "icon-brief.md", 6),
-        ("web", "h5-interface-brief.md", 6),
-    ]
+    domains: list[tuple[str, str, int]] = list(ENRICH_DOMAINS)
     if _CHART_KEYWORDS.search(query):
         domains.append(("chart", "chart-brief.md", 4))
 
@@ -121,6 +128,10 @@ def enrich_file_paths(workspace: Path, app_name: str) -> dict[str, Path]:
         "ux": ds_dir / "ux-checklist.md",
         "icons": ds_dir / "icon-brief.md",
         "web": ds_dir / "h5-interface-brief.md",
+        "style": ds_dir / "style-brief.md",
+        "typography": ds_dir / "typography-brief.md",
+        "color": ds_dir / "color-brief.md",
+        "gsap": ds_dir / "motion-brief.md",
         "chart": ds_dir / "chart-brief.md",
     }
     return {k: v for k, v in mapping.items() if v.is_file()}

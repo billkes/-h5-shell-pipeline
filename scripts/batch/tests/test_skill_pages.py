@@ -38,15 +38,24 @@ def _sample_row(**overrides: str) -> CsvTaskRow:
     return CsvTaskRow(**base)
 
 
-def _sample_ctx() -> dict:
-    return {
+def _sample_ctx(**overrides: object) -> dict:
+    base: dict = {
         "product": {
             "audience": "陪读家长",
             "coreScene": "开学物品准备清单与采购预算控制",
             "localFeature": "到期提醒记录本",
         },
-        "constraints": {"interactionTopologyLabel": "Hub-first"},
+        "constraints": {
+            "interactionTopology": "T5_workspace",
+            "interactionTopologyLabel": "Single workspace",
+        },
+        "designerSeeds": {
+            "heroVisualMotif": "开学物品准备清单 · Single workspace",
+            "colorTemperature": "Warm amber",
+        },
     }
+    base.update(overrides)
+    return base
 
 
 def _sample_candidate(project: str = "Buildioo") -> dict:
@@ -65,7 +74,7 @@ def _sample_candidate(project: str = "Buildioo") -> dict:
 
 def test_page_query_includes_domain_hints() -> None:
     q = _page_query("Buildioo parenting checklist", "hub")
-    assert "category chips" in q
+    assert "primary zone" in q
     assert H5_PAGE_QUERY_HINTS["hub"] in q
 
 
@@ -96,8 +105,63 @@ def test_splash_vs_hub_content_differs() -> None:
     assert "> **Page Type:** Splash / Launch" in splash
     assert "> **Page Type:** Hub / Home Dashboard" in hub
     assert "shellReady" in splash
-    assert "category chip" in hub.lower()
+    assert "Scene Brief" in hub
+    assert "T5_workspace" in hub or "Single workspace" in hub
+    assert "开学物品准备清单与采购预算控制" in hub
     assert splash != hub
+
+
+def test_welcome_and_hub_are_product_bound_not_clones() -> None:
+    peopio = _sample_row(
+        name="Peopio",
+        audience="Busy professionals before meetings",
+        core_scene="10-second people glance before elevator opens",
+        local_feature="Offline rehearsal teleprompter",
+        product_flow="Glance dossier; rehearse pace; export brief",
+    )
+    yeario = _sample_row(
+        name="Yeario",
+        audience="Nightly journalers",
+        core_scene="One soul question before sleep",
+        local_feature="Reminder ring streak",
+        product_flow="Answer tonight; light the ring; export yearbook",
+    )
+    ctx_p = _sample_ctx(
+        product={
+            "audience": peopio.audience,
+            "coreScene": peopio.core_scene,
+            "localFeature": peopio.local_feature,
+        },
+        constraints={
+            "interactionTopology": "T4_wizard",
+            "interactionTopologyLabel": "Wizard pipeline",
+        },
+    )
+    ctx_y = _sample_ctx(
+        product={
+            "audience": yeario.audience,
+            "coreScene": yeario.core_scene,
+            "localFeature": yeario.local_feature,
+        },
+        constraints={
+            "interactionTopology": "T8_reminder_ring",
+            "interactionTopologyLabel": "Reminder ring",
+        },
+    )
+    welcome_p = _format_h5_page_override_md("welcome", _sample_candidate("Peopio"), ctx_p, peopio)
+    welcome_y = _format_h5_page_override_md("welcome", _sample_candidate("Yeario"), ctx_y, yeario)
+    hub_p = _format_h5_page_override_md("hub", _sample_candidate("Peopio"), ctx_p, peopio)
+    hub_y = _format_h5_page_override_md("hub", _sample_candidate("Yeario"), ctx_y, yeario)
+
+    assert "10-second people glance" in welcome_p
+    assert "One soul question before sleep" in welcome_y
+    assert welcome_p != welcome_y
+    assert "T4_wizard" in hub_p
+    assert "T8_reminder_ring" in hub_y
+    assert "Calendar ring" in hub_y or "ring" in hub_y.lower()
+    assert hub_p != hub_y
+    assert "Onboarding Pattern Guidance" in welcome_p
+    assert "Hub Identity Guidance" in hub_p
 
 
 def test_store_and_plaza_have_distinct_semantics() -> None:
@@ -129,7 +193,7 @@ def test_hub_navigation_uses_topology_not_uupm_pattern() -> None:
     ctx = _sample_ctx()
     text = _format_h5_page_override_md("hub", _sample_candidate(), ctx, row)
 
-    assert "**Navigation pattern:** Hub-first" in text
+    assert "**Navigation pattern:** Single workspace" in text
     assert "Hero + Features + CTA" not in text.split("Navigation pattern:")[1].split("\n")[0]
     assert "**Visual tone (uupm):** Hero + Features + CTA" in text
     assert "IA source" in text

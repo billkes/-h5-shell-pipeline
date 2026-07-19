@@ -135,6 +135,22 @@ def test_verify_legal_md_pair_passes_style2(tmp_path: Path) -> None:
     assert issues == []
 
 
+def test_terms_age_rating_with_split_bold_markers() -> None:
+    """Agent often writes 'at least **18** years old' — gate must not false-fail."""
+    main = "Monthio"
+    terms = sample_terms_md(main).replace(
+        "You must be at least **18 years old** and use the app lawfully.",
+        "By installing Monthio, you confirm that you are at least **18** years old.",
+    )
+    issues = verify_legal_md_pair(
+        sample_privacy_md(main),
+        terms,
+        main_name=main,
+        privacy_style=2,
+    )
+    assert not any("18+ age rating" in i for i in issues)
+
+
 def test_verify_legal_md_pair_fails_plain_text_sections(tmp_path: Path) -> None:
     main = "Demo"
     bad = "Demo Privacy Policy\n\nLast updated: July 14, 2026\n\nBody only.\n"

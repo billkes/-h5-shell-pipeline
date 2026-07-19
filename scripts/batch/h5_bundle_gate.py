@@ -847,6 +847,13 @@ def verify_h5_bundle_soft(
                 warnings.append(f"H5 Gate Welcome Canon：{item}")
         except ImportError:
             pass
+        try:
+            from batch.hub_canon import verify_h5_hub_canon
+
+            for item in verify_h5_hub_canon(root):
+                warnings.append(f"H5 Gate Hub Canon：{item}")
+        except ImportError:
+            pass
     warnings.extend(_verify_flutter_startup_shell(workspace, root))
 
     return warnings

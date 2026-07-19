@@ -194,6 +194,12 @@ def collect_h5_deflavor_violations(project: Path) -> list[str]:
     except ImportError:
         pass
     issues.extend(verify_h5_source_deflavor(project))
+    try:
+        from batch.h5_kit_skeleton import verify_h5_bare_kit_elements
+
+        issues.extend(verify_h5_bare_kit_elements(project))
+    except ImportError:
+        pass
     issues.extend(_scan_native_deflavor(project))
     issues.extend(_scan_h5_src_patterns(project))
     return issues

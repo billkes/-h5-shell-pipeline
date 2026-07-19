@@ -253,6 +253,29 @@ def verify_welcome_blueprint_section(
         issues.append(
             "视觉蓝图.md Welcome Gate Canon 若提及 micro/bodySmall 须标注为禁止用于合规区"
         )
+
+    # Product-bound narrative depth (not a fixed carousel template).
+    if not re.search(
+        r"onboarding|carousel|dialogue|typewriter|narrative|scene|coreScene|"
+        r"emotional|immers|beat|journey|preview",
+        section,
+        re.I,
+    ):
+        issues.append(
+            "视觉蓝图.md Welcome Gate Canon 须声明产品绑定的引导形态"
+            "（onboarding pattern / scene narrative — 禁止仅写合规骨架）"
+        )
+    if not re.search(
+        r"audience|core\s*scene|product\s*flow|使用|人群|场景|"
+        r"usage\s*moment|onboarding\s*pattern|scene\s*beat|"
+        r"primary\s*zone|tab\s*1|identity|month|habit|streak|reflection",
+        section,
+        re.I,
+    ):
+        issues.append(
+            "视觉蓝图.md Welcome Gate Canon 须引用 audience / coreScene / productFlow"
+            "（或等价的场景/人群/时机描述 — 禁止套用他包模板）"
+        )
     return issues
 
 
@@ -297,6 +320,124 @@ def verify_welcome_visual_lock(
     return issues
 
 
+def _load_product_context(project: Path) -> dict:
+    ctx_path = project / "skill-input" / "context.json"
+    if not ctx_path.is_file():
+        return {}
+    try:
+        data = json.loads(ctx_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+_WELCOME_STEP_LOGIC = re.compile(
+    r"currentStep|activeStep|stepIndex|phaseIndex|onboardingStep|"
+    r"goNext|nextStep|nextBeat|advanceStep|"
+    r"WELCOME_STEPS|welcomeSteps|"
+    r"v-if\s*=\s*[\"'][^\"']*step|v-show\s*=\s*[\"'][^\"']*step|"
+    r"typewriter|carousel|dialogue",
+    re.I,
+)
+
+
+def _has_welcome_step_logic(surface: str) -> bool:
+    """True when welcome implements multi-beat onboarding (not CSS class names alone)."""
+    return bool(_WELCOME_STEP_LOGIC.search(surface))
+
+
+def _welcome_static_dump_issues(welcome: str) -> list[str]:
+    """Reject single-screen stacks of beats + trust bullets (gate-passing skeleton)."""
+    issues: list[str] = []
+    beat_count = len(re.findall(r"welcome-beat|c-[\w-]+-welcome-beat", welcome, re.I))
+    has_trust_ul = bool(re.search(r"welcome-trust|c-[\w-]+-welcome-trust", welcome, re.I))
+    has_step_cond = bool(re.search(r"v-if|v-show", welcome, re.I))
+    if beat_count >= 2 and has_trust_ul and not has_step_cond:
+        issues.append(
+            "WelcomeView: 禁止一屏堆叠多段 beat + trust bullet 列表"
+            " — 须分步 narrative/carousel/dialogue，合规区仅在最终 beat"
+        )
+    return issues
+
+
+def _welcome_scene_binding_issues(project: Path, welcome: str, audit_surface: str) -> list[str]:
+    """Welcome route must drive ambient scene + readable token aliases."""
+    issues: list[str] = []
+    surface = f"{welcome}\n{audit_surface}"
+    router_path = h5_src_dir(project) / "router" / "index.ts"
+    router_text = ""
+    if router_path.is_file():
+        try:
+            router_text = router_path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            pass
+
+    has_meta_scene = bool(re.search(r"['\"]welcome['\"][^}]*scene\s*:\s*['\"]welcome['\"]|scene\s*:\s*['\"]welcome['\"]", router_text, re.I))
+    has_set_scene = bool(re.search(r"setScene\s*\(\s*['\"]welcome['\"]", surface, re.I))
+    if not has_meta_scene and not has_set_scene:
+        issues.append(
+            "WelcomeView/router: 须 route meta.scene='welcome' 或 WelcomeView 内 setScene('welcome')"
+        )
+
+    from batch.h5_theme_tokens import THEME_END, THEME_START, resolve_prefix
+
+    prefix = resolve_prefix(project).lower()
+    css = vite_css_text(project)
+    if prefix and css and THEME_START in css and THEME_END in css:
+        theme_slice = css.split(THEME_START, 1)[1].split(THEME_END, 1)[0]
+        for alias in ("foreground", "background", "on-ambient"):
+            token = f"--{prefix}-{alias}"
+            if token not in theme_slice:
+                issues.append(f"WelcomeView/theme: THEME 块缺少 {token}（welcome 文字可能不可读）")
+    return issues
+
+
+def _welcome_product_relevance_issues(project: Path, welcome: str, audit_surface: str) -> list[str]:
+    """Product-binding checks when skill-input/context.json has product fields."""
+    ctx = _load_product_context(project)
+    product = ctx.get("product") if isinstance(ctx.get("product"), dict) else {}
+    core_scene = str(product.get("coreScene") or "").strip()
+    audience = str(product.get("audience") or "").strip()
+    if not core_scene and not audience:
+        return []
+
+    issues: list[str] = []
+    surface = f"{welcome}\n{audit_surface}"
+
+    if not _has_welcome_step_logic(surface):
+        issues.append(
+            "WelcomeView: 须有产品绑定的引导结构"
+            "（step/carousel/typewriter/dialogue 等任一，禁止单屏功能 bullet 卡）"
+        )
+
+    # Sole generic welcome headline is insufficient when coreScene is known.
+    if re.search(r"Welcome\s+to\s+\w+", welcome, re.I) and not re.search(
+        r"<h1[^>]*>\s*(?!Welcome\s+to)",
+        welcome,
+        re.I,
+    ):
+        # Only flag if h1 looks like pure "Welcome to X"
+        h1s = re.findall(r"<h1[^>]*>(.*?)</h1>", welcome, re.I | re.S)
+        if h1s and all(re.search(r"^\s*Welcome\s+to\b", re.sub(r"<[^>]+>", "", h), re.I) for h in h1s):
+            issues.append(
+                "WelcomeView: 主标题不得仅是 'Welcome to {App}' — "
+                f"须体现 coreScene（{core_scene or '—'}）"
+            )
+
+    # Scene / motion hint in welcome CSS or template.
+    css = vite_css_text(project)
+    if css and not re.search(
+        r"gradient|blur|keyframes|animation|@keyframes|transform",
+        css + welcome,
+        re.I,
+    ):
+        issues.append(
+            "WelcomeView: 须有场景化视觉线索（gradient/blur/animation）呼应 coreScene"
+        )
+
+    return issues
+
+
 def _verify_h5_welcome_vite(project: Path) -> list[str]:
     """Hard audit: WelcomeView.vue checkbox/typography for h5_vite."""
     issues: list[str] = []
@@ -322,7 +463,8 @@ def _verify_h5_welcome_vite(project: Path) -> list[str]:
 
     trust_li = len(re.findall(r"welcome-trust[\s\S]*?<li", welcome, re.I))
     plain_li = welcome.count("<li>")
-    if trust_li < 2 and plain_li < 2:
+    has_scene_structure = _has_welcome_step_logic(audit_surface)
+    if trust_li < 2 and plain_li < 2 and not has_scene_structure:
         issues.append("MISSING: ≥2 trust bullet rows in WelcomeView")
 
     if 'type="checkbox"' not in welcome:
@@ -344,6 +486,9 @@ def _verify_h5_welcome_vite(project: Path) -> list[str]:
     from batch.h5_ui_copy import collect_h5_welcome_demo_violations
 
     issues.extend(collect_h5_welcome_demo_violations(project))
+    issues.extend(_welcome_static_dump_issues(welcome))
+    issues.extend(_welcome_scene_binding_issues(project, welcome, audit_surface))
+    issues.extend(_welcome_product_relevance_issues(project, welcome, audit_surface))
 
     css = vite_css_text(project)
     if css:

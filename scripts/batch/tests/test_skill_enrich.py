@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from batch.skill_enrich import _format_search_md
+from batch.skill_enrich import ENRICH_DOMAINS, _format_search_md
+
+
+def test_enrich_domains_include_style_typography_color_gsap() -> None:
+    names = {d[0] for d in ENRICH_DOMAINS}
+    assert {"style", "typography", "color", "gsap"}.issubset(names)
 
 
 def test_format_search_md_includes_pre_delivery() -> None:

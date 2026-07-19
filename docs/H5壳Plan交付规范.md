@@ -42,9 +42,31 @@ Agent **Part 1（Plan）** 须一次性产出下列文件。细则以本文为�
 
 须含 V2 门禁章节 + **§Ambient Canvas Canon**（读 `skill-adapt/ambient-canvas-brief.md` 后展开）。
 
-**章节顺序：** Visual Identity · Anti-Patterns · Color Tokens · Typography · Shape & Radius · Iconography（inline SVG sprite）· Imagery · Navigation Pattern · **Ambient Canvas Canon** · Per-screen Layout（仅 Screen Inventory 内屏幕）· Overlay & Feedback · Confirmation Dialog · Export Card · List Row · Detail · Modal · Form · Tag & Filter · IAP Store（若有 `#/store`）· Welcome Gate（若有 `#/welcome`）· Motion · Component Selection · Package Token Overrides · Dark Mode。
+**章节顺序：** Visual Identity · Anti-Patterns · Color Tokens · Typography · Shape & Radius · Iconography（inline SVG sprite）· Imagery · Navigation Pattern · **Ambient Canvas Canon** · Per-screen Layout（仅 Screen Inventory 内屏幕）· Overlay & Feedback · Confirmation Dialog · Export Card · List Row · Detail · Modal · Form · Tag & Filter · IAP Store（若有 `#/store`）· Welcome Gate（若有 `#/welcome`）· **Hub Home Canon（有 Tab 1 时必写）** · Motion · Component Selection · Package Token Overrides · Dark Mode。
 
-**skill.pages：** `design-system/*/pages/*.md` 不预置；`功能文档.md` 存在后 pipeline 在 plan.gate 前运行 `reconcile_pages_from_spec`。
+### Welcome Gate Canon（若 Inventory 含 `#/welcome`）
+
+按**本包** `audience` · `coreScene` · `productFlow` · `designerSeeds` 写场景叙事，**禁止**套用他包引导模板。
+
+| 必写 | 说明 |
+|------|------|
+| Onboarding pattern | 从 carousel / dialogue·typewriter / narrative / interactive-preview **择一**，并说明为何匹配本包情绪 |
+| Scene beats | ≥2 情绪节拍（痛点 → 价值 → 信任）；最后一拍才出现 18+ / 协议 / Continue |
+| Trust / legal / CTA 槽位 | 合规骨架仍须完整（字号 ≥ labelMedium） |
+| Anti-copy | 明确禁止「Welcome to {App} + 功能 bullet」作为唯一内容 |
+
+### Hub Home Canon（Tab 1 必写）
+
+Tab 1 是 Welcome 之后的**产品身份页**。按 `interactionTopology` + `coreScene` + `audience` 写，**禁止**所有包共用「chips + KPI + recent carousel」。
+
+| 必写 | 说明 |
+|------|------|
+| Primary zone | 绑定 topology（如 T5=workspace canvas、T8=reminder ring、T4=wizard draft lane） |
+| Usage moment | 使用群体 / 时机段如何体现在首屏（问候、紧急度、空态文案） |
+| Empty + CTA | 空态仍展示 primary zone 骨架 + Primary Workflow 入口 |
+| Signature binding | 功能文档 §Professional Surface 的 signature interaction 须在本屏可达 |
+
+**skill.pages：** `design-system/*/pages/*.md` 不预置；`功能文档.md` 存在后 pipeline 在 plan.gate 前运行 `reconcile_pages_from_spec`。`welcome.md` / `hub.md` 由 `page_scene_spec` 按本包 CSV/context **动态生成**（Scene Brief + Pattern Guidance），不是固定模板。
 
 ## 其他 Plan 产物
 

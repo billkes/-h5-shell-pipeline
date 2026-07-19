@@ -15,6 +15,7 @@ IMPL_UI_INPUT = "impl-ui-input.md"
 AMBIENT_CANVAS_BRIEF = "ambient-canvas-brief.md"
 CSS_MOTION_BRIEF = "css-motion-brief.md"
 ICON_SPRITE_MANIFEST = "icon-sprite-manifest.json"
+KIT_SKELETON = "kit-skeleton.css"
 
 
 def _tokenize(text: str) -> set[str]:
@@ -418,6 +419,10 @@ def _design_brief_md(
             "- `design-system/*/pages/*.md` — per-screen overrides (override MASTER)",
             "- `design-system/*/ux-checklist.md` — UX/a11y acceptance checklist",
             "- `design-system/*/h5-interface-brief.md` — H5 monolith Do/Don't",
+            "- `design-system/*/style-brief.md` — style keywords + CSS hints (ui-ux-pro-max)",
+            "- `design-system/*/typography-brief.md` — font pairings",
+            "- `design-system/*/color-brief.md` — palette guidance",
+            "- `skill-adapt/kit-skeleton.css` — prefixed kit component classes (extend in kit.css)",
             "",
             "## Visual Identity (colors & typography — IA from Product Navigation Canon)",
             f"- **Style:** {style.get('name', '?')} — {style.get('keywords', '')}",
@@ -520,6 +525,12 @@ def write_skill_adapt_outputs(
             encoding="utf-8",
         )
 
+    from batch.h5_kit_skeleton import build_kit_css_skeleton, resolve_prefix as kit_prefix
+
+    prefix = kit_prefix(workspace)
+    kit_css = build_kit_css_skeleton(prefix, candidate=selected, designer=designer)
+    (root / KIT_SKELETON).write_text(kit_css, encoding="utf-8")
+
     impl_lines = [
         "# Implementation UI Input (skill.adapt)",
         "",
@@ -527,7 +538,8 @@ def write_skill_adapt_outputs(
         f"Read `{stack_rel}` for stack-specific rules.",
         f"Read `skill-adapt/{AMBIENT_CANVAS_BRIEF}` — implement `u-{{prefix}}-ambient` in entry.htm.",
         "Read `design-system/*/pages/<screen>.md` before implementing each route.",
-        "Read `skill-adapt/css-motion-brief.md` for animation canon.",
+        f"Read `skill-adapt/{CSS_MOTION_BRIEF}` for animation canon.",
+        f"Read `skill-adapt/{KIT_SKELETON}` — copy/extend into `h5/src/styles/kit.css`; bind all button/input/checkbox/link to `c-{prefix}-*` classes.",
         "Read `skill-adapt/design-tokens.css` for :root variables.",
         "Read `skill-adapt/icon-sprite-manifest.json` — embed listed `symbolId` values as inline SVG sprites.",
         "",

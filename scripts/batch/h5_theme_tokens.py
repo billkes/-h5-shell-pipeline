@@ -181,6 +181,19 @@ def _dark_palette(colors: dict[str, str], *, preview_dark: dict[str, str] | None
     return base
 
 
+def _on_primary_color(accent: str) -> str:
+    """Readable label color on accent-filled buttons."""
+    return "#0F172A" if _is_light_hex(accent) else "#FFFFFF"
+
+
+def _apply_semantic_tokens(light: dict[str, str], dark: dict[str, str]) -> None:
+    """Long-form CSS var aliases + ambient/on-primary semantics."""
+    on_ambient = dark["foreground"]
+    for palette in (light, dark):
+        palette["on_ambient"] = on_ambient
+        palette["on_primary"] = _on_primary_color(palette["accent"])
+
+
 def _is_light_hex(hex_color: str) -> bool:
     val = hex_color.lstrip("#")
     if len(val) == 3:
@@ -229,6 +242,10 @@ def _css_var_lines(prefix: str, palette: dict[str, str]) -> list[str]:
         f"--{p}-accent": palette["accent"],
         f"--{p}-bg": palette["background"],
         f"--{p}-fg": palette["foreground"],
+        f"--{p}-background": palette["background"],
+        f"--{p}-foreground": palette["foreground"],
+        f"--{p}-on-primary": palette.get("on_primary", "#FFFFFF"),
+        f"--{p}-on-ambient": palette.get("on_ambient", palette["foreground"]),
         f"--{p}-muted": palette["muted"],
         f"--{p}-on-muted": palette["on_muted"],
         f"--{p}-destructive": palette["destructive"],
@@ -275,6 +292,7 @@ def build_theme_block(prefix: str, colors: dict[str, str] | None = None, *, proj
     preview_dark = _load_preview_dark_colors(project) if project else {}
     dark = _dark_palette(colors, preview_dark=preview_dark or None)
     light = _light_palette(colors, dark)
+    _apply_semantic_tokens(light, dark)
     lines = [
         THEME_START,
         ":root {",
@@ -414,6 +432,15 @@ def verify_h5_theme_system(project: Path) -> list[str]:
         issues.append("UX Gate: global.css 缺少 @media (prefers-color-scheme: dark) token 块")
     if ".h5-app-shell" not in css and "h5-app-shell" not in css:
         issues.append("UX Gate: 缺少 .h5-app-shell 内容层（Ambient 可能遮挡 Welcome）")
+    prefix = resolve_prefix(project).lower()
+    if prefix:
+        theme_slice = css
+        if THEME_START in css and THEME_END in css:
+            theme_slice = css.split(THEME_START, 1)[1].split(THEME_END, 1)[0]
+        for alias in ("background", "foreground", "on-primary", "on-ambient"):
+            token = f"--{prefix}-{alias}"
+            if token not in theme_slice:
+                issues.append(f"UX Gate: THEME 块缺少 {token}（须与 --{prefix}-bg/--{prefix}-fg 同步别名）")
     from batch.preview_fidelity_gate import verify_preview_theme_drift
 
     issues.extend(verify_preview_theme_drift(project))

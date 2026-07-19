@@ -148,7 +148,8 @@ def verify_legal_md_text(
     if contact_email.lower() not in text.lower():
         issues.append(f"MD/{label}: missing contact email {contact_email!r}")
 
-    if not re.search(r"18\+|18 and older|18 years", text, re.I):
+    age_text = re.sub(r"\*+", "", text)
+    if not re.search(r"18\+|18 and older|18 years|at least 18", age_text, re.I):
         issues.append(f"MD/{label}: missing 18+ age rating")
 
     min_words = STYLE_MIN_WORDS.get(privacy_style, STYLE_MIN_WORDS[1])

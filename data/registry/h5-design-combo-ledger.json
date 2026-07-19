@@ -249,11 +249,11 @@
         "body": "source serif 4",
         "pattern": "horizontal scroll journey",
         "style": "bauhaus (包豪斯)",
-        "category": "feature flag / config management"
+        "category": "mood tracker"
       },
       "candidateId": "c3",
       "style": "Bauhaus (包豪斯)",
-      "category": "Feature Flag / Config Management",
+      "category": "Mood Tracker",
       "uxDomainsUsed": [
         "ux",
         "icons",
