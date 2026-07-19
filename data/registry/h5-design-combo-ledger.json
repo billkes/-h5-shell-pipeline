@@ -258,6 +258,10 @@
         "ux",
         "icons",
         "web",
+        "style",
+        "typography",
+        "color",
+        "gsap",
         "chart"
       ],
       "pageOverrideCount": 0
