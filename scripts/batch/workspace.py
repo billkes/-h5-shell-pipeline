@@ -290,6 +290,10 @@ def copy_workspace_docs(
     elif is_h5_shell(pack_type):
         for name in (
             "H5壳Flutter产品要求.md",
+            "H5壳Plan交付规范.md",
+            "H5壳Pack约束.md",
+            "H5壳Micro-UI Kit约束.md",
+            "H5壳H5实现检查清单.md",
             "H5壳功能文档深度标准.md",
             "H5壳交互拓扑与PlanGate策略.md",
             "H5壳产品文档格式.md",
@@ -299,6 +303,9 @@ def copy_workspace_docs(
             "H5壳IAP协议.md",
             "H5壳Flutter交付自检清单.md",
             "H5壳Legal弹层规范.md",
+            "H5壳Vite工程规范.md",
+            "H5壳Overlay路由规范.md",
+            "H5壳广场页规范.md",
         ):
             src = docs / name
             if src.is_file():

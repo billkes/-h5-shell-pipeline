@@ -137,6 +137,10 @@ def build_repair_prompt(
     project_dir: Path | None = None,
 ) -> str:
     """Build a minimal Agent prompt for one targeted plan.gate fix."""
+    from batch.agent_spec_index import (
+        write_agent_spec_index,
+        write_plan_gate_repair_brief,
+    )
     from batch.config import BatchConfig
     from batch.prompts import PromptBuilder
 
@@ -144,16 +148,6 @@ def build_repair_prompt(
     if project_dir is not None:
         cfg.project_dir = project_dir
     store = PromptBuilder(cfg)
-
-    template = store._load("phase_plan_gate_repair.txt")
-    file_blocks: list[str] = []
-    for rel in target.target_files:
-        if rel == "design-system":
-            masters = list(workspace.glob("design-system/*/MASTER.md"))
-            path = masters[0] if masters else workspace / "design-system"
-        else:
-            path = workspace / rel
-        file_blocks.append(f"### {rel}\n```\n{_read_snippet(path)}\n```")
 
     constraints = ""
     ctx_path = workspace / "skill-input" / "context.json"
@@ -166,19 +160,23 @@ def build_repair_prompt(
         except json.JSONDecodeError:
             pass
 
+    write_plan_gate_repair_brief(
+        workspace,
+        issue=target.issue,
+        focus=target.focus,
+        target_files=target.target_files,
+        constraints=constraints,
+    )
+    write_agent_spec_index(
+        workspace,
+        phase="repair",
+        app_name=app_name,
+        pack_type="h5_shell",
+    )
+
     return store._fmt(
-        template,
-        {
-            "name": app_name,
-            "desc": desc,
-            "ISSUE": target.issue,
-            "FOCUS": target.focus,
-            "TARGET_FILES": ", ".join(target.target_files),
-            "FILE_SNIPPETS": "\n\n".join(file_blocks),
-            "CONSTRAINTS": constraints,
-            "TOPOLOGY_BLOCK": topology_block,
-            "BUSINESS_DEPTH_BLOCK": business_depth_block,
-        },
+        store._load("phase_plan_gate_repair.txt"),
+        {"name": app_name, "desc": desc},
     )
 
 

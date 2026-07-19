@@ -56,6 +56,69 @@ def _read_product(project: Path) -> dict[str, object]:
     return product if isinstance(product, dict) else {}
 
 
+def _raw_product_flow(product: dict[str, object]) -> str:
+    direct = str(product.get("productFlow") or product.get("product_flow") or "").strip()
+    if direct:
+        return direct
+    angle = str(product.get("themeAngle") or "").strip()
+    lower = angle.lower()
+    marker = "product flow:"
+    idx = lower.find(marker)
+    if idx >= 0:
+        return angle[idx + len(marker) :].strip()
+    match = _PRODUCT_FLOW_RE.search(angle)
+    if match:
+        return match.group(1).strip()
+    return ""
+
+
+def _english_flow_segments(product: dict[str, object]) -> list[str]:
+    raw = _raw_product_flow(product)
+    if not raw:
+        return []
+    return [part.strip() for part in raw.split(";") if part.strip() and not contains_cjk(part.strip())]
+
+
+def _welcome_theme_from_flow(flow_lower: str) -> dict[str, str] | None:
+    if any(
+        token in flow_lower
+        for token in (
+            "habit",
+            "streak",
+            "heatmap",
+            "monthly review",
+            "growth summary",
+            "check-in",
+            "check in",
+        )
+    ):
+        return {
+            "{{WELCOME_INTRO}}": (
+                "Track daily habits and turn them into clear monthly growth reviews."
+            ),
+            "{{TRUST_BULLET_1}}": (
+                "Daily check-ins with streak tracking — all on your device"
+            ),
+            "{{TRUST_BULLET_2}}": (
+                "Year heatmaps, trends, and exportable growth summary cards"
+            ),
+        }
+    if any(
+        token in flow_lower
+        for token in ("presentation", "speech", "lecture", "teleprompter", "rehearsal")
+    ):
+        return {
+            "{{WELCOME_INTRO}}": (
+                "Offline rehearsal control for timed university presentations."
+            ),
+            "{{TRUST_BULLET_1}}": (
+                "Offline rehearsal — no account or cloud sync required"
+            ),
+            "{{TRUST_BULLET_2}}": "Time-mapped teleprompter with live pace monitoring",
+        }
+    return None
+
+
 def english_core_scene(product: dict[str, object], *, default: str) -> str:
     scene = english_ui_text(str(product.get("coreScene") or ""), fallback="", max_len=48)
     if scene:
@@ -122,9 +185,28 @@ def settings_copy(project: Path) -> dict[str, str]:
 
 def welcome_copy(project: Path, *, app_name: str) -> dict[str, str]:
     product = _read_product(project)
+    intro = english_ui_text(str(product.get("welcomeIntro") or ""), fallback="", max_len=120)
+    bullet1 = english_ui_text(str(product.get("welcomeTrust1") or ""), fallback="", max_len=80)
+    bullet2 = english_ui_text(str(product.get("welcomeTrust2") or ""), fallback="", max_len=80)
+    if intro and bullet1 and bullet2:
+        return {
+            "{{APP_NAME}}": app_name,
+            "{{WELCOME_INTRO}}": intro,
+            "{{TRUST_BULLET_1}}": bullet1,
+            "{{TRUST_BULLET_2}}": bullet2,
+        }
+
+    flow_raw = _raw_product_flow(product)
+    themed = _welcome_theme_from_flow(flow_raw.lower())
+    if themed:
+        return {"{{APP_NAME}}": app_name, **themed}
+
+    segments = _english_flow_segments(product)
     flow = english_product_flow(product)
     bullet2 = "Time-mapped teleprompter with live pace monitoring"
-    if flow:
+    if len(segments) >= 2:
+        bullet2 = segments[1][:80]
+    elif flow:
         parts = [p.strip() for p in flow.split(";") if p.strip()]
         if len(parts) >= 2 and not contains_cjk(parts[1]):
             bullet2 = parts[1][:80]

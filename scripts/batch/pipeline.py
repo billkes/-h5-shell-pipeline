@@ -172,23 +172,8 @@ class FlutterPipeline:
         return self.prompts.h5_kit_block(kit_deck_block=deck)
 
     def _h5_shell_block_for(self, ctx: AppContext, *, programmer: bool = False) -> str:
-        if not is_h5_shell(ctx.pack_type):
-            return ""
-        bridge = self._h5_shell_bridge_block_for(ctx)
-        if programmer:
-            base = self.prompts.h5_shell_programmer_block(bridge_deck_block=bridge)
-        else:
-            base = self.prompts.h5_shell_block(bridge_deck_block=bridge)
-        row = self._csv_row_for(ctx)
-        lock = resolve_dimension_lock(ctx.workspace) or {}
-        naming = lock.get("namingObfuscationRule") or {}
-        prefix = str(naming.get("dartCodePrefix") or "").strip()
-        from batch.programming_layout import build_h5_vault_layout_prompt_block
-
-        vault = build_h5_vault_layout_prompt_block(row, prefix=prefix, app_name=ctx.name)
-        kit = self._h5_kit_block_for(ctx)
-        parts = [base.strip(), vault.strip(), kit.strip()]
-        return "\n\n".join(p for p in parts if p)
+        """No longer injected into V3 prompts — draws live in 本包登记信息.json."""
+        return ""
 
     def _apply_csv_code_combo(self, ctx: AppContext) -> None:
         row = self._csv_row_for(ctx)
@@ -389,30 +374,36 @@ class FlutterPipeline:
                 prefix=prefix,
                 pack_type=ctx.pack_type,
             )
-            if path is not None:
-                get_run_log().detail(f"h5_vite scaffold → {path.relative_to(ctx.workspace)}")
-                from batch.h5_site_paths import sync_h5_dev_entry_urls
-                from batch.h5_theme_tokens import sync_h5_global_theme
-
-                dev_url = sync_h5_dev_entry_urls(ctx.workspace)
-                if dev_url:
-                    get_run_log().detail(
-                        f"h5 dev LAN → {dev_url} (`cd h5 && npm run dev` — use Network URL on other devices)"
-                    )
-                theme_path = sync_h5_global_theme(ctx.workspace, write=True)
-                if theme_path is not None:
-                    get_run_log().detail(
-                        f"h5 theme → system light/dark synced ({theme_path.relative_to(ctx.workspace)})"
-                    )
-                from batch.h5_page_scaffold import sync_h5_page_scaffold
-
-                scaffold_paths = sync_h5_page_scaffold(
-                    ctx.workspace, app_name=ctx.name, write=True
+            if path is None:
+                get_run_log().detail(
+                    "h5/ Agent-owned — no template; create per docs/H5壳Vite工程规范.md"
                 )
-                for sp in scaffold_paths:
-                    get_run_log().detail(
-                        f"h5 page scaffold → {sp.relative_to(ctx.workspace)}"
-                    )
+            else:
+                get_run_log().detail(
+                    f"h5/ present → sync helpers only ({path.relative_to(ctx.workspace)})"
+                )
+            from batch.h5_site_paths import sync_h5_dev_entry_urls
+            from batch.h5_theme_tokens import sync_h5_global_theme
+
+            dev_url = sync_h5_dev_entry_urls(ctx.workspace)
+            if dev_url:
+                get_run_log().detail(
+                    f"h5 dev LAN → {dev_url} (`cd h5 && npm run dev` — use Network URL on other devices)"
+                )
+            theme_path = sync_h5_global_theme(ctx.workspace, write=True)
+            if theme_path is not None:
+                get_run_log().detail(
+                    f"h5 theme → system light/dark synced ({theme_path.relative_to(ctx.workspace)})"
+                )
+            from batch.h5_page_scaffold import sync_h5_page_scaffold
+
+            scaffold_paths = sync_h5_page_scaffold(
+                ctx.workspace, app_name=ctx.name, write=True
+            )
+            for sp in scaffold_paths:
+                get_run_log().detail(
+                    f"h5 page bootstrap → {sp.relative_to(ctx.workspace)}"
+                )
         if is_native_ios_runtime(ctx.pack_type):
             row = self._csv_row_for(ctx)
             if row is None:

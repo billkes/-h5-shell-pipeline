@@ -1,64 +1,51 @@
-"""Tests for h5_vite scaffold."""
+"""Tests for h5_vite helpers — no code template tree."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from batch.h5_vite_scaffold import apply_h5_vite_scaffold, scaffold_exists
+from batch.h5_vite_scaffold import (
+    apply_h5_vite_scaffold,
+    ensure_h5_vite_scaffold,
+    scaffold_exists,
+)
 
 
-def test_apply_h5_vite_scaffold(tmp_path: Path) -> None:
+def test_apply_does_not_create_h5_tree(tmp_path: Path) -> None:
     dst = apply_h5_vite_scaffold(tmp_path, app_name="Temioo", prefix="usfye")
-    assert scaffold_exists(tmp_path)
-    assert (dst / "package.json").is_file()
-    assert (dst / "vite.config.ts").is_file()
-    assert (dst / "src" / "main.ts").is_file()
-    legal = dst / "src" / "legal" / "usfye_legal_bundled.ts"
-    assert legal.is_file()
-    text = legal.read_text(encoding="utf-8")
-    assert "export const LEGAL" in text
-    pkg = (dst / "package.json").read_text(encoding="utf-8")
-    assert "vite-plugin-singlefile" in pkg
-    vite_cfg = (dst / "vite.config.ts").read_text(encoding="utf-8")
-    assert "host: true" in vite_cfg
-    assert "legalMdSyncPlugin" in vite_cfg
-    assert (dst / "legal-md-sync.plugin.mjs").is_file()
-    assert '"dev": "vite --host"' in pkg or "'dev': 'vite --host'" in pkg
-    copy_script = (dst / "scripts" / "copy-to-h5-site.mjs").read_text(encoding="utf-8")
-    assert "h5_site" in copy_script
-    assert "H5_APP_SLUG" in copy_script
-    assert "uhfnf_vault" in copy_script or "_vault" in copy_script
-    bridge = (dst / "src" / "bridge" / "index.ts").read_text(encoding="utf-8")
-    assert "export { showSnack }" in bridge
-    assert (dst / "src" / "lib" / "snack.ts").is_file()
-    vault = (dst / "src" / "lib" / "vaultAsset.ts").read_text(encoding="utf-8")
-    assert "temioo-asset" in vault
-    assert "usfyeasset" not in vault
+    assert dst == tmp_path / "h5"
+    assert not scaffold_exists(tmp_path)
+    assert not (tmp_path / "h5" / "package.json").is_file()
 
 
-def test_scaffold_asset_scheme_from_register(tmp_path: Path) -> None:
-    (tmp_path / "本包登记信息.json").write_text(
-        '{"assetScheme": "teavoo-asset"}',
+def test_ensure_returns_none_without_agent_tree(tmp_path: Path) -> None:
+    out = ensure_h5_vite_scaffold(
+        tmp_path,
+        app_name="Demo",
+        prefix="demo",
+        pack_type="h5_swift_shell",
+    )
+    assert out is None
+    assert not (tmp_path / "h5").exists() or not scaffold_exists(tmp_path)
+
+
+def test_ensure_syncs_when_h5_exists(tmp_path: Path) -> None:
+    h5 = tmp_path / "h5"
+    h5.mkdir()
+    (h5 / "package.json").write_text("{}", encoding="utf-8")
+    (h5 / "vite.config.ts").write_text(
+        "export default { server: { port: 5174 } }\n",
         encoding="utf-8",
     )
-    apply_h5_vite_scaffold(tmp_path, app_name="Teavoo", prefix="bthfc")
-    vault = (tmp_path / "h5" / "src" / "lib" / "vaultAsset.ts").read_text(encoding="utf-8")
-    assert "teavoo-asset" in vault
-
-
-def test_scaffold_idempotent(tmp_path: Path) -> None:
-    apply_h5_vite_scaffold(tmp_path, app_name="Demo", prefix="demo")
-    marker = tmp_path / "h5" / "README.md"
-    marker.write_text("keep", encoding="utf-8")
-    apply_h5_vite_scaffold(tmp_path, app_name="Demo", prefix="demo")
-    assert marker.read_text(encoding="utf-8") == "keep"
-
-
-def test_merge_toolchain_preserves_src(tmp_path: Path) -> None:
-    src = tmp_path / "h5" / "src" / "views"
-    src.mkdir(parents=True)
-    (src / "HubView.vue").write_text("<template>hub</template>", encoding="utf-8")
-    apply_h5_vite_scaffold(tmp_path, app_name="Temioo", prefix="usfye")
-    assert (tmp_path / "h5" / "package.json").is_file()
-    assert (src / "HubView.vue").is_file()
-    assert (tmp_path / "h5" / "vite.config.ts").is_file()
+    (tmp_path / "本包登记信息.json").write_text(
+        '{"packType":"h5_swift_shell","codeAntiCorrelation":{"dartCodePrefix":"demo"}}',
+        encoding="utf-8",
+    )
+    out = ensure_h5_vite_scaffold(
+        tmp_path,
+        app_name="Demo",
+        prefix="demo",
+        pack_type="h5_swift_shell",
+    )
+    assert out == h5
+    assert "host: true" in (h5 / "vite.config.ts").read_text(encoding="utf-8")

@@ -18,11 +18,21 @@ WELCOME_LAYOUT_VARIANTS: frozenset[str] = frozenset(
     }
 )
 
+WELCOME_IMPL_LOCK = "WELCOME-IMPL:locked"
+AGENT_IMPL_LOCK = "AGENT-IMPL:locked"
+WELCOME_STUB_MARKER = "WELCOME-STUB:pipeline"
+SCAFFOLD_PIPELINE_MARKER = "<!-- SCAFFOLD:pipeline:start"
+DEFAULT_WELCOME_LAYOUT_VARIANT = "hero-top-card-legal"
+
 _WELCOME_VARIANT_ALIASES: dict[str, str] = {
     "centered-card": "hero-top-card-legal",
     "centered_card": "hero-top-card-legal",
     "card": "hero-top-card-legal",
     "top-card-legal": "hero-top-card-legal",
+    "split-trust": "hero-split-trust",
+    "hero-split": "hero-split-trust",
+    "minimal-pinned": "hero-minimal-pinned",
+    "hex-brand": "hero-hex-brand",
 }
 
 
@@ -31,6 +41,96 @@ def _normalize_welcome_layout_variant(variant: str) -> str:
     if cleaned in WELCOME_LAYOUT_VARIANTS:
         return cleaned
     return _WELCOME_VARIANT_ALIASES.get(cleaned, cleaned)
+
+
+def _welcome_layout_from_pages_md(project: Path) -> str | None:
+    for path in sorted(project.glob("design-system/*/pages/welcome.md")):
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        match = re.search(
+            r"\*\*Layout variant:\*\*\s*`?([a-z0-9_-]+)`?",
+            text,
+            re.I,
+        )
+        if match:
+            normalized = _normalize_welcome_layout_variant(match.group(1))
+            if normalized in WELCOME_LAYOUT_VARIANTS:
+                return normalized
+        lower = text.lower()
+        if "horizontal scroll journey" in lower:
+            return "hero-split-trust"
+        if "minimal" in lower and "pinned" in lower:
+            return "hero-minimal-pinned"
+        if "hex" in lower or "bauhaus" in lower:
+            return "hero-hex-brand"
+    return None
+
+
+def resolve_welcome_layout_variant(project: Path) -> str:
+    """Resolve canonical welcome layout from visual lock or design-system pages."""
+    project = project.expanduser().resolve()
+    lock_path = project / "本包视觉锁.json"
+    if lock_path.is_file():
+        try:
+            data = json.loads(lock_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            data = {}
+        if isinstance(data, dict):
+            spec = data.get("welcomeSpec")
+            if isinstance(spec, dict):
+                variant = str(spec.get("layoutVariant") or "").strip()
+                if variant:
+                    normalized = _normalize_welcome_layout_variant(variant)
+                    if normalized in WELCOME_LAYOUT_VARIANTS:
+                        return normalized
+    from_pages = _welcome_layout_from_pages_md(project)
+    if from_pages:
+        return from_pages
+    return DEFAULT_WELCOME_LAYOUT_VARIANT
+
+
+WELCOME_LAYOUT_HINTS: dict[str, str] = {
+    "hero-top-card-legal": "Single centered card: title, intro, trust bullets, 18+ notice, consent, Continue.",
+    "hero-split-trust": "Split hero + trust/legal panel — journey-style emphasis.",
+    "hero-minimal-pinned": "Minimal hero; consent + CTA pinned to bottom safe area.",
+    "hero-hex-brand": "Brand motif + card body; geometric/Bauhaus accent per design-system.",
+}
+
+
+def format_welcome_spec_doc_refs(project: Path) -> list[str]:
+    """Welcome norm doc paths only — for tests / tooling; not inlined into Agent prompt."""
+    project = project.expanduser().resolve()
+    refs: list[str] = []
+    for path in sorted(project.glob("design-system/*/pages/welcome.md")):
+        try:
+            refs.append(path.relative_to(project).as_posix())
+        except ValueError:
+            refs.append(str(path))
+    lock = project / "本包视觉锁.json"
+    if lock.is_file():
+        refs.append("本包视觉锁.json")
+    return refs
+
+
+def is_pipeline_welcome_stub(text: str) -> bool:
+    return WELCOME_STUB_MARKER in text or "implement per 功能文档" in text
+
+
+def should_skip_welcome_vue_overwrite(text: str) -> bool:
+    if WELCOME_IMPL_LOCK in text or AGENT_IMPL_LOCK in text:
+        return True
+    if SCAFFOLD_PIPELINE_MARKER in text:
+        return True
+    if is_pipeline_welcome_stub(text):
+        return False
+    return bool(text.strip())
+
+
+def should_skip_tab_root_vue_overwrite(text: str) -> bool:
+    if AGENT_IMPL_LOCK in text:
+        return True
+    if SCAFFOLD_PIPELINE_MARKER in text:
+        return False
+    return bool(text.strip())
 
 _GLOBAL_INPUT_APPEARANCE_NONE = re.compile(
     r"input\s*,\s*textarea\s*\{[^}]*appearance\s*:\s*none",

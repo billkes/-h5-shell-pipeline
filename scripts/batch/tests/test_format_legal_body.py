@@ -1,4 +1,4 @@
-"""Tests for formatLegalBody legal kit helper."""
+"""Tests for legal body markdown → plain (pipeline), not template TS."""
 
 from __future__ import annotations
 
@@ -33,11 +33,8 @@ def test_md_to_plain_preserves_section_blocks() -> None:
     assert "Speech scripts" in plain
 
 
-def test_formatLegalBody_ts_exists_in_template() -> None:
-    tpl = (
-        Path(__file__).resolve().parents[3]
-        / "data/static/templates/h5_vite/src/lib/formatLegalBody.ts"
-    )
-    text = tpl.read_text(encoding="utf-8")
+def test_vite_legal_format_norm_doc_exists() -> None:
+    doc = Path(__file__).resolve().parents[3] / "docs" / "H5壳Vite工程规范.md"
+    text = doc.read_text(encoding="utf-8")
+    assert "formatLegalBody" in text
     assert "legal-section" in text
-    assert "isLegalSectionHeading" in text

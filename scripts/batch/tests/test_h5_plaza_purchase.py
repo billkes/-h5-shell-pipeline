@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from batch.h5_page_scaffold import sync_h5_plaza_scaffold
 from batch.h5_plaza_purchase import (
     PLAZA_TEST_PURCHASE_PRODUCT_ID,
     collect_h5_plaza_purchase_violations,
@@ -79,11 +78,10 @@ async function call(action: string) {
     assert collect_h5_plaza_purchase_violations(project) == []
 
 
-def test_sync_h5_plaza_scaffold_writes_311400(tmp_path: Path) -> None:
+def test_plaza_spec_index_lists_view(tmp_path: Path) -> None:
+    from batch.h5_page_prompts import format_page_implementation_prompt_block
+
     project = _minimal_vite_project(tmp_path)
-    written = sync_h5_plaza_scaffold(project, app_name="DemoApp", write=True)
-    assert written
-    combined = "\n".join(p.read_text(encoding="utf-8") for p in written)
-    assert PLAZA_TEST_PURCHASE_PRODUCT_ID in combined
-    assert "Heat00" not in combined
-    assert collect_h5_plaza_purchase_violations(project) == []
+    block = format_page_implementation_prompt_block(project, "DemoApp")
+    assert "index only" in block
+    assert "311400" not in block

@@ -55,8 +55,11 @@ def _write_vite_project(root: Path) -> Path:
 </template>
 <script setup lang="ts">
 import { LEGAL } from '../legal/demo_legal_bundled';
-function formatLegalBody(raw: string) { return raw; }
+function formatLegalBody(raw: string) {
+  return { title: 'T', bodyHtml: '<h2 class="c-demo-legal-section">S</h2><p class="c-demo-legal-para">P</p>' };
+}
 void LEGAL;
+void formatLegalBody;
 </script>
 """,
         encoding="utf-8",

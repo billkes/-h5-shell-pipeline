@@ -1,6 +1,0 @@
-{
-  "id": "h5_vite",
-  "description": "Vite + Vue 3 + vite-plugin-singlefile — H5 business source tree (Mockoo/Prepoo pattern)",
-  "placeholders": ["{{PREFIX}}", "{{PREFIX_CAP}}", "{{APP_NAME}}", "{{APP_SLUG}}"],
-  "deployTarget": "../h5_site/{{APP_SLUG}}/index.html"
-}

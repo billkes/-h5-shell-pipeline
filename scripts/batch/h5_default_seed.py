@@ -7,7 +7,7 @@ from pathlib import Path
 
 from batch.h5_shell_placeholders import prefix_from_workspace
 from batch.h5_vite_gate import h5_src_dir, is_h5_vite_project
-from batch.h5_vite_scaffold import TEMPLATE_ROOT, resolve_prefix, substitute_text, template_values
+from batch.h5_vite_scaffold import resolve_prefix
 from batch.native_bundled_media import (
     NATIVE_SEED_BUNDLE_SUBDIR,
     collect_native_bundled_media_violations,
@@ -179,48 +179,15 @@ def sync_default_seed_stub(
     app_name: str = "",
     write: bool = True,
 ) -> Path | None:
-    """Copy defaultSeed.ts.tpl when product requires seed and module is missing."""
-    if not is_h5_vite_project(project) or not requires_default_seed(project):
-        return None
-    dst = h5_src_dir(project) / "store" / "defaultSeed.ts"
-    if dst.is_file():
-        return None
-    tpl = TEMPLATE_ROOT / "src" / "store" / "defaultSeed.ts.tpl"
-    if not tpl.is_file():
-        return None
-    if not app_name:
-        app_name = project.name
-    prefix = resolve_prefix(project)
-    values = template_values(project, app_name=app_name, prefix=prefix)
-    body = substitute_text(tpl.read_text(encoding="utf-8"), values)
-    if write:
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        dst.write_text(body, encoding="utf-8")
-    return dst
+    """No template stub — Agent implements defaultSeed.ts per docs/H5壳Vite工程规范.md."""
+    del project, app_name, write
+    return None
 
 
 def sync_main_bootstrap(project: Path, *, write: bool = True) -> Path | None:
-    """Ensure main.ts calls ensureBootstrapData() before mount when seed is required."""
-    if not is_h5_vite_project(project) or not requires_default_seed(project):
-        return None
-    main = h5_src_dir(project) / "main.ts"
-    seed = h5_src_dir(project) / "store" / "defaultSeed.ts"
-    if not main.is_file() or not seed.is_file():
-        return None
-    text = _read_text(main)
-    if "ensureBootstrapData" in text:
-        return main
-    import_line = "import { ensureBootstrapData } from './store/defaultSeed';"
-    css_import = "import './styles/global.css';"
-    if css_import in text and import_line not in text:
-        text = text.replace(css_import, f"{css_import}\n{import_line}")
-    elif import_line not in text:
-        text = import_line + "\n" + text
-    if "ensureBootstrapData()" not in text:
-        text = text.replace("createApp(App)", "ensureBootstrapData();\n\ncreateApp(App)", 1)
-    if write and text != _read_text(main):
-        main.write_text(text, encoding="utf-8")
-    return main
+    """No template patch — Agent wires ensureBootstrapData in main.ts."""
+    del project, write
+    return None
 
 
 def sync_settings_clear_bootstrap(
@@ -229,24 +196,6 @@ def sync_settings_clear_bootstrap(
     app_name: str = "",
     write: bool = True,
 ) -> Path | None:
-    """Scaffold SettingsView.logic.ts with BOOTSTRAP_KEY clear when file is absent."""
-    if not is_h5_vite_project(project) or not requires_default_seed(project):
-        return None
-    routes = _router_text(project)
-    if "/settings" not in routes and "SettingsView" not in routes:
-        return None
-    dst = h5_src_dir(project) / "views" / "SettingsView.logic.ts"
-    if dst.is_file():
-        return None
-    tpl = TEMPLATE_ROOT / "pages" / "settings.logic.ts.tpl"
-    if not tpl.is_file():
-        return None
-    if not app_name:
-        app_name = project.name
-    prefix = resolve_prefix(project)
-    values = template_values(project, app_name=app_name, prefix=prefix)
-    body = substitute_text(tpl.read_text(encoding="utf-8"), values)
-    if write:
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        dst.write_text(body, encoding="utf-8")
-    return dst
+    """No template stub — Agent implements Settings clear + BOOTSTRAP_KEY."""
+    del project, app_name, write
+    return None

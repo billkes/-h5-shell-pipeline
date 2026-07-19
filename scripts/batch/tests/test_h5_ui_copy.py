@@ -14,6 +14,7 @@ from batch.h5_ui_copy import (
     contains_cjk,
     english_core_scene,
     hero_copy,
+    welcome_copy,
 )
 
 
@@ -50,6 +51,50 @@ def test_hero_copy_skips_chinese_core_scene(tmp_path: Path) -> None:
 def test_english_core_scene_prefers_english_field() -> None:
     product = {"coreScene": "Campus lecture timing"}
     assert english_core_scene(product, default="Fallback") == "Campus lecture timing"
+
+
+def test_welcome_copy_uses_habit_theme_for_mixed_flow(tmp_path: Path) -> None:
+    ctx = tmp_path / "skill-input"
+    ctx.mkdir()
+    (ctx / "context.json").write_text(
+        json.dumps(
+            {
+                "product": {
+                    "coreScene": "月末生成习惯复盘报告",
+                    "localFeature": "习惯打卡与月度数据可视化分析",
+                    "themeAngle": (
+                        "Theme: 月度习惯复盘; Product flow: Track daily habits for 月末生成习惯复盘报告; "
+                        "log streak data into 习惯打卡; highlight completed months on a yearly heatmap"
+                    ),
+                }
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    copy = welcome_copy(tmp_path, app_name="Monthio")
+    assert "habit" in copy["{{WELCOME_INTRO}}"].lower()
+    assert "teleprompter" not in copy["{{TRUST_BULLET_2}}"].lower()
+    assert "rehearsal" not in copy["{{WELCOME_INTRO}}"].lower()
+
+
+def test_welcome_copy_prefers_explicit_fields(tmp_path: Path) -> None:
+    ctx = tmp_path / "skill-input"
+    ctx.mkdir()
+    (ctx / "context.json").write_text(
+        json.dumps(
+            {
+                "product": {
+                    "welcomeIntro": "Custom intro line.",
+                    "welcomeTrust1": "Custom bullet one.",
+                    "welcomeTrust2": "Custom bullet two.",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    copy = welcome_copy(tmp_path, app_name="Demo")
+    assert copy["{{WELCOME_INTRO}}"] == "Custom intro line."
 
 
 def test_collect_h5_stack_layout_violations(tmp_path: Path) -> None:

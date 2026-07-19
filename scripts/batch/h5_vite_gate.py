@@ -82,7 +82,8 @@ def vite_legal_card_present(
     combined = f"{render_text}\n{css}"
     for dialog_key in dialog_keys:
         if dialog_key in combined:
-            if "flex-direction" in combined and ("90vw" in combined or "340px" in combined):
+            # Agent-owned sizing — any constrained modal width / max-width is enough.
+            if re.search(r"max-width|min\s*\(|\d+vw|\d+px", combined, re.I):
                 return True
     return False
 

@@ -1,4 +1,4 @@
-"""Verify h5_shell Legal overlay UI matches Modal Interior kit (not br-dump)."""
+"""Verify h5_shell Legal overlay UI — behavioral gates (no visual kit)."""
 
 from __future__ import annotations
 
@@ -284,7 +284,7 @@ def verify_h5_legal_ui(project: Path) -> list[str]:
     css = resolve_vault_css_text(project)
     section_key = f"{class_token}-section"
     if section_key not in render_text and section_key not in (css or ""):
-        issues.append(f"RENDER: missing {section_key} (Legal kit section headings)")
+        issues.append(f"RENDER: missing {section_key} (structured Legal section headings)")
     if css is None:
         if is_h5_vite_project(project):
             issues.append("CSS: missing h5/src/styles CSS for Legal overlay (h5_vite)")
@@ -296,23 +296,25 @@ def verify_h5_legal_ui(project: Path) -> list[str]:
         card_key = f"{class_token}-card"
         scroll_key = f"{class_token}-scroll"
         if not vite_legal_card_present(render_text, css, class_token, prefix=prefix):
-            issues.append(f"CSS: missing .{card_key} (or dialog flex card with min(90vw, 340px))")
-        if scroll_key not in css:
-            issues.append(f"CSS: missing .{scroll_key}")
-        if card_key in css and "flex-direction" not in css.split(card_key, 1)[-1][:400]:
-            issues.append(f"CSS: .{card_key} should use flex column layout")
-        width_surface = css if not is_h5_vite_project(project) else f"{render_text}\n{css}"
-        if "340px" not in width_surface and "90vw" not in width_surface:
-            issues.append("CSS: legal card width should use min(90vw, 340px) per blueprint")
+            issues.append(
+                f"CSS/markup: missing Legal surface (.{card_key} / dialog) — see docs/H5壳Legal弹层规范.md"
+            )
+        if scroll_key not in css and scroll_key not in render_text:
+            issues.append(f"CSS/markup: missing Legal scroll region .{scroll_key}")
         if VISIBLE_SCROLLBAR_RE.search(css) or SCROLLBAR_THUMB_RE.search(css):
             issues.append(
                 "CSS: legal-scroll must not re-enable web scrollbars (H5去风味 §4)"
             )
-        if scroll_key in css:
-            scroll_chunk = css.split(scroll_key, 1)[-1][:500]
-            if "mask-image" not in scroll_chunk and "linear-gradient" not in scroll_chunk:
+        scroll_surface = css if scroll_key in css else f"{render_text}\n{css}"
+        if scroll_key in scroll_surface:
+            scroll_chunk = scroll_surface.split(scroll_key, 1)[-1][:800]
+            if (
+                "mask-image" not in scroll_chunk
+                and "linear-gradient" not in scroll_chunk
+                and "mask:" not in scroll_chunk
+            ):
                 issues.append(
-                    f"CSS: .{scroll_key} needs bottom fade (mask-image) for scroll affordance"
+                    f"CSS: .{scroll_key} needs a scroll affordance (e.g. bottom fade / mask)"
                 )
 
     _ = (legal_token, source)

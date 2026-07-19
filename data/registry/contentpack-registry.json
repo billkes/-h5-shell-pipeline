@@ -1017,6 +1017,134 @@
       "registeredAt": "2026-07-17",
       "batchId": "TEST-0717",
       "usedAt": "2026-07-17"
+    },
+    {
+      "appName": "Monthio",
+      "fullName": "Monthio - Habit & Review",
+      "themeAngle": "Theme: 月度习惯复盘; Track: 个人成长; Audience: 需要追踪长期习惯并进行月度复盘的自我提升者; Core scene: 月末生成习惯复盘报告; Local feature: 习惯打卡与月度数据可视化分析; Product flow: Track daily habits for 月末生成习惯复盘报告; log streak data into 习惯打卡与月度数据可视化分析; highlight completed months on a yearly heatmap with optional milestone badges; browse the monthly habit trends and export a growth summary card for 需要追踪长期习惯并进行月度复盘的自我提升者; StoreKit unlocks premium habit templates, PDF growth reports, and dark themes with Restore Purchases in Me.",
+      "dartCodePrefix": "tfjbf",
+      "dartPackageName": "monthio",
+      "packType": "h5_swift_shell",
+      "shellRuntime": "swift",
+      "appSlug": "monthio",
+      "h5EntryUrl": "http://192.168.11.74:5174/",
+      "h5EntryUrlDev": "http://192.168.11.74:5174/",
+      "h5EntryUrlProd": "https://test.darin.beauty/monthio/",
+      "h5SourceRoot": "h5/",
+      "h5SiteUploadRoot": "h5_site/",
+      "h5SiteRoot": "h5_site/monthio/",
+      "h5SiteEntry": "index.html",
+      "bundleEntryPath": "h5_site/monthio/index.html",
+      "h5BuildCommand": "npm run build:deploy",
+      "h5VaultPattern": "h5_modular_svg",
+      "h5VaultLayout": "assets_prefix_surfaces_glyphs",
+      "launchPlaceholderAsset": "native:Assets.xcassets/launch_placeholder.imageset/launch_placeholder.png",
+      "firstProductCode": "Month00",
+      "bridgeDeckSelections": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "WKScriptMessageHandler.postMessage(JSON)",
+        "bridgeCallbackStyle": "evaluateJavaScript(callbackId(data))",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "WKURLSchemeHandler local vault",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentStart"
+      },
+      "bridgeCapabilities": [
+        "shellReady",
+        "readFile",
+        "writeFile",
+        "saveImage",
+        "purchase",
+        "restorePurchases",
+        "mediaServe",
+        "openLegal"
+      ],
+      "kitDeckSelections": {
+        "kitAtomSet": "list/chart/badge/panel/drawer",
+        "kitCssMethodology": "OOCSS",
+        "kitAtomGranularity": "high-level-21",
+        "kitDomShape": "text-chart-wrapper",
+        "kitJsPattern": "class-based-observer",
+        "kitJsNamespace": "{Prefix}.chart.*",
+        "kitStorageAdapter": "sqlite-wrapper",
+        "kitMotionApproach": "spring-physics",
+        "h5StateModel": "global-store",
+        "h5RouterPattern": "history-router",
+        "h5ScreenPattern": "tabbed-layout"
+      },
+      "kitJsNamespaceResolved": "Tfjbf.chart",
+      "codeAntiCorrelation": {
+        "dartCodePrefix": "tfjbf",
+        "namingStyle": "screen_suffix",
+        "folderStyle": "by_feature",
+        "architecture": "layered",
+        "stateManagement": "setstate",
+        "codeOrganization": "fine_grained",
+        "fileNaming": "pascal_case",
+        "importStyle": "package_prefix",
+        "constantsLayout": "single_file",
+        "iapModuleName": "PurchaseService",
+        "reportModuleName": "AbuseReportHandler",
+        "constantsModuleName": "AppConfig",
+        "networkLayerName": "RemoteRepository",
+        "routeCoordinatorName": "RouteMap",
+        "utilityHelperName": "DateUtils",
+        "architectureFolders": {
+          "models": {
+            "role": "models",
+            "folderSuffix": "byte_unit",
+            "folderBasename": "tfjbf_byte_unit",
+            "stubBasename": "tfjbf_arc_pulse_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "views": {
+            "role": "views",
+            "folderSuffix": "glyph_pulse",
+            "folderBasename": "tfjbf_glyph_pulse",
+            "stubBasename": "tfjbf_sage_strip_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "controllers": {
+            "role": "controllers",
+            "folderSuffix": "prism_strip",
+            "folderBasename": "tfjbf_prism_strip",
+            "stubBasename": "tfjbf_byte_unit_11_anchor",
+            "stubClassSuffix": "Controller"
+          }
+        },
+        "programmingStyle": "法国人",
+        "architecturePattern": "mvc",
+        "csvStateManagement": "SetState",
+        "csvArchitecturePattern": "MVC",
+        "namingObfuscationRule": "辅音核心策略",
+        "namingRuleMeta": {
+          "ruleKey": "consonant_core",
+          "packageSeed": "tfjbf",
+          "affix": "prefix",
+          "lengthRange": [
+            2,
+            4
+          ],
+          "joinStyles": {
+            "class": "pascal",
+            "record": "pascal",
+            "method": "camel",
+            "field": "camel",
+            "param": "camel",
+            "local": "camel",
+            "enum_value": "camel",
+            "file": "snake",
+            "folder": "snake"
+          },
+          "batchId": "TEST-0717",
+          "namingObfuscationRule": "辅音核心策略"
+        }
+      },
+      "name": "Monthio",
+      "description": "Theme: 月度习惯复盘; Track: 个人成长; Audience: 需要追踪长期习惯并进行月度复盘的自我提升者; Core scene: 月末生成习惯复盘报告; Local feature: 习惯打卡与月度数据可视化分析; Product flow: Track daily habits for 月末生成习惯复盘报告; log streak data into 习惯打卡与月度数据可视化分析; highlight completed months on a yearly heatmap with optional milestone badges; browse the monthly habit trends and export a growth summary card for 需要追踪长期习惯并进行月度复盘的自我提升者; StoreKit unlocks premium habit templates, PDF growth reports, and dark themes with Restore Purchases in Me.",
+      "registeredAt": "2026-07-19",
+      "batchId": "TEST-0717",
+      "usedAt": "2026-07-19"
     }
   ],
   "entries": []

@@ -337,10 +337,36 @@ class V3StepRunner:
     def _step_design_system(self, ctx: AppContext) -> bool:
         return self.p._run_skill_design(ctx)
 
+    def _prepare_agent_prompt_files(
+        self,
+        ctx: AppContext,
+        *,
+        phase: str,
+        role_slug: str,
+        role_focus: str,
+    ) -> None:
+        from batch.agent_spec_index import prepare_agent_prompt_files
+
+        prepare_agent_prompt_files(
+            ctx.workspace,
+            phase=phase,  # type: ignore[arg-type]
+            app_name=ctx.name,
+            pack_type=ctx.pack_type,
+            role_slug=role_slug,
+            role_focus=role_focus,
+        )
+
     def _step_agent_plan(self, ctx: AppContext, *, resume: bool = False) -> bool:
         """Granular agent.plan step — Part 1 only (PM + UI + Plan + legal MDs)."""
         from batch.cursor_runner import run_agent
+        from batch.prompts import _PM_UI_PLAN_BRAIN_FOCUS
 
+        self._prepare_agent_prompt_files(
+            ctx,
+            phase="plan",
+            role_slug="build-agent-plan",
+            role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
+        )
         kw = self._agent_pack_context(ctx)
         prompt = self.p.prompts.build_agent_plan_only_phase(resume=resume, **kw)
         return run_agent(
@@ -353,7 +379,14 @@ class V3StepRunner:
     def _step_agent_shell(self, ctx: AppContext, *, resume: bool = False) -> bool:
         """Granular agent.shell step — Part 2 (native/Flutter shell) + native hooks."""
         from batch.cursor_runner import run_agent
+        from batch.prompts import _PROGRAMMER_BRAIN_FOCUS
 
+        self._prepare_agent_prompt_files(
+            ctx,
+            phase="shell",
+            role_slug="build-agent-shell",
+            role_focus=_PROGRAMMER_BRAIN_FOCUS,
+        )
         kw = self._agent_pack_context(ctx)
         prompt = self.p.prompts.build_agent_shell_phase(resume=resume, **kw)
         ok = run_agent(
@@ -406,7 +439,14 @@ class V3StepRunner:
     def _step_agent_h5(self, ctx: AppContext, *, resume: bool = False) -> bool:
         """Granular agent.h5 step — Part 3 (H5 Vite source / legal / overlay) + h5 hooks."""
         from batch.cursor_runner import run_agent
+        from batch.prompts import _PROGRAMMER_BRAIN_FOCUS
 
+        self._prepare_agent_prompt_files(
+            ctx,
+            phase="h5",
+            role_slug="build-agent-h5",
+            role_focus=_PROGRAMMER_BRAIN_FOCUS,
+        )
         kw = self._agent_pack_context(ctx)
         prompt = self.p.prompts.build_agent_h5_phase(resume=resume, **kw)
         ok = run_agent(
@@ -627,7 +667,7 @@ class V3StepRunner:
 
         try:
             for sp in sync_h5_page_scaffold(ws, app_name=ctx.name, write=True):
-                print(f">>> dev.h5.build: page scaffold → {sp.relative_to(ws)}")
+                print(f">>> dev.h5.build: page bootstrap → {sp.relative_to(ws)}")
         except OSError as exc:
             print(f">>> dev.h5.build: page scaffold sync failed: {exc}")
             return False

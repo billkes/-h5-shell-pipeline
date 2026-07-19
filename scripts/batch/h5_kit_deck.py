@@ -325,7 +325,7 @@ def format_h5_kit_deck_block(row: object) -> str:
             lines.append(f"- {col}: {val}")
     lines.append(
         "Build per-pack micro-UI kit + H5 state/router/screen strictly per these 11 dims; "
-        "see phase_h5_kit_block.txt and H5去风味规范.md §1.5–§1.9."
+        "see H5壳Micro-UI Kit约束.md and H5去风味规范.md §1.5–§1.9."
     )
     scope = format_h5_flutter_scope_note(row)
     if scope:

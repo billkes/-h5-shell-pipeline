@@ -713,19 +713,7 @@ def sync_pages_from_spec(
 
 
 def format_pages_block(workspace: Path, app_name: str) -> str:
-    from batch.h5_page_scaffold import format_page_scaffold_prompt_block
+    """Per-app page spec file index for ${PAGE_OVERRIDES_BLOCK} — paths only."""
+    from batch.h5_page_prompts import format_page_implementation_prompt_block
 
-    pages_dir = design_system_dir_for_app(workspace, app_name) / "pages"
-    scaffold_block = format_page_scaffold_prompt_block(workspace, app_name)
-    if not pages_dir.is_dir():
-        return scaffold_block
-    files = sorted(pages_dir.glob("*.md"))
-    if not files:
-        return scaffold_block
-    lines = ["[Page Overrides — design-system/pages/]"]
-    for path in files:
-        lines.append(f"- `{path.relative_to(workspace).as_posix()}`")
-    if scaffold_block:
-        lines.append("")
-        lines.append(scaffold_block)
-    return "\n".join(lines)
+    return format_page_implementation_prompt_block(workspace, app_name)

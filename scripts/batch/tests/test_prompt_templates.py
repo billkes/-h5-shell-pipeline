@@ -7,17 +7,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 PROMPTS = ROOT / "prompts" / "h5_shell"
 
-# Files loaded via PromptBuilder._load() for the default h5_shell pipeline.
 REQUIRED_H5_SHELL_PROMPTS = [
-    "_global_brain_block.txt",
-    "phase_h5_shell_block.txt",
-    "phase_h5_shell_programmer_block.txt",
-    "phase_h5_kit_block.txt",
     "phase_h5_shell_programmer.txt",
     "phase_h5_shell_swift_programmer.txt",
     "phase_h5_shell_oc_programmer.txt",
     "phase_h5_implementer.txt",
     "phase_pm_ui_plan.txt",
+    "phase_preview_tabs.txt",
+    "phase_plan_gate_repair.txt",
 ]
 
 
@@ -26,14 +23,14 @@ def test_h5_shell_prompt_templates_exist() -> None:
     assert not missing, f"Missing prompt templates under {PROMPTS}: {missing}"
 
 
-def test_h5_kit_block_substitution() -> None:
-    import sys
+def test_v3_plan_prompt_has_no_hard_constraint_placeholders() -> None:
+    text = (PROMPTS / "phase_pm_ui_plan.txt").read_text(encoding="utf-8")
+    assert "${DESIGN_SYSTEM_BLOCK}" not in text
+    assert "skill-input/agent-spec-index.md" in text
 
-    sys.path.insert(0, str(ROOT / "scripts"))
-    from batch.config import BatchConfig
-    from batch.prompts import PromptBuilder
 
-    pb = PromptBuilder(BatchConfig.from_env())
-    block = pb.h5_kit_block(kit_deck_block="kitAtomSet: tap/type/mark")
-    assert "kitAtomSet: tap/type/mark" in block
-    assert "${H5_KIT_DECK_BLOCK}" not in block
+def test_v3_h5_prompt_has_no_block_injection() -> None:
+    text = (PROMPTS / "phase_h5_implementer.txt").read_text(encoding="utf-8")
+    assert "${H5_SHELL_BLOCK}" not in text
+    assert "${PAGE_OVERRIDES_BLOCK}" not in text
+    assert "skill-input/agent-spec-index.md" in text

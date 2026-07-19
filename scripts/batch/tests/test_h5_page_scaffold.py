@@ -1,14 +1,13 @@
-"""Tests for h5_page_scaffold sync."""
+"""Tests for h5 page bootstrap sync and spec file index."""
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
-from batch.h5_page_scaffold import (
-    route_to_page_type,
-    sync_h5_page_scaffold,
-    sync_h5_page_scaffold_css,
-)
+from batch.h5_page_prompts import collect_page_spec_file_index, format_page_implementation_prompt_block
+from batch.h5_page_scaffold import route_to_page_type, sync_h5_page_scaffold
+from batch.welcome_canon import format_welcome_spec_doc_refs, resolve_welcome_layout_variant
 
 
 def _write_vite_project(root: Path, *, router: str) -> Path:
@@ -30,7 +29,7 @@ def _write_vite_project(root: Path, *, router: str) -> Path:
     )
     (src / "styles" / "global.css").write_text(":root {}\n", encoding="utf-8")
     (src / "router" / "index.ts").write_text(router, encoding="utf-8")
-    (src / "views" / "HubView.vue").write_text("<template>old</template>\n", encoding="utf-8")
+    (src / "views" / "HubView.vue").write_text("<template>agent hub</template>\n", encoding="utf-8")
     return project
 
 
@@ -40,7 +39,7 @@ def test_route_to_page_type() -> None:
     assert route_to_page_type("/settings") == "settings"
 
 
-def test_sync_overwrites_hub_template(tmp_path: Path) -> None:
+def test_sync_does_not_write_page_vue(tmp_path: Path) -> None:
     project = _write_vite_project(
         tmp_path,
         router=(
@@ -48,118 +47,63 @@ def test_sync_overwrites_hub_template(tmp_path: Path) -> None:
             "export const routes = [{ path: '/hub', component: HubView }];\n"
         ),
     )
-    written = sync_h5_page_scaffold(project, app_name="Demo", write=True)
     hub = project / "h5" / "src" / "views" / "HubView.vue"
-    text = hub.read_text(encoding="utf-8")
-    assert hub in written
-    assert "SCAFFOLD:pipeline:start" in text
-    assert "data-demo-landmark=\"hero\"" in text
-    assert "useHubLogic" in text
-    assert "<template>old</template>" not in text
-
-
-def test_sync_list_template_rich_ia(tmp_path: Path) -> None:
-    project = _write_vite_project(
-        tmp_path,
-        router=(
-            "import RunsView from '../views/RunsView.vue';\n"
-            "export const routes = [{ path: '/runs', component: RunsView }];\n"
-        ),
-    )
+    before = hub.read_text(encoding="utf-8")
     sync_h5_page_scaffold(project, app_name="Demo", write=True)
-    runs = project / "h5" / "src" / "views" / "RunsView.vue"
-    text = runs.read_text(encoding="utf-8")
-    css = (project / "h5" / "src" / "styles" / "global.css").read_text(encoding="utf-8")
-    assert "list-hero" in text
-    assert "list-kpi-strip" in text
-    assert "run-card" in text
-    assert "Go to Prepare" in text
-    assert ".c-demo-run-card" in css
+    assert hub.read_text(encoding="utf-8") == before
 
 
-def test_sync_settings_composed(tmp_path: Path) -> None:
-    project = _write_vite_project(
-        tmp_path,
-        router=(
-            "import SettingsView from '../views/SettingsView.vue';\n"
-            "export const routes = [{ path: '/settings', component: SettingsView }];\n"
-        ),
-    )
-    sync_h5_page_scaffold(project, app_name="Demo", write=True)
-    text = (project / "h5" / "src" / "views" / "SettingsView.vue").read_text(encoding="utf-8")
-    assert "settings-hero" in text
-    assert "settings-wallet" in text
-    assert "settings-menu" in text
-
-
-def test_sync_css_block(tmp_path: Path) -> None:
+def test_spec_index_lists_paths_not_prose(tmp_path: Path) -> None:
     project = _write_vite_project(
         tmp_path,
         router=(
             "import HubView from '../views/HubView.vue';\n"
-            "export const routes = [{ path: '/hub', component: HubView }];\n"
-        ),
-    )
-    sync_h5_page_scaffold_css(project, page_types=("hub",), topology="T4_wizard", write=True)
-    css = (project / "h5" / "src" / "styles" / "global.css").read_text(encoding="utf-8")
-    assert "PAGE-SCAFFOLD:pipeline" in css
-    assert ".c-demo-hub-hero" in css
-    assert "font-size: 10px" not in css
-
-
-def test_sync_router_meta_blocks(tmp_path: Path) -> None:
-    project = _write_vite_project(
-        tmp_path,
-        router=(
-            "import HubView from '../views/HubView.vue';\n"
-            "import RunsView from '../views/RunsView.vue';\n"
-            "export const router = createRouter({ routes: [\n"
-            "  { path: '/hub', component: HubView, meta: { scene: 'hub', tab: true } },\n"
-            "  { path: '/runs', component: RunsView, meta: { scene: 'list', tab: true } },\n"
-            "] });\n"
-        ),
-    )
-    (project / "h5" / "src" / "views" / "RunsView.vue").write_text(
-        "<template>old</template>\n", encoding="utf-8"
-    )
-    written = sync_h5_page_scaffold(project, app_name="Demo", write=True)
-    assert project / "h5" / "src" / "views" / "HubView.vue" in written
-    assert project / "h5" / "src" / "views" / "RunsView.vue" in written
-
-
-def test_sync_legal_and_welcome(tmp_path: Path) -> None:
-    project = _write_vite_project(
-        tmp_path,
-        router=(
             "import WelcomeView from '../views/WelcomeView.vue';\n"
             "export const routes = ["
+            "{ path: '/hub', component: HubView },"
             "{ path: '/welcome', component: WelcomeView },"
             "];\n"
         ),
     )
-    (project / "Demo Privacy Agreement.md").write_text("# Privacy\n\nBody\n", encoding="utf-8")
-    (project / "Demo User Agreement.md").write_text("# Terms\n\nBody\n", encoding="utf-8")
-    (project / "h5" / "src" / "legal").mkdir(parents=True)
-    (project / "h5" / "src" / "legal" / "demo_legal_bundled.ts").write_text(
-        'export const LEGAL = { privacy: "p", terms: "t" };\n', encoding="utf-8"
+    pages = project / "design-system" / "demo" / "pages"
+    pages.mkdir(parents=True)
+    (pages / "welcome.md").write_text("# Welcome\n", encoding="utf-8")
+    (project / "功能文档.md").write_text("# spec\n", encoding="utf-8")
+    (project / "本包视觉锁.json").write_text("{}", encoding="utf-8")
+    welcome = project / "h5" / "src" / "views" / "WelcomeView.vue"
+    welcome.write_text("<template>x</template>", encoding="utf-8")
+
+    block = format_page_implementation_prompt_block(project, "Demo")
+    assert "index only" in block
+    assert "design-system/demo/pages/welcome.md" in block
+    assert "H5_PAGE_SPECS" not in block
+
+
+def test_collect_page_spec_file_index(tmp_path: Path) -> None:
+    project = _write_vite_project(
+        tmp_path,
+        router="export const routes = [{ path: '/hub', component: HubView }];\n",
     )
-    written = sync_h5_page_scaffold(project, app_name="Demo", write=True)
-    css = (project / "h5" / "src" / "styles" / "global.css").read_text(encoding="utf-8")
-    welcome = (project / "h5" / "src" / "views" / "WelcomeView.vue").read_text(encoding="utf-8")
-    legal = (project / "h5" / "src" / "components" / "LegalOverlay.vue").read_text(encoding="utf-8")
-    assert "LEGAL:pipeline" in css
-    assert ".c-demo-legal-scroll" in css
-    assert project / "h5" / "src" / "components" / "LegalOverlay.vue" in written
-    assert "welcome-trust" in welcome
-    assert welcome.count("<li>") >= 2
-    assert "18 years or older" in welcome
-    assert "formatLegalBody" in legal
-    assert "legal-section" in css or "legal-section" in legal
-    assert "Load demo" not in welcome
-    assert "showDemo" not in welcome
-    logic = (project / "h5" / "src" / "views" / "WelcomeView.logic.ts").read_text(
-        encoding="utf-8"
+    index = collect_page_spec_file_index(project, "Demo")
+    assert any("HubView.vue" in v for v in index["views"])
+
+
+def test_welcome_spec_doc_refs(tmp_path: Path) -> None:
+    project = tmp_path / "App"
+    pages = project / "design-system" / "demo" / "pages"
+    pages.mkdir(parents=True)
+    (pages / "welcome.md").write_text("# welcome\n", encoding="utf-8")
+    (project / "本包视觉锁.json").write_text("{}", encoding="utf-8")
+    refs = format_welcome_spec_doc_refs(project)
+    assert "design-system/demo/pages/welcome.md" in refs
+
+
+def test_resolve_welcome_layout_from_pages_md(tmp_path: Path) -> None:
+    project = tmp_path / "App"
+    pages = project / "design-system" / "demo" / "pages"
+    pages.mkdir(parents=True)
+    (pages / "welcome.md").write_text(
+        "- **Visual tone (uupm):** Horizontal Scroll Journey\n",
+        encoding="utf-8",
     )
-    assert "loadDemo" not in logic
-    assert "legalDoc" in logic
-    assert "/legal" not in logic
+    assert resolve_welcome_layout_variant(project) == "hero-split-trust"

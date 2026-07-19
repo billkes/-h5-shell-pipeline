@@ -1,2 +1,0 @@
-- Load **`h5EntryUrl`** from `本包登记信息.json` via `loadRequest` (NOT `loadFlutterAsset` / local vault).
-- LaunchScreen + LaunchVeil use **1125×2436 placeholder** image from `launchPlaceholderAsset`.

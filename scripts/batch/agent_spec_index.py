@@ -1,0 +1,391 @@
+"""Write path-only Agent indexes under skill-input/ — no norm prose in prompts."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Literal
+
+AgentPhase = Literal["plan", "shell", "h5", "preview", "repair"]
+
+SPEC_INDEX_REL = "skill-input/agent-spec-index.md"
+BRAIN_FOCUS_REL = "skill-input/agent-brain-focus.md"
+REPAIR_BRIEF_REL = "skill-input/plan-gate-repair-brief.md"
+
+_PLAN_NORM_DOCS: tuple[str, ...] = (
+    "docs/H5壳Plan交付规范.md",
+    "H5壳Plan交付规范.md",
+    "docs/H5壳Pack约束.md",
+    "H5壳Pack约束.md",
+    "docs/H5壳功能文档深度标准.md",
+    "H5壳功能文档深度标准.md",
+    "docs/H5壳交互拓扑与PlanGate策略.md",
+    "H5壳交互拓扑与PlanGate策略.md",
+    "docs/H5壳产品文档格式.md",
+    "H5壳产品文档格式.md",
+    "docs/H5壳Micro-UI Kit约束.md",
+    "H5壳Micro-UI Kit约束.md",
+    "docs/法律协议规范.md",
+    "法律协议规范.md",
+    "data/static/component_kit/README.md",
+    "data/static/component_kit/baseline.md",
+    "data/static/component_kit/tokens.md",
+)
+
+_SHELL_NORM_DOCS: tuple[str, ...] = (
+    "docs/H5壳Pack约束.md",
+    "H5壳Pack约束.md",
+    "H5-Bridge协议.md",
+    "H5壳业务流程文字版.md",
+    "H5壳启动闪屏规范.md",
+    "架构模式矩阵.md",
+    "状态管理矩阵.md",
+    "编程人设风格.md",
+    "命名混淆规则.md",
+)
+
+_H5_NORM_DOCS: tuple[str, ...] = (
+    "docs/H5壳H5实现检查清单.md",
+    "H5壳H5实现检查清单.md",
+    "docs/H5壳Vite工程规范.md",
+    "H5壳Vite工程规范.md",
+    "docs/H5壳Legal弹层规范.md",
+    "H5壳Legal弹层规范.md",
+    "H5壳广场页规范.md",
+    "docs/H5壳Overlay路由规范.md",
+    "H5壳Overlay路由规范.md",
+    "H5去风味规范.md",
+    "docs/H5壳Pack约束.md",
+    "H5壳Pack约束.md",
+    "docs/H5壳Micro-UI Kit约束.md",
+    "H5壳Micro-UI Kit约束.md",
+)
+
+_PREVIEW_NORM_DOCS: tuple[str, ...] = (
+    "docs/H5壳Pack约束.md",
+    "H5壳Pack约束.md",
+    "_preview/preview-canonical.md",
+)
+
+
+def _rel(workspace: Path, path: Path) -> str:
+    try:
+        return path.relative_to(workspace).as_posix()
+    except ValueError:
+        return str(path)
+
+
+def _existing(workspace: Path, rel: str) -> str | None:
+    path = workspace / rel
+    return rel if path.is_file() or path.is_dir() else None
+
+
+def _dedupe_paths(paths: list[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for p in paths:
+        if p and p not in seen:
+            seen.add(p)
+            out.append(p)
+    return out
+
+
+def _section(title: str, paths: list[str]) -> list[str]:
+    paths = _dedupe_paths([p for p in paths if p])
+    if not paths:
+        return []
+    lines = [f"## {title}", ""]
+    for p in paths:
+        lines.append(f"- `{p}`")
+    lines.append("")
+    return lines
+
+
+def _collect_skill_adapt_paths(workspace: Path) -> list[str]:
+    out: list[str] = []
+    for rel in (
+        "skill-adapt/design-brief.md",
+        "skill-adapt/ambient-canvas-brief.md",
+        "skill-adapt/selected-designer.json",
+        "skill-adapt/selected-candidate.json",
+        "skill-adapt/design-tokens.css",
+        "skill-adapt/css-motion-brief.md",
+        "skill-adapt/icon-sprite-manifest.json",
+        "skill-adapt/token-impl-block.md",
+        "skill-adapt/impl-ui-input.md",
+        "skill-adapt/preview-approved-colors.json",
+    ):
+        hit = _existing(workspace, rel)
+        if hit:
+            out.append(hit)
+    return out
+
+
+def _collect_design_system_paths(workspace: Path, app_name: str) -> list[str]:
+    out: list[str] = []
+    try:
+        from batch.uupm_design_system import design_system_dir_for_app, master_path_for_app
+
+        master = master_path_for_app(workspace, app_name)
+        if master.is_file():
+            out.append(_rel(workspace, master))
+        ds = design_system_dir_for_app(workspace, app_name)
+        for rel in ("stack-h5-vite.md", "ux-checklist.md", "h5-interface-brief.md"):
+            path = ds / rel
+            if path.is_file():
+                out.append(_rel(workspace, path))
+        pages = ds / "pages"
+        if pages.is_dir():
+            for path in sorted(pages.glob("*.md")):
+                out.append(_rel(workspace, path))
+    except Exception:
+        pass
+    return out
+
+
+def _collect_enrich_paths(workspace: Path, app_name: str) -> list[str]:
+    try:
+        from batch.skill_enrich import enrich_file_paths
+
+        return [
+            _rel(workspace, p)
+            for p in enrich_file_paths(workspace, app_name).values()
+            if p.is_file()
+        ]
+    except Exception:
+        return []
+
+
+def _collect_page_paths(workspace: Path, app_name: str) -> list[str]:
+    try:
+        from batch.h5_page_prompts import collect_page_spec_file_index
+
+        index = collect_page_spec_file_index(workspace, app_name)
+        paths: list[str] = []
+        for key in (
+            "design_system_root",
+            "design_system_pages",
+            "product_locks",
+            "views",
+        ):
+            paths.extend(index.get(key, []))
+        return paths
+    except Exception:
+        return []
+
+
+def _collect_pack_json_paths(workspace: Path) -> list[str]:
+    out: list[str] = []
+    for rel in (
+        "本包代码组合.json",
+        "本包登记信息.json",
+        "本包视觉锁.json",
+        "skill-input/context.json",
+        "iap-catalog.generated.md",
+        "功能文档.md",
+        "视觉蓝图.md",
+        "产包计划.md",
+    ):
+        hit = _existing(workspace, rel)
+        if hit:
+            out.append(hit)
+    return out
+
+
+def _collect_required_kit_ids(workspace: Path, pack_type: str) -> list[str]:
+    try:
+        from batch.component_kit_index import (
+            extract_selection_ids_from_visual_lock,
+            normalize_component_id,
+        )
+        from batch.selection_requirements import collect_required_selection_ids
+
+        lock_path = workspace / "本包视觉锁.json"
+        lock_ids: set[str] = set()
+        if lock_path.is_file():
+            data = json.loads(lock_path.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                lock_ids = {
+                    normalize_component_id(i)
+                    for i in extract_selection_ids_from_visual_lock(data)
+                }
+        return sorted(
+            collect_required_selection_ids(
+                workspace, pack_type=pack_type, existing=lock_ids
+            )
+        )
+    except Exception:
+        return []
+
+
+def _collect_preview_paths(workspace: Path, app_name: str) -> list[str]:
+    out: list[str] = []
+    try:
+        from batch.preview_tabs import preview_canonical_path, preview_html_path
+
+        html = preview_html_path(workspace, app_name)
+        canonical = preview_canonical_path(workspace)
+        if html.is_file():
+            out.append(_rel(workspace, html))
+        if canonical.is_file():
+            out.append(_rel(workspace, canonical))
+    except Exception:
+        pass
+    return out
+
+
+def _norm_docs_for_phase(phase: AgentPhase) -> list[str]:
+    mapping = {
+        "plan": _PLAN_NORM_DOCS,
+        "shell": _SHELL_NORM_DOCS,
+        "h5": _H5_NORM_DOCS,
+        "preview": _PREVIEW_NORM_DOCS,
+        "repair": _PLAN_NORM_DOCS,
+    }
+    return list(mapping.get(phase, ()))
+
+
+def write_agent_brain_focus(
+    workspace: Path,
+    *,
+    role_slug: str,
+    role_focus: str,
+) -> Path:
+    workspace = workspace.expanduser().resolve()
+    out_path = workspace / BRAIN_FOCUS_REL
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    body = "\n".join(
+        [
+            "# Agent brain focus",
+            "",
+            f"Role: `{role_slug}`",
+            "",
+            "Read global-brain paths for this role (if whitelisted project):",
+            role_focus.strip(),
+            "",
+            "Repo rules: `.cursor/rules/*.mdc` · `docs/rules/`",
+            "",
+        ]
+    )
+    out_path.write_text(body, encoding="utf-8")
+    return out_path
+
+
+def prepare_agent_prompt_files(
+    workspace: Path,
+    *,
+    phase: AgentPhase,
+    app_name: str,
+    pack_type: str,
+    role_slug: str,
+    role_focus: str,
+) -> tuple[Path, Path]:
+    """Write spec index + brain focus to workspace before Agent run."""
+    index = write_agent_spec_index(
+        workspace,
+        phase=phase,
+        app_name=app_name,
+        pack_type=pack_type,
+    )
+    brain = write_agent_brain_focus(
+        workspace,
+        role_slug=role_slug,
+        role_focus=role_focus,
+    )
+    return index, brain
+
+
+def write_agent_spec_index(
+    workspace: Path,
+    *,
+    phase: AgentPhase,
+    app_name: str = "",
+    pack_type: str = "h5_shell",
+) -> Path:
+    workspace = workspace.expanduser().resolve()
+    out_path = workspace / SPEC_INDEX_REL
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    norm_hits = [
+        p for doc in _norm_docs_for_phase(phase) if (p := _existing(workspace, doc))
+    ]
+
+    lines = [
+        "# Agent spec index",
+        "",
+        f"Phase: **{phase}**",
+        "",
+        "Norm prose lives in the paths below — not in the Agent prompt.",
+        "",
+    ]
+    lines.extend(_section("Norm docs", norm_hits))
+    lines.extend(_section("Pack locks (JSON / generated)", _collect_pack_json_paths(workspace)))
+
+    if phase in ("plan", "preview", "repair"):
+        lines.extend(_section("skill.adapt", _collect_skill_adapt_paths(workspace)))
+        lines.extend(
+            _section("design-system", _collect_design_system_paths(workspace, app_name))
+        )
+        lines.extend(_section("skill.enrich", _collect_enrich_paths(workspace, app_name)))
+        lines.extend(
+            _section(
+                "skill.pages / per-route specs",
+                _collect_page_paths(workspace, app_name),
+            )
+        )
+        kit_ids = _collect_required_kit_ids(workspace, pack_type)
+        if kit_ids:
+            lines.extend(["## Required component kit ids", ""])
+            for cid in kit_ids:
+                lines.append(f"- `{cid}`")
+            lines.append("")
+
+    if phase in ("plan", "h5", "preview"):
+        lines.extend(
+            _section("Tab preview (when present)", _collect_preview_paths(workspace, app_name))
+        )
+
+    if phase == "h5":
+        lines.extend(_section("skill.adapt (H5)", _collect_skill_adapt_paths(workspace)))
+        lines.extend(_section("Per-route specs", _collect_page_paths(workspace, app_name)))
+
+    out_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+    return out_path
+
+
+def write_plan_gate_repair_brief(
+    workspace: Path,
+    *,
+    issue: str,
+    focus: str,
+    target_files: tuple[str, ...],
+    constraints: str = "",
+) -> Path:
+    workspace = workspace.expanduser().resolve()
+    out_path = workspace / REPAIR_BRIEF_REL
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        "# plan.gate repair brief",
+        "",
+        f"**Issue:** {issue}",
+        f"**Focus:** {focus}",
+        "",
+    ]
+    if constraints.strip():
+        lines.extend([f"**Constraints:** {constraints}", ""])
+    lines.extend(["## Files to read and patch", ""])
+    for rel in target_files:
+        lines.append(f"- `{rel}`")
+    lines.extend(
+        [
+            "",
+            "## Norm docs",
+            "",
+            "- `skill-input/agent-spec-index.md`",
+            "- `H5壳Plan交付规范.md`",
+            "- `H5壳功能文档深度标准.md`",
+            "",
+        ]
+    )
+    out_path.write_text("\n".join(lines), encoding="utf-8")
+    return out_path

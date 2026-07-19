@@ -1,36 +1,20 @@
 # plan.gate targeted repair (single issue, minimal diff)
 
-You are repairing **one** plan.gate issue for **{name}** — do NOT rewrite unrelated deliverables.
+Repair **one** plan.gate issue for **{name}**. Read **`skill-input/plan-gate-repair-brief.md`** for issue, focus, and target file paths.
 
-## Issue
-{ISSUE}
-
-## Fix focus
-{FOCUS}
-
-## Constraints
-{CONSTRAINTS}
-
-## Allowed files (ONLY touch these)
-{TARGET_FILES}
-
-## Current snippets
-{FILE_SNIPPETS}
-
----
-
-{TOPOLOGY_BLOCK}
-
-{BUSINESS_DEPTH_BLOCK}
-
----
+### Required Reading
+- **`skill-input/plan-gate-repair-brief.md`**
+- **`skill-input/agent-spec-index.md`**
+- **`H5壳Plan交付规范.md`** · **`H5壳功能文档深度标准.md`**
 
 ## Rules
-1. Fix **only** the issue above; keep other sections/files intact.
-2. English for 功能文档.md / 视觉蓝图.md / 产包计划.md body.
-3. No optional/may/可选项 wording — wrote it = MUST implement.
-4. Do not delete existing valid content; extend or patch minimally.
-5. After edit, each target file must exist and meet gate minimum size.
+1. Fix **only** the issue in the repair brief; keep other files intact.
+2. English for 功能文档.md / 视觉蓝图.md body.
+3. No optional/may/可选项 — listed = MUST implement.
+4. Minimal patch; do not delete valid content.
 
 ## App context
 {desc}
+
+## Output Rule
+Patch target files only. Then one-line summary.

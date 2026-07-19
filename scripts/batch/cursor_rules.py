@@ -335,12 +335,12 @@ def _h5_vault_compliance_body(prefix: str, vault_dir: str) -> str:
 - `{p}_entry.htm` 须在 `{p}_core.js` **之前** load bundled script
 - **禁止**在 `{p}_core.js` 手写 `NS.ui.LEGAL` 或摘要字符串
 
-## Legal UI（audit-5c · Modal Interior kit）
+## Legal UI（audit-5c · Agent-owned visual）
 
-- 必读：`H5壳Legal弹层规范.md` · kit：`data/static/h5_legal_kit/`（批次仓路径）
-- **必须** `formatLegalBody` + `renderLegal`：`c-{p}-legal-header` / `c-{p}-legal-scroll` / `c-{p}-legal-title`
+- 必读：`docs/H5壳Legal弹层规范.md`（**无代码 kit**；视觉跟本包设计系统）
+- **必须** `formatLegalBody`（或等价）+ 可识别的 header / title / scroll 区域
 - **禁止** `LEGAL[doc].replace(/\\n/g, '<br>')` 单 div 文字墙
-- 卡片宽度 `min(90vw, 340px)` · Header titleMedium 16/600 · Close 44×44
+- Close ≥ 44×44；滚动区隐藏系统滚动条 + 有滚动暗示
 
 ## Overlay 路由（audit-5d · hash overlay stack）
 

@@ -1,58 +1,58 @@
 # H5 壳 Legal 弹层规范
 
-h5_shell 包 **Privacy / User Agreement** 在应用内的展示规范。与 `视觉蓝图.md` §Legal Overlay、Modal Interior Spec 对齐。
+h5_shell 包 **Privacy / User Agreement** 在应用内的展示规范。
 
-## 内容层
+> **无代码 kit。** 不复用 `data/static/h5_legal_kit/`（已移除）。  
+> Agent 按本规范 + 包内视觉蓝图 / design-system **自行设计** Legal UI；每包视觉应可区分。  
+> Gate（`verify_h5_legal_ui`）只检行为与无障碍合规，不锁死卡片宽高/字号/版式。
+
+## 内容层（流水线）
 
 1. PM 产出 `{App} Privacy Agreement.md` / `{App} User Agreement.md`
-2. 流水线运行 `sync_h5_legal_bundled.py` → `app_legal_bundled.js`（H5 站点统一文件名，不随壳 prefix 变化）
-3. `app_entry.htm` 在 `app_core.js` **之前** load bundled script
-4. `app_core.js` **禁止** inline `NS.ui.LEGAL`
+2. `sync_h5_legal_bundled.py` → `h5/src/legal/{prefix}_legal_bundled.ts`（或 vault 等价路径）
+3. **禁止**在业务 core 里手写 / 摘要 `LEGAL` 字符串
 
-验收：`audit_h5_legal_bundled.py` PASS
+验收：`verify_h5_legal_bundled` PASS
 
-## 展示层（Modal Interior）
+## 展示层（Agent 自建）
 
-**路由：** Legal 为 hash overlay（`#/legal`）时，必须按《H5壳Overlay路由规范.md》叠加来源页 + veil，禁止整页替换导致遮罩不透明。
+### 必须满足（行为）
 
-**禁止** `U.LEGAL[doc].replace(/\n/g, '<br>')` 单 div 输出。
-
-必须采用 kit（`data/static/h5_legal_kit/`）：
-
-| 区域 | 规格 |
+| 要求 | 说明 |
 |------|------|
-| 卡片 | `c-app-legal-card` · flex column · `width: min(90vw, 340px)` · `max-height: 85vh` |
-| Header | `c-app-legal-header` · titleMedium 16/600 · Close 44×44 |
-| 滚动体 | `c-app-legal-scroll` · 16pt pad · 独立 overflow |
-| 章节 | `c-app-legal-section` · 14px/600 |
-| 正文 | `c-app-legal-para` · bodySmall 11px |
+| 入口 | Settings（或产品声明处）打开 Privacy / User；可用 modal 或 overlay |
+| 结构化正文 | 用 `formatLegalBody`（或等价）把 bundled 文本拆成标题 + 段落 HTML；**禁止** `LEGAL[doc].replace(/\n/g, '<br>')` 整墙 dump |
+| 可滚动阅读 | 正文区可独立滚动；系统滚动条隐藏（去风味） |
+| 滚动暗示 | 底部 fade / mask 等暗示「还有内容」（实现不限） |
+| Close | 明确关闭控件；触控目标 ≥ 44×44 |
+| Overlay | 若走 hash `#/legal`，按《H5壳Overlay路由规范.md》叠加来源页 + veil |
 
-### 组件层约定
+### 视觉（Agent 自由，须差异化）
 
-- **class 前缀**：`c-{prefix}-legal-*`（如 `c-app-legal-card`、`c-app-legal-scroll`）
-- **render 函数**：`renderLegal` / `formatLegalBody`（参考 `h5_legal_kit/` 的 `legal_render.js.snippet`）
-- **Flutter 壳侧**：不实现 Legal Widget；全由 H5 弹窗/页面承担
-- **overlay 叠加**：Legal 为 hash overlay（`#/legal`）时，按《H5壳Overlay路由规范.md》叠加来源页 + veil，禁止整页替换导致遮罩不透明
-- **内容同步**：`sync_h5_legal_bundled.py` → `{prefix}_legal_bundled.js`；`app_entry.htm` 在 `app_core.js` 之前加载
+- 卡片宽度、圆角、阴影、字体、色板、章节层级样式 → **跟本包视觉锁 / pages 规范**，不要抄成「全批次同一张 340px 灰卡」
+- class 可用 `c-{prefix}-legal-*`（header / title / scroll / section / para）方便 gate 识别；命名可扩展，但须能被审计找到滚动区与标题区
+
+### 组件层
+
+- Flutter / Swift / OC 壳侧：**不**实现 Legal Widget；全由 H5 承担
+- 实现位置：`LegalOverlay.vue` 或等价；样式可进 `global.css` 或 scoped（gate 会扫 `h5/src`）
 
 ## 滚动与去风味（强制）
 
-《H5去风味规范.md》§4：**禁止系统滚动条**。
+见《H5去风味规范.md》：
 
-- Legal 滚动区使用 **底部 mask 渐变** 暗示可继续滚动
-- **禁止** `.c-app-legal-scroll::-webkit-scrollbar { display: block }`
-- 使用 `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`
+- Legal 滚动区 **禁止** 重新打开系统滚动条（`display: block` / `scrollbar-thumb`）
+- 用 mask / 渐变等暗示可继续滚
 
-验收：`audit_h5_legal_ui.py` PASS
+验收：`verify_h5_legal_ui()` PASS
 
 ## 流水线时序
 
 ```
-H5 Implementer → sync_h5_legal_bundled → verify bundled + verify UI → Auditor
+H5 Implementer（自建设计）→ sync_h5_legal_bundled → verify bundled + verify UI → Auditor
 ```
 
-任一 verify 失败 → Phase 失败，不得标记 `phase_h5_agent` done。
+## 导航
 
-## 参考实现
-
-Pawioo：`paaow_render.js` `formatLegalBody` / `renderLegal` · `paaow_baseline.css` `.c-paaow-legal-*`
+- 上级：[[docs/rules/H5壳包开发规则]]
+- 相关：[[docs/H5壳Vite工程规范]] · [[docs/H5壳Overlay路由规范]] · [[docs/法律协议规范]]

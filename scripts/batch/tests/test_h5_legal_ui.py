@@ -18,7 +18,9 @@ from batch.h5_legal_ui import verify_h5_legal_ui  # noqa: E402
 PAWIOO = PROJECT_ROOT / "output" / "Pawioo-Flutter" / "Pawioo"
 
 GOOD_RENDER = """
-function formatLegalBody(raw) { return { title: 'T', bodyHtml: '' }; }
+function formatLegalBody(raw) {
+  return { title: 'T', bodyHtml: '<h2 class="c-demo-legal-section">S</h2><p class="c-demo-legal-para">P</p>' };
+}
 function renderLegal(params) {
   return '<div class="c-demo-legal-card"><div class="c-demo-legal-header">' +
     '<h1 class="c-demo-legal-title">T</h1></div><div class="c-demo-legal-scroll"></div></div>';
@@ -66,6 +68,8 @@ def _write_ui_project(root: Path, render: str, css: str) -> Path:
     )
     (panels / "demo_render.js").write_text(render, encoding="utf-8")
     (vault / "demo_baseline.css").write_text(css, encoding="utf-8")
+    (project / "UiApp Privacy Agreement.md").write_text("# Privacy\n\nBody\n", encoding="utf-8")
+    (project / "UiApp User Agreement.md").write_text("# Terms\n\nBody\n", encoding="utf-8")
     return project
 
 
