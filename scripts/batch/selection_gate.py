@@ -225,6 +225,7 @@ def verify_selection_plan(
 
     blueprint_text = _read_text(workspace / VISUAL_BLUEPRINT_FILE)
     spec_text = _read_text(workspace / SPEC_FILE)
+    blueprint_present = bool(blueprint_text.strip())
 
     lock_data: dict = {}
     lock_path = workspace / VISUAL_LOCK_FILE
@@ -242,29 +243,34 @@ def verify_selection_plan(
     lock_ids = {
         normalize_component_id(i) for i in extract_selection_ids_from_visual_lock(lock_data)
     }
+    if not blueprint_ids and lock_ids:
+        blueprint_ids = set(lock_ids)
     override_ids = {
         normalize_component_id(i)
         for i in extract_override_ids_from_blueprint(blueprint_text)
     }
 
     issues: list[str] = []
-    issues.extend(
-        _verify_selection_id_consistency(
-            blueprint_ids, lock_ids, override_ids, pack_type=pt
+    if blueprint_present:
+        issues.extend(
+            _verify_selection_id_consistency(
+                blueprint_ids, lock_ids, override_ids, pack_type=pt
+            )
         )
-    )
+    elif not lock_ids:
+        issues.append("[SEL-001] 本包视觉锁.json componentSelection 须列出至少一个组件 ID")
 
     signals = detect_feature_signals(
         spec_text, register, pack_type=pt, visual_text=blueprint_text
     )
-    issues.extend(verify_required_components(blueprint_ids, signals, pack_type=pt))
+    issues.extend(verify_required_components(blueprint_ids or lock_ids, signals, pack_type=pt))
 
-    issues.extend(_verify_screen_coverage(spec_text, blueprint_text, strict=level >= 2))
-    issues.extend(_verify_screens_column(blueprint_text, strict=level >= 3))
-
-    override_tokens = extract_tokens_from_overrides(blueprint_text)
-    lock_tokens = _collect_visual_lock_tokens(lock_data)
-    issues.extend(_verify_override_tokens_resolved(override_tokens, lock_tokens))
+    if blueprint_present:
+        issues.extend(_verify_screen_coverage(spec_text, blueprint_text, strict=level >= 2))
+        issues.extend(_verify_screens_column(blueprint_text, strict=level >= 3))
+        override_tokens = extract_tokens_from_overrides(blueprint_text)
+        lock_tokens = _collect_visual_lock_tokens(lock_data)
+        issues.extend(_verify_override_tokens_resolved(override_tokens, lock_tokens))
 
     if h5 and lock_data:
         from batch.component_kit_index import resolve_baseline_reference

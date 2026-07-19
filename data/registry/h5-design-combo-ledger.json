@@ -239,21 +239,21 @@
       "pageOverrideCount": 0
     },
     "Monthio": {
-      "batchId": "TEST-0717",
-      "fingerprintKey": "b489ad93e702c59f",
+      "batchId": "B0717-",
+      "fingerprintKey": "f218c0a3e724a8f2",
       "visualFingerprint": {
-        "primary": "#1e3a5f",
-        "accent": "#a16207",
-        "background": "#f8fafc",
-        "heading": "outfit",
-        "body": "outfit",
+        "primary": "#d97706",
+        "accent": "#059669",
+        "background": "#fffbeb",
+        "heading": "fira code",
+        "body": "fira sans",
         "pattern": "app store style landing",
-        "style": "feature-rich showcase",
-        "category": "mood tracker"
+        "style": "heat map & heatmap style",
+        "category": "habit tracker"
       },
       "candidateId": "c1",
-      "style": "Feature-Rich Showcase",
-      "category": "Mood Tracker",
+      "style": "Heat Map & Heatmap Style",
+      "category": "Habit Tracker",
       "uxDomainsUsed": [
         "ux",
         "icons",
@@ -264,7 +264,12 @@
         "gsap",
         "chart"
       ],
-      "pageOverrideCount": 0
+      "pageOverrideCount": 14,
+      "iconLibrary": [
+        "canonical",
+        "uupm-icons"
+      ],
+      "tokenHash": "20c1289b75e45af1"
     }
   },
   "fingerprints": {
@@ -273,8 +278,8 @@
     "f5c43d52e6b0b02a": "Temioo",
     "e3b6c0f576fee128": "Rolioo",
     "e46fa3726bb3263f": "Yeario",
-    "b489ad93e702c59f": "Monthio",
     "0b272c7b2c9004da": "Letioo",
-    "c967f68ea4e6505b": "Peopio"
+    "c967f68ea4e6505b": "Peopio",
+    "f218c0a3e724a8f2": "Monthio"
   }
 }

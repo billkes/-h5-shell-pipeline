@@ -32,12 +32,24 @@ ENRICH_DOMAINS: tuple[tuple[str, str, int], ...] = (
     ("gsap", "motion-brief.md", 4),
 )
 
+# Focused English hints per domain (README-style short queries).
+ENRICH_DOMAIN_HINTS: dict[str, str] = {
+    "ux": "mobile touch accessibility navigation feedback",
+    "icons": "mobile tab bar phosphor outlined icons",
+    "web": "mobile web app interface layout responsive",
+    "style": "mobile ui visual style aesthetic",
+    "typography": "readable mobile font pairing google fonts",
+    "color": "mobile app color palette contrast",
+    "gsap": "subtle mobile animation transition reduced motion",
+    "chart": "mobile dashboard chart analytics data viz",
+}
+
 _PRE_DELIVERY = """## Pre-Delivery Checklist (ui-ux-pro-max)
 
 - [ ] Contrast 4.5:1 minimum for body text
 - [ ] Touch targets >= 44pt / 48dp
 - [ ] prefers-reduced-motion respected
-- [ ] No emojis as structural icons (inline SVG only)
+- [ ] No emojis as structural icons (use Phosphor from icon-brief)
 - [ ] Focus states visible for keyboard navigation
 - [ ] Test at 375px width + landscape
 """
@@ -75,6 +87,12 @@ def _search_domain(query: str, domain: str, max_results: int) -> dict[str, Any]:
     return search(query, domain, max_results)
 
 
+def enrich_domain_query(base_query: str, domain: str) -> str:
+    """Append a short domain focus hint — keep BM25 queries concise."""
+    hint = ENRICH_DOMAIN_HINTS.get(domain, domain)
+    return f"{base_query} {hint}".strip()
+
+
 def run_skill_enrich(
     *,
     cfg: BatchConfig,
@@ -93,28 +111,32 @@ def run_skill_enrich(
         raise RuntimeError("skill.enrich 缺少 skill-input/context.json")
     ctx = json.loads(ctx_path.read_text(encoding="utf-8"))
     anti = json.loads(anti_path.read_text(encoding="utf-8")) if anti_path.is_file() else {}
-    query = design_query_from_context(ctx, anti, row=row)
+    base_query = design_query_from_context(ctx, anti, row=row)
 
     inject_uupm_scripts(cfg)
     ds_dir = design_system_dir_for_app(workspace, row.name)
     ds_dir.mkdir(parents=True, exist_ok=True)
 
     domains: list[tuple[str, str, int]] = list(ENRICH_DOMAINS)
-    if _CHART_KEYWORDS.search(query):
+    if _CHART_KEYWORDS.search(base_query):
         domains.append(("chart", "chart-brief.md", 4))
 
     prefix = dart_prefix(workspace)
+    domain_queries: dict[str, str] = {}
 
     for domain, filename, max_results in domains:
-        result = _search_domain(query, domain, max_results)
+        domain_query = enrich_domain_query(base_query, domain)
+        domain_queries[domain] = domain_query
+        result = _search_domain(domain_query, domain, max_results)
         (ds_dir / filename).write_text(
-            _format_search_md(domain, query, result, h5_prefix=prefix if domain == "icons" else ""),
+            _format_search_md(domain, domain_query, result, h5_prefix=prefix if domain == "icons" else ""),
             encoding="utf-8",
         )
 
     meta_path = ds_dir / "enrich-meta.json"
     meta = {
-        "query": query,
+        "query": base_query,
+        "domainQueries": domain_queries,
         "domains": [d[0] for d in domains],
         "files": [d[1] for d in domains],
     }

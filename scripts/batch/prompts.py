@@ -1,9 +1,11 @@
 """Load V3 Agent prompt templates from ``prompts/h5_shell/``.
 
-V3 steps:
+V3 plan agent steps:
 
-* ``phase_pm_ui_plan.txt`` — agent.plan
-* ``phase_h5_shell_programmer.txt`` — agent.shell (all runtimes)
+* ``phase_agent_plan_spec.txt`` — agent.plan.spec
+* ``phase_agent_plan_docs.txt`` — agent.plan.docs
+* ``phase_agent_plan_pack.txt`` — agent.plan.pack (视觉蓝图 pending rework)
+* ``phase_h5_shell_programmer.txt`` — agent.shell
 * ``phase_h5_implementer.txt`` — agent.h5
 * ``phase_plan_gate_repair.txt`` — plan.gate repair
 * ``phase9_asset_generator.txt`` — optional ``batch generate-assets``
@@ -54,7 +56,15 @@ class PromptBuilder:
             text = text.replace("$" + key, val)
         return text
 
-    def _build_agent_plan_body(
+    def _resume_block_plan(self, *, resume: bool, focus: str) -> str:
+        if not resume:
+            return ""
+        return (
+            f"**RESUME:** 上次 {focus} 超时/失败 — "
+            "仅补全缺失或过短文件，勿重写已完整的产物。"
+        )
+
+    def _build_agent_plan_spec_body(
         self,
         *,
         name: str,
@@ -63,19 +73,57 @@ class PromptBuilder:
         resume: bool = False,
         **_: object,
     ) -> str:
-        resume_block = (
-            "**RESUME:** 上次 Agent 超时/失败。计划文档可能已部分存在 — "
-            "仅补全缺失或过短文件，勿重写已完整的产物。"
-            if resume
-            else ""
-        )
         return self._fmt(
-            self._load("phase_pm_ui_plan.txt"),
+            self._load("phase_agent_plan_spec.txt"),
             {
                 "name": name,
                 "desc": desc,
-                "RESUME_BLOCK": resume_block,
+                "RESUME_BLOCK": self._resume_block_plan(
+                    resume=resume, focus="agent.plan.spec"
+                ),
                 "PRODUCT_REQ_DOC": product_req_doc,
+            },
+        )
+
+    def _build_agent_plan_docs_body(
+        self,
+        *,
+        name: str,
+        desc: str,
+        product_req_doc: str,
+        csv_full_name: str,
+        resume: bool = False,
+        **_: object,
+    ) -> str:
+        return self._fmt(
+            self._load("phase_agent_plan_docs.txt"),
+            {
+                "name": name,
+                "desc": desc,
+                "CSV_FULL_NAME": csv_full_name or name,
+                "RESUME_BLOCK": self._resume_block_plan(
+                    resume=resume, focus="agent.plan.docs"
+                ),
+                "PRODUCT_REQ_DOC": product_req_doc,
+            },
+        )
+
+    def _build_agent_plan_pack_body(
+        self,
+        *,
+        name: str,
+        desc: str,
+        resume: bool = False,
+        **_: object,
+    ) -> str:
+        return self._fmt(
+            self._load("phase_agent_plan_pack.txt"),
+            {
+                "name": name,
+                "desc": desc,
+                "RESUME_BLOCK": self._resume_block_plan(
+                    resume=resume, focus="agent.plan.pack"
+                ),
             },
         )
 
@@ -137,8 +185,18 @@ class PromptBuilder:
             },
         )
 
+    def build_agent_plan_spec_phase(self, *, resume: bool = False, **kwargs: object) -> str:
+        return self._build_agent_plan_spec_body(resume=resume, **kwargs)  # type: ignore[arg-type]
+
+    def build_agent_plan_docs_phase(self, *, resume: bool = False, **kwargs: object) -> str:
+        return self._build_agent_plan_docs_body(resume=resume, **kwargs)  # type: ignore[arg-type]
+
+    def build_agent_plan_pack_phase(self, *, resume: bool = False, **kwargs: object) -> str:
+        return self._build_agent_plan_pack_body(resume=resume, **kwargs)  # type: ignore[arg-type]
+
     def build_agent_plan_only_phase(self, *, resume: bool = False, **kwargs: object) -> str:
-        return self._build_agent_plan_body(resume=resume, **kwargs)  # type: ignore[arg-type]
+        """Legacy alias → agent.plan.spec prompt."""
+        return self.build_agent_plan_spec_phase(resume=resume, **kwargs)
 
     def build_agent_shell_phase(self, *, resume: bool = False, **kwargs: object) -> str:
         return self._build_agent_shell_body(resume=resume, **kwargs)  # type: ignore[arg-type]

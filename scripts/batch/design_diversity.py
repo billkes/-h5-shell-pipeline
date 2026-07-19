@@ -19,13 +19,22 @@ from batch.task_schema import (
 H5_DESIGN_LEDGER_NAME = "h5-design-combo-ledger.json"
 
 # English scene anchors — steer uupm product search away from generic SaaS/Mood Tracker.
+# BM25 corpus is English; never echo raw Chinese CSV fields into search queries.
 _TRACK_SCENE_HINTS: dict[str, str] = {
     "亲子家庭": "family parenting household organizer warm approachable",
     "教育培训": "university education classroom academic presentation learning",
     "教育": "education learning academic student",
+    "教育娱乐": "edutainment word puzzle learning game playful",
     "工具": "utility productivity tool focused",
     "健康": "wellness health habit tracker calm",
     "金融": "finance budget money planning professional",
+    "个人成长": "personal growth self improvement habit reflection",
+    "效率工具": "productivity utility efficiency planner reminders",
+    "校园效率": "campus student academic productivity lecture prep",
+    "休闲益智": "casual puzzle brain game pixel art challenge",
+    "轻社交": "party social game board dice multiplayer fun",
+    "休闲生活": "lifestyle collection hobby album gallery cozy",
+    "休闲游戏": "casual game pet companion playful offline",
 }
 
 _SCENE_KEYWORD_HINTS: tuple[tuple[str, str], ...] = (
@@ -39,6 +48,19 @@ _SCENE_KEYWORD_HINTS: tuple[tuple[str, str], ...] = (
     ("计时", "timer stopwatch elapsed duration"),
     ("课堂", "classroom lecture seminar university"),
     ("大学", "university campus student academic"),
+    ("习惯", "habit tracker daily check-in streak routine"),
+    ("复盘", "monthly review reflection report summary"),
+    ("月末", "month-end monthly period review"),
+    ("打卡", "daily check-in streak completion log"),
+    ("可视化", "data visualization analytics chart heatmap"),
+    ("收集", "collection gallery album vault showcase"),
+    ("拼词", "word puzzle spelling letter game"),
+    ("猫咪", "cat pet companion virtual nurture"),
+    ("灵魂", "journal prompt reflection diary introspection"),
+    ("备忘", "contact profile notes meeting prep reminder"),
+    ("见面", "meeting prep quick profile card glance"),
+    ("像素", "pixel art grid puzzle color match"),
+    ("骰子", "dice board party game turn score"),
 )
 
 
@@ -69,8 +91,24 @@ def _scene_english_hints(*texts: str) -> str:
     return " ".join(ordered)
 
 
+def _dedupe_query_tokens(text: str) -> str:
+    """Drop repeated words while preserving order (keeps BM25 queries concise)."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for token in text.split():
+        key = token.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(token)
+    return " ".join(out)
+
+
 def theme_search_query_from_row(row: Any) -> str:
-    """Build uupm search query from CSV theme columns (not the long Theme: blob)."""
+    """Build short English uupm BM25 query from CSV theme columns.
+
+    Chinese narrative stays in context.json / Agent prompts — not in search text.
+    """
     name = _norm(getattr(row, "name", "") or (row.get(COL_NAME) if isinstance(row, dict) else ""))
     track = _norm(getattr(row, "track", "") or (row.get(COL_TRACK) if isinstance(row, dict) else ""))
     audience = _norm(getattr(row, "audience", "") or (row.get(COL_AUDIENCE) if isinstance(row, dict) else ""))
@@ -81,12 +119,8 @@ def theme_search_query_from_row(row: Any) -> str:
     parts = [
         f"{name} mobile app" if name else "mobile app",
         english,
-        f"track {track}" if track else "",
-        f"audience {audience}" if audience else "",
-        f"scene {scene}" if scene else "",
-        f"feature {feature}" if feature else "",
     ]
-    return " ".join(p.strip() for p in parts if p and p.strip())
+    return _dedupe_query_tokens(" ".join(p.strip() for p in parts if p and p.strip()))
 
 
 def visual_fingerprint(candidate: dict[str, Any]) -> dict[str, str]:

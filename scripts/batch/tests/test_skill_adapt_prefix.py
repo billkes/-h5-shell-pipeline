@@ -15,7 +15,7 @@ def test_icon_manifest_uses_early_dart_prefix(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     candidate: dict = {"style": {}, "pattern": {}}
-    designer = {"iconStyle": "outlined inline SVG sprite (unified H5 kit)"}
+    designer = {"iconStyle": "Phosphor outlined regular"}
     manifest = _build_icon_sprite_manifest(ws, candidate, designer)
     assert manifest["prefix"] == "eebun"
     for entry in manifest["symbols"]:

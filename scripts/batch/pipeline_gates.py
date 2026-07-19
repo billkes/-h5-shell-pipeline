@@ -572,13 +572,15 @@ def verify_phase2_designer_outputs(workspace: Path) -> tuple[bool, list[str]]:
 
     h5 = is_h5_shell(pack_type)
 
-    if not visual.is_file() or visual.stat().st_size < 200:
-        issues.append("缺少 视觉蓝图.md 或内容过短")
-    elif visual.is_file():
-        visual_text = visual.read_text(encoding="utf-8", errors="replace")
-        issues.extend(
-            _verify_visual_blueprint_depth(visual_text, spec_text, pack_type=pack_type)
-        )
+    if not h5:
+        if not visual.is_file() or visual.stat().st_size < 200:
+            issues.append("缺少 视觉蓝图.md 或内容过短")
+        elif visual.is_file():
+            visual_text = visual.read_text(encoding="utf-8", errors="replace")
+            issues.extend(
+                _verify_visual_blueprint_depth(visual_text, spec_text, pack_type=pack_type)
+            )
+    # h5_shell: 视觉蓝图.md 已退役；UI 规范以 design-system + skill-adapt + 本包视觉锁 为准
 
     if not lock.is_file():
         issues.append("缺少 本包视觉锁.json")
@@ -649,8 +651,13 @@ def verify_pm_ui_plan_outputs(
 
     ok_ui, issues_ui = verify_phase2_designer_outputs(workspace)
     for issue in issues_ui:
-        if issue.startswith("缺少 视觉蓝图") or issue.startswith("缺少 本包视觉锁"):
+        if issue.startswith("缺少 本包视觉锁"):
             _hard(issue)
+        elif issue.startswith("缺少 视觉蓝图"):
+            if h5_shell:
+                _soft(issue)  # legacy file; skill chain replaces blueprint
+            else:
+                _hard(issue)
         elif "JSON 不合法" in issue or "不是 JSON object" in issue:
             _hard(issue)
         elif not ok_ui:
@@ -723,10 +730,10 @@ def verify_pm_ui_plan_outputs(
             _hard(issue)
 
     visual = workspace / "视觉蓝图.md"
-    if visual.is_file():
+    if visual.is_file() and h5_shell:
         vtext = visual.read_text(encoding="utf-8", errors="replace")
-        if h5_shell and "ux-checklist" not in vtext.lower() and "ambient canvas" not in vtext.lower():
-            _soft("视觉蓝图.md 应引用 ux-checklist 或 Ambient Canvas enrich 产物")
+        if "ux-checklist" not in vtext.lower() and "ambient canvas" not in vtext.lower():
+            _soft("视觉蓝图.md 应引用 ux-checklist 或 Ambient Canvas enrich 产物（legacy；新包可不产此文件）")
 
 
 

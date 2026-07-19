@@ -46,15 +46,17 @@ def test_pipeline_steps_h5_swift() -> None:
     from batch.pipeline_steps import steps_for_run
 
     steps = steps_for_run(pack_type="h5_swift_shell")
-    assert "agent.plan" in steps
+    assert "agent.plan.spec" in steps
+    assert "agent.plan.docs" in steps
+    assert "agent.plan.pack" in steps
     assert "agent.shell" in steps
     assert "agent.h5" in steps
     assert "build.agent" not in steps
     assert "preview.tabs" not in steps
-    # 顺序: plan < shell < h5
-    assert steps.index("agent.plan") < steps.index("agent.shell")
+    assert steps.index("agent.plan.spec") < steps.index("agent.plan.docs")
+    assert steps.index("agent.plan.docs") < steps.index("agent.plan.pack")
+    assert steps.index("agent.plan.pack") < steps.index("agent.shell")
     assert steps.index("agent.shell") < steps.index("agent.h5")
-    assert "skill.enrich" in steps
     assert "skill.pages" in steps
     assert "skill.tokens" in steps
     assert "dev.h5.build" in steps
@@ -68,9 +70,9 @@ def test_pipeline_steps_oc_shell() -> None:
     from batch.pipeline_steps import steps_for_run
 
     steps = steps_for_run(pack_type="h5_oc_shell")
-    assert "agent.plan" in steps
-    assert "agent.shell" in steps
-    assert "agent.h5" in steps
+    assert "agent.plan.spec" in steps
+    assert "agent.plan.docs" in steps
+    assert "agent.plan.pack" in steps
     assert "build.agent" not in steps
     assert "native.check" not in steps
     assert "dev.h5.gate" not in steps

@@ -14,7 +14,8 @@ DESIGN_BRIEF = "design-brief.md"
 IMPL_UI_INPUT = "impl-ui-input.md"
 AMBIENT_CANVAS_BRIEF = "ambient-canvas-brief.md"
 CSS_MOTION_BRIEF = "css-motion-brief.md"
-ICON_SPRITE_MANIFEST = "icon-sprite-manifest.json"
+ICON_SPRITE_MANIFEST = "icon-sprite-manifest.json"  # legacy alias filename
+ICON_MANIFEST = "icon-manifest.json"
 KIT_SKELETON = "kit-skeleton.css"
 
 
@@ -321,7 +322,7 @@ def designer_selections_from_candidate(
     )
     hero = hero_visual_motif(bind) if bind else (seeds.get("heroVisualMotif") or preset_motif_from_style(style))
     motion_label = dials.get("motion_label") or seeds.get("interactionFlavor") or ""
-    icon = seeds.get("iconStyle") or "outlined inline SVG sprite (unified H5 kit)"
+    icon = seeds.get("iconStyle") or "Phosphor outlined regular"
 
     return {
         "colorTemperature": str(color_temp)[:120],
@@ -386,16 +387,20 @@ def _build_css_motion_brief(candidate: dict[str, Any]) -> str:
 
 
 def _build_icon_sprite_manifest(workspace: Path, candidate: dict[str, Any], designer: dict[str, str]) -> dict[str, Any]:
+    """Build Phosphor icon manifest from skill icon-brief (unified with uupm icons.csv)."""
     from batch.skill_icons import (
+        ALLOWED_ICON_LIBRARY,
+        ALLOWED_ICON_PACKAGE,
         CANONICAL_ICON_SLUGS,
         FORBIDDEN_ICON_LIBRARIES,
-        h5_symbol_id,
         parse_icon_names_from_brief,
+        phosphor_component_name,
     )
     from batch.workspace import dart_prefix
 
+    del candidate, designer
     prefix = dart_prefix(workspace)
-    symbols: list[dict[str, str]] = []
+    icons: list[dict[str, str]] = []
     icon_brief = None
     for path in workspace.glob("design-system/*/icon-brief.md"):
         icon_brief = path
@@ -403,35 +408,44 @@ def _build_icon_sprite_manifest(workspace: Path, candidate: dict[str, Any], desi
     if icon_brief and icon_brief.is_file():
         text = icon_brief.read_text(encoding="utf-8", errors="replace")
         for slug in parse_icon_names_from_brief(text):
-            symbols.append(
+            icons.append(
                 {
                     "slug": slug,
-                    "symbolId": h5_symbol_id(prefix, slug),
+                    "component": phosphor_component_name(slug),
+                    "package": ALLOWED_ICON_PACKAGE,
                     "source": "uupm-icons",
                 }
             )
-    seen = {s["slug"] for s in symbols}
+    seen = {i["slug"] for i in icons}
     for slug in CANONICAL_ICON_SLUGS:
         if slug not in seen:
-            symbols.append(
+            icons.append(
                 {
                     "slug": slug,
-                    "symbolId": h5_symbol_id(prefix, slug),
+                    "component": phosphor_component_name(slug),
+                    "package": ALLOWED_ICON_PACKAGE,
                     "source": "canonical",
                 }
             )
             seen.add(slug)
-    symbols = symbols[:20]
+    icons = icons[:20]
     return {
         "prefix": prefix,
-        "delivery": "inline-svg-sprite",
-        "strokeWidth": "2",
-        "viewBox": "0 0 24 24",
-        "style": "outlined inline SVG sprite (unified H5 kit — no per-pack icon libraries)",
+        "delivery": "phosphor-vue",
+        "library": ALLOWED_ICON_LIBRARY,
+        "package": ALLOWED_ICON_PACKAGE,
+        "style": "Phosphor outlined icons via @phosphor-icons/vue (skill icons.csv)",
         "forbiddenLibraries": list(FORBIDDEN_ICON_LIBRARIES),
-        "symbols": symbols,
-        # Legacy field for design_diversity ledger readers.
-        "icons": [{"name": s["slug"], "source": s["source"]} for s in symbols],
+        "icons": icons,
+        # Legacy field for design_diversity / older readers.
+        "symbols": [
+            {
+                "slug": i["slug"],
+                "symbolId": i["component"],
+                "source": i["source"],
+            }
+            for i in icons
+        ],
     }
 
 
@@ -444,13 +458,16 @@ def format_css_motion_block(workspace: Path) -> str:
 
 
 def format_icon_manifest_block(workspace: Path) -> str:
-    from batch.workspace import dart_prefix
-
-    path = workspace / SKILL_ADAPT_DIR / ICON_SPRITE_MANIFEST
+    path = workspace / SKILL_ADAPT_DIR / ICON_MANIFEST
+    if not path.is_file():
+        path = workspace / SKILL_ADAPT_DIR / ICON_SPRITE_MANIFEST
     if not path.is_file():
         return ""
     rel = path.relative_to(workspace).as_posix()
-    return f"[Icon Sprite Manifest — read `{rel}`; embed `{dart_prefix(workspace)}-mark-*` symbol IDs in entry.htm — NO icon font libraries]"
+    return (
+        f"[Icon Manifest — read `{rel}`; import Phosphor components from "
+        "`@phosphor-icons/vue` per skill icon-brief — no iconfont/Font Awesome]"
+    )
 
 
 def _ambient_canvas_lock_seed(
@@ -614,10 +631,10 @@ def write_skill_adapt_outputs(
 
     if integration_enabled(cfg, "icon_brief"):
         manifest = _build_icon_sprite_manifest(workspace, candidate, designer)
-        (root / ICON_SPRITE_MANIFEST).write_text(
-            json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
+        payload = json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
+        (root / ICON_MANIFEST).write_text(payload, encoding="utf-8")
+        # Keep legacy filename for older design_diversity readers.
+        (root / ICON_SPRITE_MANIFEST).write_text(payload, encoding="utf-8")
 
     from batch.h5_kit_skeleton import build_kit_css_skeleton, resolve_prefix as kit_prefix
     from batch.uupm_design_system import parse_master_typography
@@ -641,13 +658,13 @@ def write_skill_adapt_outputs(
         "# Implementation UI Input (skill.adapt)",
         "",
         f"Read `{master_rel}` before shared widgets.",
-        f"Read `{stack_rel}` for stack-specific rules.",
-        f"Read `skill-adapt/{AMBIENT_CANVAS_BRIEF}` — implement `u-{{prefix}}-ambient` in entry.htm.",
+        f"Read `{stack_rel}` plus `stack-vue.md` / `stack-html-tailwind.md` (skill stacks).",
+        f"Read `skill-adapt/{AMBIENT_CANVAS_BRIEF}` — implement `u-{{prefix}}-ambient`.",
         "Read `design-system/*/pages/<screen>.md` before implementing each route.",
         f"Read `skill-adapt/{CSS_MOTION_BRIEF}` for animation canon.",
-        f"Read `skill-adapt/{KIT_SKELETON}` — copy/extend into `h5/src/styles/kit.css`; bind all button/input/checkbox/link to `c-{prefix}-*` classes.",
-        "Read `skill-adapt/design-tokens.css` for :root variables.",
-        "Read `skill-adapt/icon-sprite-manifest.json` — embed listed `symbolId` values as inline SVG sprites.",
+        "Read `skill-adapt/design-tokens.css` — wire into Tailwind theme / `:root`.",
+        f"Read `skill-adapt/{ICON_MANIFEST}` — import Phosphor Vue components listed there.",
+        f"Optional kit classes: `skill-adapt/{KIT_SKELETON}` (`c-{prefix}-*` helpers).",
         "",
         "## designerDeckSelections (for 本包视觉锁.json)",
         json.dumps(designer, ensure_ascii=False, indent=2),

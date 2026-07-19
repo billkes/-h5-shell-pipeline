@@ -29,7 +29,7 @@ Agent **Part 1（Plan）** 须一次性产出下列文件。细则以本文为�
 
 ## Deliverable 1b) `{全称}.md`（中文产品文档）
 
-格式：《H5壳产品文档格式.md》；H1 = CSV `全称`；与 `功能文档.md` 对齐。
+格式：《H5壳产品文档格式.md》；H1 = CSV `全称`；**仅** `产品概述` + `App Store Listing` 两节（不含业务流程总结 / 审核演示路线）；与 `功能文档.md` 对齐。产出步骤：`agent.plan.docs`。
 
 ## Deliverable 1c) Legal agreements（English MD）
 
@@ -38,35 +38,23 @@ Agent **Part 1（Plan）** 须一次性产出下列文件。细则以本文为�
 
 规范：`docs/法律协议规范.md`（workspace 根目录拷贝）。plan.gate 调用 `verify_h5_legal_md()`。
 
-## Deliverable 2) `视觉蓝图.md`（English）
+## Deliverable 2) 视觉规范（**不再**产出 `视觉蓝图.md`）
 
-须含 V2 门禁章节 + **§Ambient Canvas Canon**（读 `skill-adapt/ambient-canvas-brief.md` 后展开）。
+h5_shell 包的 UI 规范由 skill 链写入 workspace，Agent **禁止**再写 `视觉蓝图.md`（与 skill 产物冲突）：
 
-**章节顺序：** Visual Identity · Anti-Patterns · Color Tokens · Typography · Shape & Radius · Iconography（inline SVG sprite）· Imagery · Navigation Pattern · **Ambient Canvas Canon** · Per-screen Layout（仅 Screen Inventory 内屏幕）· Overlay & Feedback · Confirmation Dialog · Export Card · List Row · Detail · Modal · Form · Tag & Filter · IAP Store（若有 `#/store`）· Welcome Gate（若有 `#/welcome`）· **Hub Home Canon（有 Tab 1 时必写）** · Motion · Component Selection · Package Token Overrides · Dark Mode。
+| 来源步骤 | 路径 |
+|----------|------|
+| `skill.design` | `design-system/*/MASTER.md` |
+| `skill.enrich` | `ux-checklist.md` · `h5-interface-brief.md` |
+| `skill.adapt` | `skill-adapt/design-brief.md` · `ambient-canvas-brief.md` · `design-tokens.css` |
+| `skill.pages` | `design-system/*/pages/*.md` |
+| `agent.plan.pack` | `本包视觉锁.json`（componentSelection · colorTokens · ambientCanvas） |
 
-### Welcome Gate Canon（若 Inventory 含 `#/welcome`）
+H5 实现读 `agent-spec-index` 索引路径；逐屏 override 以 `pages/*.md` 为准。
 
-按**本包** `audience` · `coreScene` · `productFlow` · `designerSeeds` 写场景叙事，**禁止**套用他包引导模板。
+### （Legacy）Welcome / Hub Canon
 
-| 必写 | 说明 |
-|------|------|
-| Onboarding pattern | 从 carousel / dialogue·typewriter / narrative / interactive-preview **择一**，并说明为何匹配本包情绪 |
-| Scene beats | ≥2 情绪节拍（痛点 → 价值 → 信任）；最后一拍才出现 18+ / 协议 / Continue |
-| Trust / legal / CTA 槽位 | 合规骨架仍须完整（字号 ≥ labelMedium） |
-| Anti-copy | 明确禁止「Welcome to {App} + 功能 bullet」作为唯一内容 |
-
-### Hub Home Canon（Tab 1 必写）
-
-Tab 1 是 Welcome 之后的**产品身份页**。按 `interactionTopology` + `coreScene` + `audience` 写，**禁止**所有包共用「chips + KPI + recent carousel」。
-
-| 必写 | 说明 |
-|------|------|
-| Primary zone | 绑定 topology（如 T5=workspace canvas、T8=reminder ring、T4=wizard draft lane） |
-| Usage moment | 使用群体 / 时机段如何体现在首屏（问候、紧急度、空态文案） |
-| Empty + CTA | 空态仍展示 primary zone 骨架 + Primary Workflow 入口 |
-| Signature binding | 功能文档 §Professional Surface 的 signature interaction 须在本屏可达 |
-
-**skill.pages：** `design-system/*/pages/*.md` 不预置；`功能文档.md` 存在后 pipeline 在 plan.gate 前运行 `reconcile_pages_from_spec`。`welcome.md` / `hub.md` 由 `page_scene_spec` 按本包 CSV/context **动态生成**（Scene Brief + Pattern Guidance），不是固定模板。
+Welcome / Hub 场景叙事与槽位见 `design-system/*/pages/welcome.md` · `hub.md`（`skill.pages` 动态生成），不再写进 `视觉蓝图.md`。
 
 ## 其他 Plan 产物
 

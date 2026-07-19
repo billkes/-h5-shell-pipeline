@@ -36,12 +36,20 @@ CONSTRAINTS_FILE = "constraints.md"
 
 
 def stack_for_pack_type(pack_type: str) -> str:
-    """Primary UI stack for design-system generation (H5 site uses html-tailwind)."""
+    """Primary UI stack for design-system generation.
+
+    H5 site style system = skill ``html-tailwind`` (unified with uupm, not a CSS-compat layer).
+    """
     if is_h5_shell(pack_type):
         return "html-tailwind"
     if is_flutter_runtime(pack_type):
         return "flutter"
     return "html-tailwind"
+
+
+def h5_architecture_stack() -> str:
+    """H5 SPA architecture stack from skill repo (``stacks/vue.csv``)."""
+    return "vue"
 
 
 def native_stack_for_pack_type(pack_type: str) -> str | None:
@@ -62,7 +70,7 @@ _DESIGNER_SEED_POOL: tuple[dict[str, str], ...] = (
         "navigationPattern": "bottom tab hub",
         "heroVisualMotif": "layered ambient mesh",
         "interactionFlavor": "subtle fade transitions",
-        "iconStyle": "outlined 2px stroke SVG",
+        "iconStyle": "Phosphor outlined regular",
     },
     {
         "colorTemperature": "cool professional blue-gray",
@@ -71,7 +79,7 @@ _DESIGNER_SEED_POOL: tuple[dict[str, str], ...] = (
         "navigationPattern": "index grid home",
         "heroVisualMotif": "data band grid",
         "interactionFlavor": "standard 200ms ease",
-        "iconStyle": "sharp outlined SVG",
+        "iconStyle": "Phosphor outlined bold",
     },
     {
         "colorTemperature": "vibrant accent on neutral base",
@@ -80,7 +88,7 @@ _DESIGNER_SEED_POOL: tuple[dict[str, str], ...] = (
         "navigationPattern": "hero-first drill-down",
         "heroVisualMotif": "organic blob parallax",
         "interactionFlavor": "spring-like micro-motion",
-        "iconStyle": "rounded outlined SVG",
+        "iconStyle": "Phosphor duotone accent",
     },
 )
 
@@ -324,20 +332,5 @@ def write_skill_input(
     return ctx_path
 
 
-def avoid_query_suffix(anti: dict[str, Any]) -> str:
-    """Append avoid phrases to uupm search query."""
-    parts: list[str] = []
-    for item in anti.get("sameBatchUsed") or []:
-        if isinstance(item, dict):
-            theme = str(item.get("themeAngle") or "").strip()
-            if theme:
-                parts.append(theme)
-    for phrase in (anti.get("historicalAvoid") or [])[:12]:
-        parts.append(str(phrase))
-    if not parts:
-        return ""
-    joined = "; ".join(p.strip() for p in parts if p.strip())
-    return (
-        f" Avoid duplicating sibling visual identity (palette, fonts, layout pattern). "
-        f"Must differ in theme and navigation. Context: {joined}."
-    )
+# Anti-collision for batch de-duplication lives in anti-collision-context.json,
+# candidate_similarity, and diversify_candidates — not in uupm BM25 query text.

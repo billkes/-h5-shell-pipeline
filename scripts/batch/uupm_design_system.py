@@ -27,7 +27,11 @@ from batch.candidate_similarity import (
     MAX_RETRIES,
 )
 from batch.pack_type import is_h5_shell
-from batch.skill_context import avoid_query_suffix, native_stack_for_pack_type, stack_for_pack_type
+from batch.skill_context import (
+    h5_architecture_stack,
+    native_stack_for_pack_type,
+    stack_for_pack_type,
+)
 from batch.skill_resolve import inject_uupm_scripts, resolve_uupm_package_dir, resolve_skill_repo_root
 
 if TYPE_CHECKING:
@@ -174,25 +178,37 @@ def _dial_variants(base: dict[str, int]) -> list[tuple[str, dict[str, int]]]:
     ]
 
 
-def design_query_from_context(ctx: dict[str, Any], anti: dict[str, Any], row: CsvTaskRow | None = None) -> str:
+def design_query_from_context(
+    ctx: dict[str, Any],
+    anti: dict[str, Any] | None = None,
+    row: CsvTaskRow | None = None,
+) -> str:
+    """Short English BM25 query for ui-ux-pro-max (README-style keyword search).
+
+    Anti-collision is handled by registry similarity + anti-collision-context.json,
+    not by appending history blobs to the search query.
+    """
+    _ = anti
+    if row is not None:
+        return theme_search_query_from_row(row)
+
     product = ctx.get("product") or {}
     search_query = str(product.get("searchQuery") or "").strip()
     if search_query:
-        base = search_query
-    else:
-        app = ctx.get("app") or {}
-        parts = [
-            app.get("name"),
-            product.get("track"),
-            product.get("audience"),
-            product.get("coreScene"),
-            product.get("localFeature"),
-            product.get("themeCn"),
-        ]
-        base = " ".join(str(p).strip() for p in parts if p and str(p).strip())
-    if row is not None and not search_query:
-        base = theme_search_query_from_row(row)
-    return base + avoid_query_suffix(anti)
+        return search_query
+
+    app = ctx.get("app") or {}
+
+    class _ProductRow:
+        pass
+
+    row_like = _ProductRow()
+    row_like.name = str(app.get("name") or "").strip()
+    row_like.track = str(product.get("track") or "").strip()
+    row_like.audience = str(product.get("audience") or "").strip()
+    row_like.core_scene = str(product.get("coreScene") or "").strip()
+    row_like.local_feature = str(product.get("localFeature") or "").strip()
+    return theme_search_query_from_row(row_like)
 
 
 def master_path_for_app(workspace: Path, app_name: str) -> Path:
@@ -434,8 +450,6 @@ def run_skill_design(
     ctx = json.loads(ctx_path.read_text(encoding="utf-8"))
     anti = json.loads(anti_path.read_text(encoding="utf-8"))
     query = design_query_from_context(ctx, anti, row=row)
-    # Extract base query (without avoid suffix) for fallback ladder
-    base_query = query.replace(avoid_query_suffix(anti), "").strip()
     stack = stack_for_pack_type(pack_type)
     base_dials = designer_dials_from_row(row)
 
@@ -458,7 +472,7 @@ def run_skill_design(
         ds["id"] = cid
         candidates_out.append(ds)
 
-    candidates_out = diversify_candidates(candidates_out, query=base_query)
+    candidates_out = diversify_candidates(candidates_out, query=query)
 
     # ── Fallback Ladder ──────────────────────────────────────────────
     registry_path = cfg.contentpack_registry
@@ -470,7 +484,7 @@ def run_skill_design(
     selected_candidate, sim_result = run_fallback_ladder(
         candidates=candidates_out,
         registry_path=registry_path,
-        base_query=base_query,
+        base_query=query,
         base_dials=base_dials,
         styles_csv_path=styles_csv_path,
         generator_fn=generator_fn,
@@ -494,7 +508,7 @@ def run_skill_design(
                 keywords = str(anti_style.get("Keywords", "")).strip()
                 if not style_name:
                     continue
-                anti_query = f"{base_query} {style_name} {keywords} differentiated visual style"
+                anti_query = f"{query} {style_name} {keywords} differentiated visual style"
                 print(f"[SIMILARITY] Trying style override query: {anti_query[:120]}...")
                 regenerated: list[dict[str, Any]] = []
                 for cid, dials in _dial_variants(base_dials):
@@ -560,9 +574,18 @@ def run_skill_design(
         )
 
     if is_h5_shell(pack_type):
-        from batch.skill_stack_brief import write_h5_vite_brief
+        # Architecture stack from skill (vue.csv) — no Tailwind→hand-CSS translation.
+        vue_stack = h5_architecture_stack()
+        if vue_stack != stack:
+            vue_result = search_stack(query, vue_stack, 8)
+            vue_path = stack_guidelines_path(workspace, row.name, vue_stack)
+            vue_path.write_text(
+                _format_stack_md(vue_stack, query, vue_result.get("results") or []),
+                encoding="utf-8",
+            )
+        from batch.skill_stack_brief import write_h5_runtime_brief
 
-        write_h5_vite_brief(workspace, row.name)
+        write_h5_runtime_brief(workspace, row.name)
 
     meta = {
         "source": "ui-ux-pro-max-skill",
@@ -613,16 +636,17 @@ def run_skill_design(
                 "由流水线 `skill.design` + `skill.enrich` + `skill.adapt` + `skill.pages` 调用 **ui-ux-pro-max** 生成。",
                 "",
                 f"- MASTER: `{rel.as_posix()}`",
-                f"- Stack: `design-system/{slug}/stack-{stack}.md`",
-                f"- H5 vite: `design-system/{slug}/stack-h5-vite.md`",
-                f"- Enrich: `design-system/{slug}/ux-checklist.md` · `icon-brief.md` · `h5-interface-brief.md`",
+                f"- Style stack: `design-system/{slug}/stack-html-tailwind.md`",
+                f"- Architecture stack: `design-system/{slug}/stack-vue.md`",
+                f"- H5 runtime (deploy only): `design-system/{slug}/h5-runtime.md`",
+                f"- Enrich: `design-system/{slug}/ux-checklist.md` · `icon-brief.md` · `typography-brief.md`",
                 f"- Pages: `{pages_glob}`",
                 f"- Candidates: `design-system/{slug}/candidates.json`",
-                f"- Adapt: `skill-adapt/design-brief.md` · `design-tokens.css`",
+                f"- Adapt: `skill-adapt/design-brief.md` · `design-tokens.css` · `icon-manifest.json`",
                 "",
-                "Cursor skills: `.cursor/skills/ui-ux-pro-max` + `brand` · `design-system` · `design` · `ui-styling`",
+                "Cursor skills: `.cursor/skills/ui-ux-pro-max` — H5 统一用 skill 栈（Vue + Tailwind + Google Fonts + Phosphor）。",
                 "",
-                "Agent Plan 读 skill-adapt/design-brief.md + MASTER + pages；Implementer 读 stack-h5-vite + ux-checklist。",
+                "Agent Plan 读 skill-adapt/design-brief.md + MASTER + pages；Implementer 读 stack-vue + stack-html-tailwind + icon-brief。",
                 "",
             ]
         ),

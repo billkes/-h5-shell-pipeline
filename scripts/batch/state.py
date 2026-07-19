@@ -268,36 +268,44 @@ def _aggregate_legacy_agent_steps(steps: dict[str, str]) -> dict[str, str]:
     return out
 
 
-def _expand_build_agent_to_granular(steps: dict[str, str]) -> dict[str, str]:
-    """Expand legacy ``build.agent`` status into granular ``agent.plan/shell/h5``.
-
-    V3 split ``build.agent`` into three independent agent steps. Old
-    ``.build-state.json`` files only carry the aggregated ``build.agent`` status;
-    this function backfills the granular step statuses so resume logic picks
-    up where the legacy single-call run left off:
-
-    - ``build.agent=done``    → all three granular steps ``done``
-    - ``build.agent=failed``  → ``agent.plan=failed``; ``agent.shell/h5=pending``
-    - ``build.agent=running`` → ``agent.plan=running``; ``agent.shell/h5=pending``
-    - ``build.agent`` absent  → no-op
-
-    Idempotent: existing granular statuses are preserved.
-    """
-    from batch.pipeline_steps import AGENT_H5, AGENT_PLAN, AGENT_SHELL, BUILD_AGENT
+def _expand_legacy_plan_agent(steps: dict[str, str]) -> dict[str, str]:
+    """Map legacy ``agent.plan`` onto ``agent.plan.spec/docs/pack``."""
+    from batch.pipeline_steps import AGENT_PLAN, PLAN_AGENT_STEPS
 
     out = dict(steps)
+    legacy_status = out.pop(AGENT_PLAN, None)
+    if not legacy_status:
+        return out
+    if legacy_status == "done":
+        for s in PLAN_AGENT_STEPS:
+            if s not in out:
+                out[s] = "done"
+    elif legacy_status in ("failed", "running"):
+        if PLAN_AGENT_STEPS[0] not in out:
+            out[PLAN_AGENT_STEPS[0]] = legacy_status
+        for s in PLAN_AGENT_STEPS[1:]:
+            if s not in out:
+                out[s] = "pending"
+    return out
+
+
+def _expand_build_agent_to_granular(steps: dict[str, str]) -> dict[str, str]:
+    """Expand legacy ``build.agent`` status into granular plan/shell/h5 steps."""
+    from batch.pipeline_steps import AGENT_H5, AGENT_SHELL, BUILD_AGENT, PLAN_AGENT_STEPS
+
+    out = _expand_legacy_plan_agent(steps)
     legacy_status = out.get(BUILD_AGENT)
     if not legacy_status:
         return out
 
     if legacy_status == "done":
-        for s in (AGENT_PLAN, AGENT_SHELL, AGENT_H5):
+        for s in (*PLAN_AGENT_STEPS, AGENT_SHELL, AGENT_H5):
             if s not in out:
                 out[s] = "done"
     elif legacy_status in ("failed", "running"):
-        if AGENT_PLAN not in out:
-            out[AGENT_PLAN] = legacy_status
-        for s in (AGENT_SHELL, AGENT_H5):
+        if PLAN_AGENT_STEPS[0] not in out:
+            out[PLAN_AGENT_STEPS[0]] = legacy_status
+        for s in (*PLAN_AGENT_STEPS[1:], AGENT_SHELL, AGENT_H5):
             if s not in out:
                 out[s] = "pending"
     return out
@@ -408,7 +416,8 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
     ):
         out.pop(old, None)
     aggregated = _aggregate_legacy_agent_steps(out)
-    return _expand_build_agent_to_granular(aggregated)
+    expanded = _expand_build_agent_to_granular(aggregated)
+    return _expand_legacy_plan_agent(expanded)
 
 
 def steps_map_from_data(data: dict[str, Any]) -> dict[str, str]:

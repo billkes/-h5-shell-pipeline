@@ -21,8 +21,11 @@ from batch.pipeline_gates import verify_pm_ui_plan_outputs, write_plan_gate_repo
 from batch.pipeline_steps import (
     ANALYZE,
     AGENT_H5,
-    AGENT_PLAN,
+    AGENT_PLAN_DOCS,
+    AGENT_PLAN_PACK,
+    AGENT_PLAN_SPEC,
     AGENT_SHELL,
+    AGENT_STEPS,
     DEV_H5_BUILD,
     LOCK_DIMENSIONS,
     PREPARE_CONTEXT,
@@ -182,10 +185,10 @@ class V3StepRunner:
             print(f"  [{num}/{total}] 未知步骤 {step_id}")
             return False
 
-        resume_agent = step_id in (AGENT_PLAN, AGENT_SHELL, AGENT_H5) and not self.p.cfg.force_rerun
+        resume_agent = step_id in AGENT_STEPS and not self.p.cfg.force_rerun
 
         try:
-            if step_id in (AGENT_PLAN, AGENT_SHELL, AGENT_H5):
+            if step_id in AGENT_STEPS:
                 ok = handler(self, ctx, resume=resume_agent)
             else:
                 ok = handler(self, ctx)
@@ -243,7 +246,76 @@ class V3StepRunner:
             "product_req_doc": product_doc,
             "p2_product_doc": product_doc,
             "shell_runtime": h5_shell_runtime(ctx.pack_type) if h5 else "flutter",
+            "csv_full_name": self.p._csv_full_name_for(ctx),
         }
+
+    def _run_plan_agent_step(
+        self,
+        ctx: AppContext,
+        *,
+        phase: str,
+        role_slug: str,
+        role_focus: str,
+        prompt_builder: str,
+        log_title: str,
+        resume: bool = False,
+    ) -> bool:
+        from batch.cursor_runner import run_agent
+
+        self._prepare_agent_prompt_files(
+            ctx,
+            phase=phase,
+            role_slug=role_slug,
+            role_focus=role_focus,
+        )
+        kw = self._agent_pack_context(ctx)
+        build = getattr(self.p.prompts, prompt_builder)
+        prompt = build(resume=resume, **kw)
+        return run_agent(
+            self.p.cfg,
+            ctx.workspace,
+            prompt,
+            log_section_title=f"{ctx.name} · {log_title}",
+        )
+
+    def _step_agent_plan_spec(self, ctx: AppContext, *, resume: bool = False) -> bool:
+        from batch.prompts import _PM_UI_PLAN_BRAIN_FOCUS
+
+        return self._run_plan_agent_step(
+            ctx,
+            phase="plan_spec",
+            role_slug="build-agent-plan-spec",
+            role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
+            prompt_builder="build_agent_plan_spec_phase",
+            log_title="Agent · Plan Spec",
+            resume=resume,
+        )
+
+    def _step_agent_plan_docs(self, ctx: AppContext, *, resume: bool = False) -> bool:
+        from batch.prompts import _PM_UI_PLAN_BRAIN_FOCUS
+
+        return self._run_plan_agent_step(
+            ctx,
+            phase="plan_docs",
+            role_slug="build-agent-plan-docs",
+            role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
+            prompt_builder="build_agent_plan_docs_phase",
+            log_title="Agent · Plan Docs",
+            resume=resume,
+        )
+
+    def _step_agent_plan_pack(self, ctx: AppContext, *, resume: bool = False) -> bool:
+        from batch.prompts import _PM_UI_PLAN_BRAIN_FOCUS
+
+        return self._run_plan_agent_step(
+            ctx,
+            phase="plan_pack",
+            role_slug="build-agent-plan-pack",
+            role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
+            prompt_builder="build_agent_plan_pack_phase",
+            log_title="Agent · Plan Pack",
+            resume=resume,
+        )
 
     def _step_prepare_context(self, ctx: AppContext) -> bool:
         return self.p._run_prepare_context(ctx)
@@ -286,26 +358,6 @@ class V3StepRunner:
             pack_type=ctx.pack_type,
             role_slug=role_slug,
             role_focus=role_focus,
-        )
-
-    def _step_agent_plan(self, ctx: AppContext, *, resume: bool = False) -> bool:
-        """Granular agent.plan step — Part 1 only (PM + UI + Plan + legal MDs)."""
-        from batch.cursor_runner import run_agent
-        from batch.prompts import _PM_UI_PLAN_BRAIN_FOCUS
-
-        self._prepare_agent_prompt_files(
-            ctx,
-            phase="plan",
-            role_slug="build-agent-plan",
-            role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
-        )
-        kw = self._agent_pack_context(ctx)
-        prompt = self.p.prompts.build_agent_plan_only_phase(resume=resume, **kw)
-        return run_agent(
-            self.p.cfg,
-            ctx.workspace,
-            prompt,
-            log_section_title=f"{ctx.name} · Agent · Plan",
         )
 
     def _step_agent_shell(self, ctx: AppContext, *, resume: bool = False) -> bool:
@@ -754,7 +806,9 @@ _STEP_HANDLERS = {
     SKILL_PAGES: V3StepRunner._step_skill_pages,
     SKILL_TOKENS: V3StepRunner._step_skill_tokens,
     LOCK_DIMENSIONS: V3StepRunner._step_lock_dimensions,
-    AGENT_PLAN: V3StepRunner._step_agent_plan,
+    AGENT_PLAN_SPEC: V3StepRunner._step_agent_plan_spec,
+    AGENT_PLAN_DOCS: V3StepRunner._step_agent_plan_docs,
+    AGENT_PLAN_PACK: V3StepRunner._step_agent_plan_pack,
     AGENT_SHELL: V3StepRunner._step_agent_shell,
     AGENT_H5: V3StepRunner._step_agent_h5,
     PLAN_GATE: V3StepRunner._step_plan_gate,

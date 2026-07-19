@@ -36,12 +36,16 @@ def collect_page_spec_file_index(project: Path, app_name: str) -> dict[str, list
     master = master_path_for_app(project, app_name)
     if master.is_file():
         out["design_system_root"].append(_rel(project, master))
-    stack = ds / "stack-h5-vite.md"
-    if stack.is_file():
-        out["design_system_root"].append(_rel(project, stack))
-    ux = ds / "ux-checklist.md"
-    if ux.is_file():
-        out["design_system_root"].append(_rel(project, ux))
+    for stack_name in (
+        "stack-vue.md",
+        "stack-html-tailwind.md",
+        "h5-runtime.md",
+        "ux-checklist.md",
+        "icon-brief.md",
+    ):
+        stack = ds / stack_name
+        if stack.is_file():
+            out["design_system_root"].append(_rel(project, stack))
     for brief_name in (
         "style-brief.md",
         "typography-brief.md",

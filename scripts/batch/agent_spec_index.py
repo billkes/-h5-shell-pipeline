@@ -6,7 +6,17 @@ import json
 from pathlib import Path
 from typing import Literal
 
-AgentPhase = Literal["plan", "shell", "h5", "preview", "repair", "h5_build_repair"]
+AgentPhase = Literal[
+    "plan",
+    "plan_spec",
+    "plan_docs",
+    "plan_pack",
+    "shell",
+    "h5",
+    "preview",
+    "repair",
+    "h5_build_repair",
+]
 
 SPEC_INDEX_REL = "skill-input/agent-spec-index.md"
 BRAIN_FOCUS_REL = "skill-input/agent-brain-focus.md"
@@ -111,6 +121,7 @@ def _collect_skill_adapt_paths(workspace: Path) -> list[str]:
         "skill-adapt/selected-candidate.json",
         "skill-adapt/design-tokens.css",
         "skill-adapt/css-motion-brief.md",
+        "skill-adapt/icon-manifest.json",
         "skill-adapt/icon-sprite-manifest.json",
         "skill-adapt/token-impl-block.md",
         "skill-adapt/impl-ui-input.md",
@@ -131,7 +142,15 @@ def _collect_design_system_paths(workspace: Path, app_name: str) -> list[str]:
         if master.is_file():
             out.append(_rel(workspace, master))
         ds = design_system_dir_for_app(workspace, app_name)
-        for rel in ("stack-h5-vite.md", "ux-checklist.md", "h5-interface-brief.md"):
+        for rel in (
+            "stack-vue.md",
+            "stack-html-tailwind.md",
+            "h5-runtime.md",
+            "ux-checklist.md",
+            "h5-interface-brief.md",
+            "icon-brief.md",
+            "typography-brief.md",
+        ):
             path = ds / rel
             if path.is_file():
                 out.append(_rel(workspace, path))
@@ -238,6 +257,14 @@ def _collect_preview_paths(workspace: Path, app_name: str) -> list[str]:
 def _norm_docs_for_phase(phase: AgentPhase) -> list[str]:
     mapping = {
         "plan": _PLAN_NORM_DOCS,
+        "plan_spec": _PLAN_NORM_DOCS,
+        "plan_docs": (
+            "docs/H5壳产品文档格式.md",
+            "H5壳产品文档格式.md",
+            "docs/法律协议规范.md",
+            "法律协议规范.md",
+        ),
+        "plan_pack": _PLAN_NORM_DOCS,
         "shell": _SHELL_NORM_DOCS,
         "h5": _H5_NORM_DOCS,
         "preview": _PREVIEW_NORM_DOCS,
@@ -323,7 +350,7 @@ def write_agent_spec_index(
     lines.extend(_section("Norm docs", norm_hits))
     lines.extend(_section("Pack locks (JSON / generated)", _collect_pack_json_paths(workspace)))
 
-    if phase in ("plan", "preview", "repair"):
+    if phase in ("plan", "plan_spec", "plan_docs", "plan_pack", "preview", "repair"):
         lines.extend(_section("skill.adapt", _collect_skill_adapt_paths(workspace)))
         lines.extend(
             _section("design-system", _collect_design_system_paths(workspace, app_name))
@@ -342,7 +369,7 @@ def write_agent_spec_index(
                 lines.append(f"- `{cid}`")
             lines.append("")
 
-    if phase in ("plan", "h5", "preview"):
+    if phase in ("plan", "plan_spec", "plan_pack", "h5", "preview"):
         lines.extend(
             _section("Tab preview (when present)", _collect_preview_paths(workspace, app_name))
         )

@@ -21,7 +21,6 @@ class RepairTarget:
 _HARD_FILE_MAP: tuple[tuple[str, str, str], ...] = (
     ("缺少 功能文档", "功能文档.md", "补写功能文档.md 全部强制章节"),
     ("缺少 本包登记", "本包登记信息.json", "补写本包登记信息.json H5 必填字段"),
-    ("缺少 视觉蓝图", "视觉蓝图.md", "补写视觉蓝图.md V2 章节"),
     ("缺少 本包视觉锁", "本包视觉锁.json", "补写本包视觉锁.json V2 字段"),
     ("缺少 design-system MASTER", "design-system", "补写 design-system/*/MASTER.md"),
 )

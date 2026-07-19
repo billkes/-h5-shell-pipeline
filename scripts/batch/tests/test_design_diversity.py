@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from batch.design_diversity import (
@@ -13,6 +14,9 @@ from batch.design_diversity import (
     visual_fingerprint,
 )
 from batch.skill_adapt import collision_score, pick_candidate
+from batch.uupm_design_system import design_query_from_context
+
+_CJK = re.compile(r"[\u4e00-\u9fff]")
 
 
 class _Row:
@@ -41,6 +45,37 @@ def test_theme_search_query_includes_english_scene_hints() -> None:
     assert "back-to-school" in q1 or "checklist" in q1
     assert "teleprompter" in q2 or "presentation" in q2
     assert q1 != q2
+
+
+def test_theme_search_query_is_english_only() -> None:
+    row = _Row(
+        name="Monthio",
+        track="个人成长",
+        audience="需要追踪长期习惯并进行月度复盘的自我提升者",
+        core_scene="月末生成习惯复盘报告",
+        local_feature="习惯打卡与月度数据可视化分析",
+    )
+    query = theme_search_query_from_row(row)
+    assert not _CJK.search(query), query
+    assert "habit" in query or "review" in query or "monthly" in query
+    assert len(query) < 220
+
+
+def test_design_query_from_context_ignores_anti_collision_suffix() -> None:
+    row = _Row(
+        name="Monthio",
+        track="个人成长",
+        audience="自我提升者",
+        core_scene="月末生成习惯复盘报告",
+        local_feature="习惯打卡与月度数据可视化分析",
+    )
+    anti = {
+        "sameBatchUsed": [{"themeAngle": "Theme: huge historical blob " * 40}],
+        "historicalAvoid": ["Theme: another huge blob " * 40],
+    }
+    ctx = {"product": {"searchQuery": theme_search_query_from_row(row)}}
+    assert design_query_from_context(ctx, anti, row=row) == theme_search_query_from_row(row)
+    assert len(design_query_from_context(ctx, anti, row=row)) < 220
 
 
 def test_visual_fingerprint_overlap_detects_saas_clone() -> None:
