@@ -113,7 +113,17 @@ def run_skill_tokens(*, cfg: BatchConfig, workspace: Path) -> Path:
         raise RuntimeError("skill.tokens 缺少 selected-candidate.json")
     data = json.loads(sel_path.read_text(encoding="utf-8"))
     candidate = data.get("designSystem") or {}
-    tokens = _tokens_from_candidate(candidate)
+
+    from batch.uupm_design_system import find_design_system_master, parse_master_palette
+
+    master = find_design_system_master(workspace)
+    colors = (candidate.get("colors") or {}) if isinstance(candidate.get("colors"), dict) else {}
+    if master and master.is_file():
+        master_colors = parse_master_palette(master.read_text(encoding="utf-8", errors="ignore"))
+        if master_colors:
+            colors = {**colors, **master_colors}
+    candidate_for_tokens = {**candidate, "colors": colors}
+    tokens = _tokens_from_candidate(candidate_for_tokens)
 
     tokens_path = root / "design-tokens.json"
     tokens_path.write_text(json.dumps(tokens, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

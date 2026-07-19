@@ -19,6 +19,9 @@ _DEFAULT_COMPONENTS: tuple[str, ...] = (
     "checkbox-row",
     "chip",
     "chip--active",
+    "panel",
+    "banner",
+    "empty",
     "snackbar",
     "link",
     "welcome-title",
@@ -26,6 +29,8 @@ _DEFAULT_COMPONENTS: tuple[str, ...] = (
     "welcome-trust",
     "welcome-hex",
 )
+
+_KIT_PIPELINE_MARKER = "/* KIT:pipeline"
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -60,11 +65,22 @@ def _shape_tokens(shape_language: str) -> tuple[str, str, str]:
     return "12px", "0 1px 3px rgba(15, 23, 42, 0.08)", "scale(0.98)"
 
 
+def _shape_from_master(master_text: str) -> tuple[str, str, str] | None:
+    """When MASTER §Component Specs define soft buttons/cards, override Bauhaus candidate shape."""
+    if not master_text.strip():
+        return None
+    if "border-radius: 8px" in master_text or "border-radius: 12px" in master_text:
+        return "8px", "0 4px 6px rgba(15, 23, 42, 0.1)", "translateY(-1px)"
+    return None
+
+
 def build_kit_css_skeleton(
     prefix: str,
     *,
     candidate: dict[str, Any] | None = None,
     designer: dict[str, str] | None = None,
+    master_typography: dict[str, str] | None = None,
+    master_text: str = "",
 ) -> str:
     """Build prefixed kit component CSS skeleton bound to theme tokens."""
     p = prefix.lower()
@@ -84,10 +100,16 @@ def build_kit_css_skeleton(
         or ""
     )
     radius_tpl, shadow_tpl, active_tpl = _shape_tokens(shape_lang)
+    master_shape = _shape_from_master(master_text)
+    if master_shape:
+        radius_tpl, shadow_tpl, active_tpl = master_shape
     radius = radius_tpl
     shadow = shadow_tpl.format(p=p)
     heading = str(typo.get("heading") or "inherit")
     body = str(typo.get("body") or "inherit")
+    if master_typography:
+        heading = str(master_typography.get("heading") or heading)
+        body = str(master_typography.get("body") or body)
 
     lines = [
         f"/* KIT:pipeline — kit skeleton for c-{p}-*; extend in h5/src/styles/kit.css */",
@@ -181,8 +203,34 @@ def build_kit_css_skeleton(
         "}",
         "",
         f".c-{p}-chip--active {{",
+        f"  background: var(--{p}-accent);",
+        f"  color: var(--{p}-on-primary);",
         f"  border-color: var(--{p}-primary);",
         f"  box-shadow: {shadow};",
+        "}",
+        "",
+        f".c-{p}-panel {{",
+        f"  background: var(--{p}-sheet);",
+        f"  color: var(--{p}-foreground);",
+        f"  border: 2px solid var(--{p}-border);",
+        f"  border-radius: {radius};",
+        f"  box-shadow: {shadow};",
+        "  padding: 16px;",
+        "}",
+        "",
+        f".c-{p}-banner {{",
+        f"  background: var(--{p}-muted);",
+        f"  color: var(--{p}-foreground);",
+        f"  border: 1px solid var(--{p}-border);",
+        f"  border-radius: {radius};",
+        "  padding: 12px;",
+        "  margin-bottom: 12px;",
+        "}",
+        "",
+        f".c-{p}-empty {{",
+        "  text-align: center;",
+        "  padding: 32px 16px;",
+        f"  color: var(--{p}-foreground);",
         "}",
         "",
         f".c-{p}-snackbar {{",
@@ -236,13 +284,20 @@ def build_kit_css_skeleton(
         "/* KIT:end */",
         "",
     ]
-    if colors.get("primary"):
-        lines.insert(3, f"/* Primary: {colors.get('primary')} | Accent: {colors.get('accent', '?')} */")
+    if colors.get("primary") or master_text:
+        from batch.uupm_design_system import parse_master_palette
+
+        mp = parse_master_palette(master_text) if master_text else {}
+        prim = mp.get("primary") or colors.get("primary")
+        acc = mp.get("accent") or colors.get("accent", "?")
+        if prim:
+            tag = " (MASTER)" if mp.get("primary") else ""
+            lines.insert(3, f"/* Primary: {prim} | Accent: {acc}{tag} */")
     return "\n".join(lines)
 
 
 def sync_kit_css_skeleton(project: Path, *, write: bool = True) -> Path | None:
-    """Write skill-adapt/kit-skeleton.css from selected-candidate + designer deck."""
+    """Write skill-adapt/kit-skeleton.css; refresh kit.css when still a pipeline skeleton."""
     project = project.expanduser().resolve()
     prefix = resolve_prefix(project)
     if not prefix:
@@ -255,11 +310,39 @@ def sync_kit_css_skeleton(project: Path, *, write: bool = True) -> Path | None:
     if not isinstance(designer, dict):
         designer = {}
 
-    css = build_kit_css_skeleton(prefix, candidate=candidate, designer=designer)
+    master_typo: dict[str, str] = {}
+    master_text = ""
+    try:
+        from batch.uupm_design_system import find_design_system_master, parse_master_typography
+
+        master = find_design_system_master(project)
+        if master and master.is_file():
+            master_text = master.read_text(encoding="utf-8", errors="ignore")
+            master_typo = parse_master_typography(master_text)
+    except OSError:
+        master_typo = {}
+        master_text = ""
+
+    css = build_kit_css_skeleton(
+        prefix,
+        candidate=candidate,
+        designer=designer,
+        master_typography=master_typo or None,
+        master_text=master_text,
+    )
     out = adapt / KIT_SKELETON
     if write:
         adapt.mkdir(parents=True, exist_ok=True)
         out.write_text(css, encoding="utf-8")
+        kit_css = project / "h5" / "src" / "styles" / "kit.css"
+        if kit_css.is_file():
+            try:
+                existing = kit_css.read_text(encoding="utf-8")
+            except OSError:
+                existing = ""
+            # Refresh when Agent left the pipeline skeleton (or missing panel contract).
+            if _KIT_PIPELINE_MARKER in existing or f".c-{prefix}-panel" not in existing:
+                kit_css.write_text(css, encoding="utf-8")
     return out
 
 
@@ -328,7 +411,13 @@ def verify_h5_bare_kit_elements(project: Path) -> list[str]:
             css_text = kit_css.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             css_text = ""
-        required = (f".c-{prefix}-btn", f".c-{prefix}-input", f".c-{prefix}-checkbox-row")
+        required = (
+            f".c-{prefix}-btn",
+            f".c-{prefix}-input",
+            f".c-{prefix}-checkbox-row",
+            f".c-{prefix}-panel",
+            f".c-{prefix}-chip",
+        )
         for sel in required:
             if sel not in css_text:
                 issues.append(f"H5 kit: kit.css 缺少 {sel}")

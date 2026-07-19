@@ -92,7 +92,8 @@ def test_verify_h5_bare_kit_elements_passes_with_classes(tmp_path: Path) -> None
     )
     (project / "h5" / "package.json").write_text('{"name":"demo"}', encoding="utf-8")
     (h5 / "styles" / "kit.css").write_text(
-        ".c-demo-btn {}\n.c-demo-input {}\n.c-demo-checkbox-row {}\n",
+        ".c-demo-btn {}\n.c-demo-input {}\n.c-demo-checkbox-row {}\n"
+        ".c-demo-panel {}\n.c-demo-chip {}\n",
         encoding="utf-8",
     )
     (h5 / "views" / "WelcomeView.vue").write_text(

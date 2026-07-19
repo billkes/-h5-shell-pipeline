@@ -71,24 +71,38 @@ def _has_preview_html(project: Path) -> bool:
     return any(f.name.endswith("-tabs-preview.html") for f in pdir.iterdir())
 
 
-def _load_candidate_colors(project: Path) -> dict[str, str]:
+def _load_preview_light_colors(project: Path) -> dict[str, str]:
     preview_path = project / "skill-adapt" / "preview-approved-colors.json"
-    if preview_path.is_file():
-        try:
-            data = json.loads(preview_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            data = {}
-        if isinstance(data, dict):
-            colors = data.get("colors")
-            if isinstance(colors, dict) and colors:
-                return {str(k): str(v) for k, v in colors.items() if v}
-            light = data.get("light")
-            if isinstance(light, dict) and light:
-                return {str(k): str(v) for k, v in light.items() if v}
-            if any(k in data for k in ("primary", "background", "accent")):
-                return {str(k): str(v) for k, v in data.items() if v and isinstance(v, str)}
-    if _has_preview_html(project):
+    if not preview_path.is_file():
         return {}
+    try:
+        data = json.loads(preview_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    colors = data.get("colors")
+    if isinstance(colors, dict) and colors:
+        return {str(k): str(v) for k, v in colors.items() if v}
+    light = data.get("light")
+    if isinstance(light, dict) and light:
+        return {str(k): str(v) for k, v in light.items() if v}
+    if any(k in data for k in ("primary", "background", "accent")):
+        return {str(k): str(v) for k, v in data.items() if v and isinstance(v, str)}
+    return {}
+
+
+def _load_master_light_colors(project: Path) -> dict[str, str]:
+    """skill.design MASTER palette — authoritative light theme when preview.tabs absent."""
+    from batch.uupm_design_system import parse_master_palette, find_design_system_master
+
+    master = find_design_system_master(project)
+    if not master or not master.is_file():
+        return {}
+    return parse_master_palette(master.read_text(encoding="utf-8", errors="ignore"))
+
+
+def _load_selected_candidate_colors(project: Path) -> dict[str, str]:
     path = project / "skill-adapt" / "selected-candidate.json"
     if not path.is_file():
         return {}
@@ -100,6 +114,27 @@ def _load_candidate_colors(project: Path) -> dict[str, str]:
     if not isinstance(colors, dict):
         return {}
     return {str(k): str(v) for k, v in colors.items() if v}
+
+
+def _load_candidate_colors(project: Path) -> dict[str, str]:
+    """Light-theme source priority: preview-approved > MASTER > candidate (dark-first)."""
+    preview = _load_preview_light_colors(project)
+    if preview:
+        return preview
+    master = _load_master_light_colors(project)
+    if master:
+        return master
+    if _has_preview_html(project):
+        return {}
+    return _load_selected_candidate_colors(project)
+
+
+def _load_dark_theme_colors(project: Path) -> dict[str, str]:
+    """Dark-theme source: preview dark > selected-candidate (dark-first palette)."""
+    preview_dark = _load_preview_dark_colors(project)
+    if preview_dark:
+        return preview_dark
+    return _load_selected_candidate_colors(project)
 
 
 def _load_preview_dark_colors(project: Path) -> dict[str, str]:
@@ -194,43 +229,82 @@ def _apply_semantic_tokens(light: dict[str, str], dark: dict[str, str]) -> None:
         palette["on_primary"] = _on_primary_color(palette["accent"])
 
 
-def _is_light_hex(hex_color: str) -> bool:
-    val = hex_color.lstrip("#")
+def _hex_luminance(hex_color: str) -> float | None:
+    val = hex_color.strip().lstrip("#")
     if len(val) == 3:
         val = "".join(c * 2 for c in val)
     if len(val) != 6:
-        return False
+        return None
     try:
         r, g, b = int(val[0:2], 16), int(val[2:4], 16), int(val[4:6], 16)
     except ValueError:
-        return False
-    luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-    return luminance > 0.55
+        return None
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+
+
+def _is_light_hex(hex_color: str) -> bool:
+    lum = _hex_luminance(hex_color)
+    return lum is not None and lum > 0.55
+
+
+def _is_dark_hex(hex_color: str) -> bool:
+    lum = _hex_luminance(hex_color)
+    return lum is not None and lum < 0.45
 
 
 def _light_palette(colors: dict[str, str], dark: dict[str, str]) -> dict[str, str]:
+    """Build light-mode tokens. Candidate may be dark-first — never copy dark surfaces."""
     light = dict(_LIGHT_DEFAULTS)
     light["primary"] = colors.get("primary") or dark["primary"]
-    light["secondary"] = colors.get("secondary") or dark["secondary"]
     light["accent"] = colors.get("accent") or dark["accent"]
     light["destructive"] = dark["destructive"]
+
+    # Secondary fills chips/panels in light UI — must stay light.
+    secondary = str(colors.get("secondary") or "")
+    if secondary.startswith("#") and _is_light_hex(secondary):
+        light["secondary"] = secondary
+    else:
+        light["secondary"] = "#E2E8F0"
+
     bg = str(colors.get("background") or "")
     if bg.startswith("#") and _is_light_hex(bg):
         light["background"] = bg
-    fg = str(colors.get("foreground") or "")
-    if fg.startswith("#"):
+
+    # Foreground on light bg must be dark (reject #F8FAFC from dark palettes).
+    fg = str(colors.get("foreground") or colors.get("text") or "")
+    if fg.startswith("#") and _is_dark_hex(fg):
         light["foreground"] = fg
     else:
-        light["foreground"] = "#431407"
-    if colors.get("muted"):
-        light["muted"] = str(colors["muted"])
-    if colors.get("border"):
-        light["border"] = str(colors["border"])
-    if colors.get("card"):
-        light["card"] = str(colors["card"])
-    if colors.get("sheet"):
-        light["sheet"] = str(colors["sheet"])
+        light["foreground"] = "#0F172A"
+
+    muted = str(colors.get("muted") or "")
+    if muted.startswith("#") and _is_light_hex(muted):
+        light["muted"] = muted
+    # else keep _LIGHT_DEFAULTS muted (#E8EAED)
+
+    border = str(colors.get("border") or "")
+    if border.startswith("#") and _is_light_hex(border):
+        light["border"] = border
+    elif border.startswith("rgba"):
+        # Keep translucent borders; reject solid dark hex borders.
+        light["border"] = border
+    # else keep default rgba border
+
+    card = str(colors.get("card") or "")
+    if card.startswith("#") and _is_light_hex(card):
+        light["card"] = card
+    elif card.startswith("rgba"):
+        light["card"] = card
+
+    sheet = str(colors.get("sheet") or "")
+    if sheet.startswith("#") and _is_light_hex(sheet):
+        light["sheet"] = sheet
+    # else keep _LIGHT_DEFAULTS sheet (#FFFFFF)
+
     light.update(_preview_extras({**dark, **colors}))
+    # Soft labels stay readable on light surfaces.
+    if not _is_dark_hex(str(light.get("fg_soft") or "")):
+        light["fg_soft"] = "#64748B"
     return light
 
 
@@ -288,10 +362,14 @@ def _css_var_lines(prefix: str, palette: dict[str, str]) -> list[str]:
 
 
 def build_theme_block(prefix: str, colors: dict[str, str] | None = None, *, project: Path | None = None) -> str:
-    colors = colors or {}
-    preview_dark = _load_preview_dark_colors(project) if project else {}
-    dark = _dark_palette(colors, preview_dark=preview_dark or None)
-    light = _light_palette(colors, dark)
+    light_src = colors or {}
+    dark_src = light_src
+    if project is not None:
+        if not light_src:
+            light_src = _load_candidate_colors(project)
+        dark_src = _load_dark_theme_colors(project) or light_src
+    dark = _dark_palette(dark_src)
+    light = _light_palette(light_src, dark)
     _apply_semantic_tokens(light, dark)
     lines = [
         THEME_START,
@@ -355,9 +433,51 @@ def _replace_theme_block(css: str, block: str) -> str:
     return block + "\n\n" + css
 
 
-def _ensure_static_root_vars(css: str, prefix: str) -> str:
+def _css_var_is_defined(css: str, name: str) -> bool:
+    return bool(re.search(rf"^\s*{re.escape(name)}\s*:", css, re.MULTILINE))
+
+
+def _font_stack_from_master(project: Path, prefix: str) -> dict[str, str]:
+    from batch.uupm_design_system import find_design_system_master, parse_master_typography
+
+    master = find_design_system_master(project)
+    if not master or not master.is_file():
+        return {}
+    typo = parse_master_typography(master.read_text(encoding="utf-8", errors="ignore"))
+    heading = str(typo.get("heading") or "").strip()
+    body = str(typo.get("body") or heading).strip()
+    if not heading:
+        return {}
     p = prefix.lower()
-    needed = {
+    return {
+        f"--{p}-font-display": f"'{heading}', sans-serif",
+        f"--{p}-font-body": f"'{body or heading}', sans-serif",
+    }
+
+
+def _ensure_google_fonts_import(css: str, project: Path) -> str:
+    from batch.uupm_design_system import find_design_system_master, parse_master_typography
+
+    if "@import url(" in css and "fonts.googleapis.com" in css:
+        return css
+    master = find_design_system_master(project)
+    if not master or not master.is_file():
+        return css
+    typo = parse_master_typography(master.read_text(encoding="utf-8", errors="ignore"))
+    url = str(typo.get("google_fonts_url") or "").strip()
+    if not url:
+        return css
+    if not url.startswith("http"):
+        url = f"https://{url.lstrip('/')}"
+    import_line = f"@import url('{url}');"
+    if import_line in css:
+        return css
+    return import_line + "\n\n" + css
+
+
+def _ensure_static_root_vars(css: str, prefix: str, *, project: Path | None = None) -> str:
+    p = prefix.lower()
+    needed: dict[str, str] = {
         f"--{p}-font-display": "'Calistoga', serif",
         f"--{p}-font-body": "'Inter', system-ui, sans-serif",
         f"--{p}-font-mono": "'JetBrains Mono', monospace",
@@ -366,7 +486,9 @@ def _ensure_static_root_vars(css: str, prefix: str) -> str:
         "--safe-top": "env(safe-area-inset-top, 0px)",
         "--safe-bottom": "env(safe-area-inset-bottom, 0px)",
     }
-    missing = [k for k in needed if k not in css]
+    if project is not None:
+        needed.update(_font_stack_from_master(project, prefix))
+    missing = [k for k, v in needed.items() if not _css_var_is_defined(css, k)]
     if not missing:
         return css
     lines = [":root {"]
@@ -391,7 +513,8 @@ def sync_h5_global_theme(project: Path, *, write: bool = True) -> Path | None:
     raw = css_path.read_text(encoding="utf-8")
     updated = _replace_theme_block(raw, block)
     updated = _strip_orphan_theme_comments(updated)
-    updated = _ensure_static_root_vars(updated, prefix)
+    updated = _ensure_static_root_vars(updated, prefix, project=project)
+    updated = _ensure_google_fonts_import(updated, project)
     if write and updated != raw:
         css_path.write_text(updated, encoding="utf-8")
     if write and css_path.is_file():
@@ -409,6 +532,13 @@ def sync_h5_global_theme(project: Path, *, write: bool = True) -> Path | None:
     from batch.h5_layout_contract import sync_h5_layout_contract
 
     sync_h5_layout_contract(project, write=write)
+    if write:
+        try:
+            from batch.preview_tab1_builder import write_tab1_preview
+
+            write_tab1_preview(project, write=True)
+        except OSError:
+            pass
     return css_path
 
 
@@ -441,7 +571,49 @@ def verify_h5_theme_system(project: Path) -> list[str]:
             token = f"--{prefix}-{alias}"
             if token not in theme_slice:
                 issues.append(f"UX Gate: THEME 块缺少 {token}（须与 --{prefix}-bg/--{prefix}-fg 同步别名）")
+        issues.extend(_verify_light_contrast(theme_slice, prefix))
     from batch.preview_fidelity_gate import verify_preview_theme_drift
 
     issues.extend(verify_preview_theme_drift(project))
+    return issues
+
+
+def _theme_light_root_slice(theme_slice: str) -> str:
+    """Return the light :root block before dark media query."""
+    dark = re.search(r"@media\s*\(\s*prefers-color-scheme:\s*dark\s*\)", theme_slice, re.I)
+    return theme_slice[: dark.start()] if dark else theme_slice
+
+
+def _css_var_value(css: str, name: str) -> str:
+    match = re.search(rf"{re.escape(name)}\s*:\s*([^;]+);", css)
+    return match.group(1).strip() if match else ""
+
+
+def _verify_light_contrast(theme_slice: str, prefix: str) -> list[str]:
+    """Reject light:root where fg/muted/border look like dark-mode values."""
+    light_root = _theme_light_root_slice(theme_slice)
+    issues: list[str] = []
+    bg = _css_var_value(light_root, f"--{prefix}-background") or _css_var_value(
+        light_root, f"--{prefix}-bg"
+    )
+    fg = _css_var_value(light_root, f"--{prefix}-foreground") or _css_var_value(
+        light_root, f"--{prefix}-fg"
+    )
+    muted = _css_var_value(light_root, f"--{prefix}-muted")
+    border = _css_var_value(light_root, f"--{prefix}-border")
+
+    if bg.startswith("#") and not _is_light_hex(bg):
+        issues.append(f"UX Gate: light --{prefix}-background={bg} 必须是浅色底")
+    if fg.startswith("#") and not _is_dark_hex(fg):
+        issues.append(
+            f"UX Gate: light --{prefix}-foreground={fg} 在浅色底上不可读（须深色字）"
+        )
+    if muted.startswith("#") and _is_dark_hex(muted):
+        issues.append(
+            f"UX Gate: light --{prefix}-muted={muted} 是深色面，light 模式 chip/secondary 会发黑"
+        )
+    if border.startswith("#") and _is_dark_hex(border):
+        issues.append(
+            f"UX Gate: light --{prefix}-border={border} 过深，light 模式边框过重"
+        )
     return issues

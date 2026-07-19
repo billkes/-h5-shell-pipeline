@@ -196,6 +196,100 @@ def pick_candidate(
     return best, rationale
 
 
+def _hex_eq(a: str, b: str) -> bool:
+    return (a or "").strip().upper() == (b or "").strip().upper()
+
+
+def _candidate_primary_accent(cand: dict[str, Any]) -> tuple[str, str]:
+    colors = cand.get("colors") if isinstance(cand.get("colors"), dict) else {}
+    primary = str(colors.get("primary") or "")
+    accent = str(colors.get("accent") or colors.get("cta") or "")
+    return primary, accent
+
+
+def candidate_aligned_to_master(
+    candidates: list[dict[str, Any]],
+    master_text: str,
+) -> tuple[dict[str, Any], str]:
+    """Build adapt candidate from skill.design MASTER — no second visual pick.
+
+    Matches a factory candidate whose palette equals MASTER when possible, then
+    overlays MASTER colors/typography/style so brief/token/skeleton cannot drift.
+    """
+    from batch.uupm_design_system import (
+        parse_master_palette,
+        parse_master_style_meta,
+        parse_master_typography,
+    )
+
+    if not master_text.strip():
+        raise RuntimeError("skill.adapt: MASTER.md 为空 — 请先运行 skill.design")
+
+    palette = parse_master_palette(master_text)
+    typo = parse_master_typography(master_text)
+    style_meta = parse_master_style_meta(master_text)
+    if not palette:
+        raise RuntimeError("skill.adapt: MASTER.md 缺少 Color Palette — 无法对齐")
+
+    matched: dict[str, Any] | None = None
+    m_primary = palette.get("primary") or ""
+    m_accent = palette.get("accent") or ""
+    for cand in candidates:
+        c_primary, c_accent = _candidate_primary_accent(cand)
+        if _hex_eq(c_primary, m_primary) and (not m_accent or _hex_eq(c_accent, m_accent)):
+            matched = cand
+            break
+    if matched is None:
+        for cand in candidates:
+            c_primary, _ = _candidate_primary_accent(cand)
+            if _hex_eq(c_primary, m_primary):
+                matched = cand
+                break
+    if matched is None and candidates:
+        matched = candidates[0]
+
+    base: dict[str, Any] = dict(matched) if matched else {"id": "master"}
+    colors = dict(base.get("colors") or {})
+    colors.update(palette)
+    if palette.get("accent"):
+        colors["cta"] = palette["accent"]
+    if palette.get("foreground"):
+        colors["text"] = palette["foreground"]
+    if style_meta.get("color_notes"):
+        colors["notes"] = style_meta["color_notes"]
+    base["colors"] = colors
+
+    typography = dict(base.get("typography") or {})
+    typography.update({k: v for k, v in typo.items() if v})
+    if style_meta.get("mood"):
+        typography["mood"] = style_meta["mood"]
+    if typo.get("google_fonts_url") and not typography.get("css_import"):
+        typography["css_import"] = f"@import url('{typo['google_fonts_url']}');"
+    base["typography"] = typography
+
+    style = dict(base.get("style") or {})
+    if style_meta.get("style_name"):
+        style["name"] = style_meta["style_name"]
+    if style_meta.get("style_keywords"):
+        style["keywords"] = style_meta["style_keywords"]
+    base["style"] = style
+
+    pattern = dict(base.get("pattern") or {})
+    if style_meta.get("pattern_name"):
+        pattern["name"] = style_meta["pattern_name"]
+    base["pattern"] = pattern
+
+    if style_meta.get("anti_patterns"):
+        base["anti_patterns"] = style_meta["anti_patterns"]
+
+    cid = str(base.get("id") or "master")
+    rationale = (
+        f"Aligned to skill.design MASTER (factory output; no re-pick). "
+        f"Matched candidate {cid}; primary {m_primary} accent {m_accent or '?'}."
+    )
+    return base, rationale
+
+
 def designer_selections_from_candidate(
     candidate: dict[str, Any],
     seeds: dict[str, str],
@@ -526,9 +620,21 @@ def write_skill_adapt_outputs(
         )
 
     from batch.h5_kit_skeleton import build_kit_css_skeleton, resolve_prefix as kit_prefix
+    from batch.uupm_design_system import parse_master_typography
 
     prefix = kit_prefix(workspace)
-    kit_css = build_kit_css_skeleton(prefix, candidate=selected, designer=designer)
+    master_text = ""
+    master_typo: dict[str, str] = {}
+    if master_path.is_file():
+        master_text = master_path.read_text(encoding="utf-8", errors="ignore")
+        master_typo = parse_master_typography(master_text)
+    kit_css = build_kit_css_skeleton(
+        prefix,
+        candidate=selected,
+        designer=designer,
+        master_typography=master_typo or None,
+        master_text=master_text,
+    )
     (root / KIT_SKELETON).write_text(kit_css, encoding="utf-8")
 
     impl_lines = [

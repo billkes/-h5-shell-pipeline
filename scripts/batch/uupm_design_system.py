@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, Any
 from batch.design_diversity import (
     design_ledger_path,
     diversify_candidates,
-    enrich_anti_collision_with_visuals,
     register_design_selection,
     theme_search_query_from_row,
 )
@@ -217,6 +216,160 @@ def find_design_system_master(workspace: Path, app_name: str = "") -> Path | Non
         if matches:
             return matches[0]
     return None
+
+
+_MASTER_ROLE_MAP: dict[str, str] = {
+    "primary": "primary",
+    "on primary": "on_primary",
+    "secondary": "secondary",
+    "accent/cta": "accent",
+    "accent": "accent",
+    "cta": "accent",
+    "background": "background",
+    "foreground": "foreground",
+    "muted": "muted",
+    "border": "border",
+    "destructive": "destructive",
+    "ring": "ring",
+}
+
+
+def _normalize_master_role(raw: str) -> str | None:
+    role = raw.strip().lower()
+    if role in _MASTER_ROLE_MAP:
+        return _MASTER_ROLE_MAP[role]
+    for label, key in _MASTER_ROLE_MAP.items():
+        if label in role:
+            return key
+    return None
+
+
+def parse_master_palette(text: str) -> dict[str, str]:
+    """Parse MASTER §Color Palette table → token keys (primary, accent, …)."""
+    section_m = re.search(
+        r"###\s*Color Palette([\s\S]*?)(?=###|\n---|\Z)",
+        text,
+        re.I,
+    )
+    if not section_m:
+        return {}
+    out: dict[str, str] = {}
+    for row in re.finditer(
+        r"\|\s*([^|]+?)\s*\|\s*`?(#[0-9A-Fa-f]{3,8})`?\s*\|",
+        section_m.group(1),
+    ):
+        key = _normalize_master_role(row.group(1))
+        if key:
+            out[key] = row.group(2).upper()
+    return out
+
+
+def parse_master_typography(text: str) -> dict[str, str]:
+    """Parse MASTER §Typography → heading/body/google_fonts_url."""
+    out: dict[str, str] = {}
+    hm = re.search(r"\*\*Heading Font:\*\*\s*(.+)", text)
+    bm = re.search(r"\*\*Body Font:\*\*\s*(.+)", text)
+    if hm:
+        out["heading"] = hm.group(1).strip()
+    if bm:
+        out["body"] = bm.group(1).strip()
+    for pattern in (
+        r"@import\s+url\(['\"]?([^'\";\)]+)['\"]?\)",
+        r"https://fonts\.googleapis\.com/css2[^\s\)'\"`]+",
+    ):
+        m = re.search(pattern, text)
+        if m:
+            url = m.group(1) if m.lastindex else m.group(0)
+            out["google_fonts_url"] = url.strip()
+            break
+    return out
+
+
+def parse_master_shadows(text: str) -> dict[str, str]:
+    """Parse MASTER §Shadow Depths table."""
+    section_m = re.search(
+        r"###\s*Shadow Depths([\s\S]*?)(?=###|\n---|\Z)",
+        text,
+        re.I,
+    )
+    if not section_m:
+        return {
+            "shadow_sm": "0 1px 2px rgba(0,0,0,0.05)",
+            "shadow_md": "0 4px 6px rgba(0,0,0,0.1)",
+            "shadow_lg": "0 10px 15px rgba(0,0,0,0.1)",
+        }
+    out: dict[str, str] = {}
+    for row in re.finditer(
+        r"\|\s*`?(--shadow-\w+)`?\s*\|\s*`?([^|`]+)`?\s*\|",
+        section_m.group(1),
+    ):
+        key = row.group(1).strip("`").replace("-", "_")
+        out[key] = row.group(2).strip()
+    return out
+
+
+def parse_master_spacing(text: str) -> dict[str, str]:
+    section_m = re.search(
+        r"###\s*Spacing Variables([\s\S]*?)(?=###|\n---|\Z)",
+        text,
+        re.I,
+    )
+    if not section_m:
+        return {"md": "16px", "lg": "24px", "sm": "8px"}
+    out: dict[str, str] = {}
+    for row in re.finditer(
+        r"\|\s*`?(--space-\w+)`?\s*\|\s*`?(\d+px)",
+        section_m.group(1),
+    ):
+        out[row.group(1).replace("--space-", "")] = row.group(2)
+    return out
+
+
+def parse_master_style_meta(text: str) -> dict[str, str]:
+    """Parse MASTER Style Guidelines / Color Notes / Pattern Name for adapt overlays."""
+    out: dict[str, str] = {}
+    sm = re.search(r"\*\*Style:\*\*\s*(.+)", text)
+    if sm:
+        out["style_name"] = sm.group(1).strip()
+    km = re.search(r"\*\*Keywords:\*\*\s*(.+)", text)
+    if km:
+        out["style_keywords"] = km.group(1).strip()
+    pm = re.search(r"\*\*Pattern Name:\*\*\s*(.+)", text)
+    if pm:
+        out["pattern_name"] = pm.group(1).strip()
+    cn = re.search(r"\*\*Color Notes:\*\*\s*(.+)", text)
+    if cn:
+        out["color_notes"] = cn.group(1).strip()
+    mood = re.search(r"\*\*Mood:\*\*\s*(.+)", text)
+    if mood:
+        out["mood"] = mood.group(1).strip()
+    ap = re.search(r"##\s*Anti-Patterns[\s\S]*?-\s*❌\s*(.+)", text)
+    if ap:
+        out["anti_patterns"] = ap.group(1).strip()
+    return out
+
+
+def load_master_design_tokens(workspace: Path, app_name: str = "") -> dict[str, Any]:
+    """Return parsed MASTER palette + typography (skill.design visual truth)."""
+    master = find_design_system_master(workspace, app_name)
+    if not master or not master.is_file():
+        return {}
+    text = master.read_text(encoding="utf-8", errors="ignore")
+    palette = parse_master_palette(text)
+    typography = parse_master_typography(text)
+    shadows = parse_master_shadows(text)
+    spacing = parse_master_spacing(text)
+    style_meta = parse_master_style_meta(text)
+    if not palette and not typography:
+        return {}
+    return {
+        "palette": palette,
+        "typography": typography,
+        "shadows": shadows,
+        "spacing": spacing,
+        "style_meta": style_meta,
+        "path": str(master),
+    }
 
 
 def stack_guidelines_path(workspace: Path, app_name: str, stack: str) -> Path:
@@ -478,58 +631,37 @@ def run_skill_design(
 
 
 def run_skill_adapt_step(*, workspace: Path, row: CsvTaskRow) -> Path:
-    """Pick candidate + write skill-adapt/ artifacts; re-persist selected MASTER."""
-    from batch.skill_adapt import pick_candidate, write_skill_adapt_outputs
+    """Write skill-adapt/ from skill.design MASTER — no second visual pick / re-persist."""
+    from batch.skill_adapt import candidate_aligned_to_master, write_skill_adapt_outputs
 
     ds_dir = design_system_dir_for_app(workspace, row.name)
     cand_path = ds_dir / CANDIDATES_FILENAME
-    anti_path = workspace / "skill-input" / "anti-collision-context.json"
     ctx_path = workspace / "skill-input" / "context.json"
     if not cand_path.is_file():
         raise RuntimeError("skill.adapt 缺少 candidates.json — 请先运行 skill.design")
-    if not anti_path.is_file():
-        raise RuntimeError("skill.adapt 缺少 anti-collision-context.json")
+
+    master = master_path_for_app(workspace, row.name)
+    if not master.is_file():
+        raise RuntimeError("skill.adapt 缺少 MASTER.md — 请先运行 skill.design")
 
     data = json.loads(cand_path.read_text(encoding="utf-8"))
     candidates = data.get("candidates") or []
-    anti = json.loads(anti_path.read_text(encoding="utf-8"))
     ctx = json.loads(ctx_path.read_text(encoding="utf-8")) if ctx_path.is_file() else {}
     seeds = (ctx.get("designerSeeds") or {}) if isinstance(ctx, dict) else {}
 
     from batch.config import BatchConfig
 
     cfg = BatchConfig.from_env()
-    anti = enrich_anti_collision_with_visuals(
-        anti,
-        ledger_path=design_ledger_path(cfg.project_dir),
-        app_name=row.name,
-        batch_id=str((ctx.get("constraints") or {}).get("batchId") or cfg.batch_id or ""),
-        output_dir=cfg.project_dir / "output",
-    )
 
-    selected, rationale = pick_candidate(
-        candidates,
-        anti,
-        product_text=theme_search_query_from_row(row),
-        audience=row.audience or "",
-    )
+    # Visual truth = MASTER factory. Do NOT re-pick (was overwriting brief/token with a
+    # different candidate while persist_design_system skipped existing MASTER).
+    master_text = master.read_text(encoding="utf-8", errors="ignore")
+    selected, rationale = candidate_aligned_to_master(candidates, master_text)
 
     from batch.skill_product_bind import load_product_bind, master_category_label
 
     bind = load_product_bind(workspace)
-
-    scripts_dir = None
-    try:
-        inject_uupm_scripts(cfg)
-        from design_system import persist_design_system  # type: ignore[import-not-found]
-
-        persist_design_system(selected, None, str(workspace), design_query_from_context(ctx, anti, row=row))
-    except Exception:
-        pass
-
-    master = master_path_for_app(workspace, row.name)
-    if master.is_file():
-        _patch_master_category(master, master_category_label(bind))
+    _patch_master_category(master, master_category_label(bind))
 
     from batch.skill_context import update_context_designer_seeds
     from batch.skill_adapt import designer_selections_from_candidate
@@ -557,8 +689,6 @@ def run_skill_adapt_step(*, workspace: Path, row: CsvTaskRow) -> Path:
         stack = meta.get("stack") or "flutter"
         stack_path = stack_guidelines_path(workspace, row.name, str(stack))
 
-    if not master.is_file():
-        master = master_path_for_app(workspace, row.name)
     return write_skill_adapt_outputs(
         workspace,
         candidate=selected,

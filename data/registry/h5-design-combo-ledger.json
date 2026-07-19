@@ -240,19 +240,19 @@
     },
     "Monthio": {
       "batchId": "TEST-0717",
-      "fingerprintKey": "0260f40ca145db0d",
+      "fingerprintKey": "b489ad93e702c59f",
       "visualFingerprint": {
-        "primary": "#0f172a",
-        "accent": "#16a34a",
-        "background": "#020617",
-        "heading": "playfair display",
-        "body": "source serif 4",
-        "pattern": "horizontal scroll journey",
-        "style": "bauhaus (包豪斯)",
+        "primary": "#1e3a5f",
+        "accent": "#a16207",
+        "background": "#f8fafc",
+        "heading": "outfit",
+        "body": "outfit",
+        "pattern": "app store style landing",
+        "style": "feature-rich showcase",
         "category": "mood tracker"
       },
-      "candidateId": "c3",
-      "style": "Bauhaus (包豪斯)",
+      "candidateId": "c1",
+      "style": "Feature-Rich Showcase",
       "category": "Mood Tracker",
       "uxDomainsUsed": [
         "ux",
@@ -271,10 +271,9 @@
     "fd72cab6adc3eb1b": "Buildioo",
     "166d818d57938832": "Prompio",
     "f5c43d52e6b0b02a": "Temioo",
-    "0260f40ca145db0d": "Monthio",
     "e3b6c0f576fee128": "Rolioo",
     "e46fa3726bb3263f": "Yeario",
-    "b489ad93e702c59f": "Meowio",
+    "b489ad93e702c59f": "Monthio",
     "0b272c7b2c9004da": "Letioo",
     "c967f68ea4e6505b": "Peopio"
   }
