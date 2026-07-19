@@ -325,6 +325,8 @@ def _css_var_lines(prefix: str, palette: dict[str, str]) -> list[str]:
         f"--{p}-destructive": palette["destructive"],
         f"--{p}-border": palette["border"],
         f"--{p}-card": palette["card"],
+        # Agent kit often references card-bg; alias to card so surfaces aren't transparent.
+        f"--{p}-card-bg": palette.get("card_bg") or palette["card"],
         f"--{p}-sheet": palette["sheet"],
         f"--{p}-ambient-a": palette["ambient_a"],
         f"--{p}-ambient-b": palette["ambient_b"],
@@ -475,6 +477,36 @@ def _ensure_google_fonts_import(css: str, project: Path) -> str:
     return import_line + "\n\n" + css
 
 
+def _master_shape_tokens(project: Path, prefix: str) -> dict[str, str]:
+    """Bridge MASTER --shadow-* / --space-* into H5 :root (prefixed + unprefixed)."""
+    from batch.uupm_design_system import (
+        find_design_system_master,
+        parse_master_shadows,
+        parse_master_spacing,
+    )
+
+    master = find_design_system_master(project)
+    if not master or not master.is_file():
+        return {}
+    text = master.read_text(encoding="utf-8", errors="ignore")
+    shadows = parse_master_shadows(text)
+    spacing = parse_master_spacing(text)
+    p = prefix.lower()
+    out: dict[str, str] = {}
+    for key, val in shadows.items():
+        # key like shadow_md → --shadow-md + --{p}-shadow-md
+        bare = key.replace("_", "-")
+        out[f"--{bare}"] = val
+        out[f"--{p}-{bare}"] = val
+    for key, val in spacing.items():
+        out[f"--space-{key}"] = val
+        out[f"--{p}-space-{key}"] = val
+    # Common kit aliases Agent CSS expects
+    if f"--{p}-card-bg" not in out:
+        out[f"--{p}-card-bg"] = f"var(--{p}-card)"
+    return out
+
+
 def _ensure_static_root_vars(css: str, prefix: str, *, project: Path | None = None) -> str:
     p = prefix.lower()
     needed: dict[str, str] = {
@@ -483,12 +515,20 @@ def _ensure_static_root_vars(css: str, prefix: str, *, project: Path | None = No
         f"--{p}-font-mono": "'JetBrains Mono', monospace",
         f"--{p}-radius-md": "12px",
         f"--{p}-radius-lg": "16px",
+        f"--{p}-card-bg": f"var(--{p}-card)",
         "--safe-top": "env(safe-area-inset-top, 0px)",
         "--safe-bottom": "env(safe-area-inset-bottom, 0px)",
+        "--shadow-sm": "0 1px 2px rgba(0,0,0,0.05)",
+        "--shadow-md": "0 4px 6px rgba(0,0,0,0.1)",
+        "--shadow-lg": "0 10px 15px rgba(0,0,0,0.1)",
+        "--space-sm": "8px",
+        "--space-md": "16px",
+        "--space-lg": "24px",
     }
     if project is not None:
         needed.update(_font_stack_from_master(project, prefix))
-    missing = [k for k, v in needed.items() if not _css_var_is_defined(css, k)]
+        needed.update(_master_shape_tokens(project, prefix))
+    missing = [k for k in needed if not _css_var_is_defined(css, k)]
     if not missing:
         return css
     lines = [":root {"]

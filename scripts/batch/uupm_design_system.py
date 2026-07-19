@@ -303,7 +303,8 @@ def parse_master_shadows(text: str) -> dict[str, str]:
         r"\|\s*`?(--shadow-\w+)`?\s*\|\s*`?([^|`]+)`?\s*\|",
         section_m.group(1),
     ):
-        key = row.group(1).strip("`").replace("-", "_")
+        # --shadow-md → shadow_md (not __shadow_md)
+        key = row.group(1).strip("`").removeprefix("--").replace("-", "_")
         out[key] = row.group(2).strip()
     return out
 
