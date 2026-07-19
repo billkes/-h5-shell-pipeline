@@ -11,7 +11,6 @@ REQUIRED_H5_SHELL_PROMPTS = [
     "phase_h5_shell_programmer.txt",
     "phase_h5_implementer.txt",
     "phase_agent_plan_spec.txt",
-    "phase_agent_plan_docs.txt",
     "phase_agent_plan_pack.txt",
     "phase_plan_gate_repair.txt",
     "phase_h5_build_repair.txt",
@@ -23,21 +22,16 @@ def test_h5_shell_prompt_templates_exist() -> None:
     assert not missing, f"Missing prompt templates under {PROMPTS}: {missing}"
 
 
-def test_v3_plan_spec_prompt_lists_deliverable() -> None:
+def test_v3_plan_spec_prompt_lists_merged_deliverables() -> None:
     text = (PROMPTS / "phase_agent_plan_spec.txt").read_text(encoding="utf-8")
     assert "${desc}" in text
-    assert "功能文档.md" in text
-    assert "skill-input/agent-spec-index.md" in text
-
-
-def test_v3_plan_docs_prompt_lists_three_mds() -> None:
-    text = (PROMPTS / "phase_agent_plan_docs.txt").read_text(encoding="utf-8")
     assert "${CSV_FULL_NAME}" in text
+    assert "功能文档.md" in text
     assert "Privacy Agreement.md" in text
     assert "User Agreement.md" in text
-    assert "Business Flow Summary" in text
-    assert "Do NOT write" in text
-    assert "演示路线" in text
+    assert "产品概述" in text
+    assert "Do **not** write `{CSV_FULL_NAME}.md`" in text
+    assert "skill-input/agent-spec-index.md" in text
 
 
 def test_product_doc_format_excludes_removed_sections() -> None:
@@ -46,10 +40,10 @@ def test_product_doc_format_excludes_removed_sections() -> None:
     assert "#### 产品概述" in text
     assert "#### App Store Listing" in text
     assert "已移除" in text
-    assert "文档在此结束" in text
-    # Template block must not instruct agent to write demo route
+    assert "Listing 节之后文档结束" in text
+    assert "功能文档.md" in text
     template_start = text.index("## 模板")
-    template_end = text.index("**文档在此结束。**")
+    template_end = text.index("**Listing 节之后文档结束。**")
     template = text[template_start:template_end]
     assert "Business Flow Summary" not in template
     assert "演示路线" not in template

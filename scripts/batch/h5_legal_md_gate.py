@@ -24,10 +24,18 @@ STYLE_MIN_WORDS: dict[int, int] = {
 
 GLOBAL_PHRASES: tuple[str, ...] = (
     "zero tolerance",
-    "24 hours",
     "filtering methods",
     "user reporting mechanism",
 )
+
+AGE_RATING_RE = re.compile(
+    r"18\+|18 and older|18 years|at least 18|"
+    r"eighteen plus|eighteen years|at least eighteen|rated eighteen|"
+    r"aged eighteen|users eighteen|under eighteen",
+    re.I,
+)
+
+RESPONSE_TIME_RE = re.compile(r"24 hours|twenty[- ]four hours", re.I)
 
 REGION_BLOCKLIST_RE = re.compile(
     r"\b("
@@ -149,7 +157,7 @@ def verify_legal_md_text(
         issues.append(f"MD/{label}: missing contact email {contact_email!r}")
 
     age_text = re.sub(r"\*+", "", text)
-    if not re.search(r"18\+|18 and older|18 years|at least 18", age_text, re.I):
+    if not AGE_RATING_RE.search(age_text):
         issues.append(f"MD/{label}: missing 18+ age rating")
 
     min_words = STYLE_MIN_WORDS.get(privacy_style, STYLE_MIN_WORDS[1])
@@ -211,6 +219,8 @@ def verify_legal_md_pair(
     for phrase in GLOBAL_PHRASES:
         if phrase not in combined:
             issues.append(f"MD: missing global phrase {phrase!r} (privacy+terms combined)")
+    if not RESPONSE_TIME_RE.search(combined):
+        issues.append("MD: missing global phrase '24 hours' (privacy+terms combined)")
     return issues
 
 

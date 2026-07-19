@@ -2,8 +2,7 @@
 
 V3 plan agent steps:
 
-* ``phase_agent_plan_spec.txt`` — agent.plan.spec
-* ``phase_agent_plan_docs.txt`` — agent.plan.docs
+* ``phase_agent_plan_spec.txt`` — agent.plan.spec（功能/产品文档 + Legal）
 * ``phase_agent_plan_pack.txt`` — agent.plan.pack (JSON ledgers only; no 视觉蓝图)
 * ``phase_h5_shell_programmer.txt`` — agent.shell
 * ``phase_h5_implementer.txt`` — agent.h5
@@ -70,6 +69,7 @@ class PromptBuilder:
         name: str,
         desc: str,
         product_req_doc: str,
+        csv_full_name: str = "",
         resume: bool = False,
         **_: object,
     ) -> str:
@@ -78,31 +78,9 @@ class PromptBuilder:
             {
                 "name": name,
                 "desc": desc,
-                "RESUME_BLOCK": self._resume_block_plan(
-                    resume=resume, focus="agent.plan.spec"
-                ),
-                "PRODUCT_REQ_DOC": product_req_doc,
-            },
-        )
-
-    def _build_agent_plan_docs_body(
-        self,
-        *,
-        name: str,
-        desc: str,
-        product_req_doc: str,
-        csv_full_name: str,
-        resume: bool = False,
-        **_: object,
-    ) -> str:
-        return self._fmt(
-            self._load("phase_agent_plan_docs.txt"),
-            {
-                "name": name,
-                "desc": desc,
                 "CSV_FULL_NAME": csv_full_name or name,
                 "RESUME_BLOCK": self._resume_block_plan(
-                    resume=resume, focus="agent.plan.docs"
+                    resume=resume, focus="agent.plan.spec"
                 ),
                 "PRODUCT_REQ_DOC": product_req_doc,
             },
@@ -189,7 +167,8 @@ class PromptBuilder:
         return self._build_agent_plan_spec_body(resume=resume, **kwargs)  # type: ignore[arg-type]
 
     def build_agent_plan_docs_phase(self, *, resume: bool = False, **kwargs: object) -> str:
-        return self._build_agent_plan_docs_body(resume=resume, **kwargs)  # type: ignore[arg-type]
+        """Legacy alias → agent.plan.spec (merged docs step)."""
+        return self.build_agent_plan_spec_phase(resume=resume, **kwargs)
 
     def build_agent_plan_pack_phase(self, *, resume: bool = False, **kwargs: object) -> str:
         return self._build_agent_plan_pack_body(resume=resume, **kwargs)  # type: ignore[arg-type]

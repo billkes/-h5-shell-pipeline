@@ -2,11 +2,15 @@
 
 Agent **Part 1（Plan）** 须一次性产出下列文件。细则以本文为准；prompt 不重复条文。
 
-## Deliverable 1) `功能文档.md`（English，无代码）
+## Deliverable 1) `功能文档.md`（English 规格 + 中文产品概述 + App Store Listing）
+
+**一步产出**：`agent.plan.spec` 写 **一个** `功能文档.md`，不再单独产出 `{全称}.md`。
 
 **深度：** 须通过 plan.gate `SPEC-xxx`；tier 见 `skill-input/context.json` → `businessDepthTier`。先读《H5壳功能文档深度标准.md》。
 
-**章节顺序（全部包含）：**
+**章节顺序（全部包含于同一文件）：**
+
+**English 规格块：**
 
 - **App Theme & Angle** — 一段， grounded in CSV product flow
 - **Screen Inventory** — 表：**PM 完整 H5 路由**（无流水线默认页；Splash/Welcome/Legal/Plaza/Store 仅在产品需要时列入）
@@ -23,20 +27,23 @@ Agent **Part 1（Plan）** 须一次性产出下列文件。细则以本文为�
 - **Export / Save Flow**
 - **IAP Catalog & Free Tier** — 对齐 `iap-catalog.generated.md`
 - **§H5 Architecture** — h5StateModel / h5RouterPattern / h5ScreenPattern 文件映射
-- **App Store Listing**
+
+**中文产品块**（格式见《H5壳产品文档格式.md》）：
+
+- `#### 产品概述 (Product Overview)` — 定位、边界、差异化、受众、协议链接
+
+**English Listing 块（文件末尾，仅一次）：**
+
+- `#### App Store Listing` — Subtitle · Promotional Text · Description · Keywords
 
 **锁定：** Screen Inventory 为权威； listed = MUST implement；禁止 optional/may/可选项。
 
-## Deliverable 1b) `{全称}.md`（中文产品文档）
-
-格式：《H5壳产品文档格式.md》；H1 = CSV `全称`；**仅** `产品概述` + `App Store Listing` 两节（不含业务流程总结 / 审核演示路线）；与 `功能文档.md` 对齐。产出步骤：`agent.plan.docs`。
-
-## Deliverable 1c) Legal agreements（English MD）
+## Deliverable 1b) Legal agreements（English MD）
 
 - `{主名字} Privacy Agreement.md`
 - `{主名字} User Agreement.md`
 
-规范：`docs/法律协议规范.md`（workspace 根目录拷贝）。plan.gate 调用 `verify_h5_legal_md()`。
+与 `功能文档.md` 同一步（`agent.plan.spec`）产出。规范：`docs/法律协议规范.md`。plan.gate 调用 `verify_h5_legal_md()`。
 
 ## Deliverable 2) 视觉规范（**不再**产出 `视觉蓝图.md`）
 
@@ -62,4 +69,4 @@ Welcome / Hub 场景叙事与槽位见 `design-system/*/pages/welcome.md` · `hu
 - `本包视觉锁.json` — designerDeckSelections、ambientCanvas、componentSelection
 - `产包计划.md` — P2-Shell → P2-H5 → dev.h5.build → deploy gate
 
-Pack 级约束详见《H5壳Pack约束.md》。
+Pack 级约束详见《H5壳Pack约束.md`。

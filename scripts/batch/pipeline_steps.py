@@ -19,16 +19,16 @@ PREVIEW_TABS = "preview.tabs"
 BUILD_AGENT = "build.agent"
 
 AGENT_PLAN_SPEC = "agent.plan.spec"
-AGENT_PLAN_DOCS = "agent.plan.docs"
 AGENT_PLAN_PACK = "agent.plan.pack"
 
 # Legacy granular agent step ids (migration / CLI aliases only — not in V3_STEPS)
+AGENT_PLAN_DOCS = "agent.plan.docs"  # merged into agent.plan.spec
 AGENT_PLAN = "agent.plan"
 AGENT_IMPL = "agent.impl"
 AGENT_SHELL = "agent.shell"
 AGENT_H5 = "agent.h5"
 
-PLAN_AGENT_STEPS: tuple[str, ...] = (AGENT_PLAN_SPEC, AGENT_PLAN_DOCS, AGENT_PLAN_PACK)
+PLAN_AGENT_STEPS: tuple[str, ...] = (AGENT_PLAN_SPEC, AGENT_PLAN_PACK)
 
 # Legacy aliases
 PREPARE = PREPARE_CONTEXT
@@ -42,7 +42,9 @@ ANALYZE = "dev.analyze"
 GIT_DEV = "git.dev"
 
 # Removed from V3_STEPS — kept only so migration can drop them from .build-state.json
-_REMOVED_STEP_IDS: frozenset[str] = frozenset({"dev.h5.gate", "native.check"})
+_REMOVED_STEP_IDS: frozenset[str] = frozenset(
+    {"dev.h5.gate", "native.check", AGENT_PLAN_DOCS}
+)
 
 # Legacy ids (migration / tests only)
 PLAN_PREPARE = PREPARE_CONTEXT
@@ -65,7 +67,6 @@ V3_STEPS: tuple[str, ...] = (
     SKILL_TOKENS,
     LOCK_DIMENSIONS,
     AGENT_PLAN_SPEC,
-    AGENT_PLAN_DOCS,
     AGENT_PLAN_PACK,
     AGENT_SHELL,
     AGENT_H5,
@@ -93,10 +94,10 @@ STEP_LABELS: dict[str, str] = {
     LOCK_DIMENSIONS: "锁维度 + 工程准备",
     PREVIEW_TABS: "Tab 明暗预览 · 静态 HTML",
     BUILD_AGENT: "Build Agent · 蓝图 + 实现（legacy 单次调用）",
-    AGENT_PLAN_SPEC: "Agent · 功能文档",
-    AGENT_PLAN_DOCS: "Agent · 产品文档 + Legal",
+    AGENT_PLAN_SPEC: "Agent · 功能/产品文档 + Legal",
     AGENT_PLAN_PACK: "Agent · 登记信息 + 视觉锁",
     AGENT_PLAN: "Agent · 蓝图与计划文档（legacy）",
+    AGENT_PLAN_DOCS: "Agent · 功能/产品文档 + Legal（legacy → agent.plan.spec）",
     AGENT_IMPL: "Agent · Flutter 实现（legacy）",
     AGENT_SHELL: "Agent · H5 原生壳",
     AGENT_H5: "Agent · H5 vault / legal",
@@ -119,7 +120,6 @@ STEP_TO_PHASE: dict[str, str] = {
     PREVIEW_TABS: PM_UI_PLAN_PHASE,
     BUILD_AGENT: PM_UI_PLAN_PHASE,
     AGENT_PLAN_SPEC: PM_UI_PLAN_PHASE,
-    AGENT_PLAN_DOCS: PM_UI_PLAN_PHASE,
     AGENT_PLAN_PACK: PM_UI_PLAN_PHASE,
     AGENT_PLAN: PM_UI_PLAN_PHASE,
     AGENT_SHELL: PM_UI_PLAN_PHASE,
@@ -142,7 +142,6 @@ PHASE_STEPS: dict[str, tuple[str, ...]] = {
         SKILL_TOKENS,
         LOCK_DIMENSIONS,
         AGENT_PLAN_SPEC,
-        AGENT_PLAN_DOCS,
         AGENT_PLAN_PACK,
         AGENT_SHELL,
         AGENT_H5,
@@ -161,7 +160,7 @@ PHASE_STEPS: dict[str, tuple[str, ...]] = {
 def steps_for_run(*, pack_type: str) -> tuple[str, ...]:
     """Return ordered step ids for this app + config.
 
-    h5_shell packs run the granular three-step agent chain (plan/shell/h5).
+    h5_shell packs run the granular plan agent chain (spec/pack/shell/h5).
     Non-h5_shell packs have no agent steps in V3 (the new pipeline only
     produces h5_shell packs; legacy single-call ``build.agent`` remains
     available via ``parse_step_range`` for manual debugging).
@@ -225,7 +224,7 @@ def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
         "dev.agent": AGENT_PLAN_SPEC,
         "agent.plan": AGENT_PLAN_SPEC,
         "agent.plan.spec": AGENT_PLAN_SPEC,
-        "agent.plan.docs": AGENT_PLAN_DOCS,
+        "agent.plan.docs": AGENT_PLAN_SPEC,
         "agent.plan.pack": AGENT_PLAN_PACK,
         "agent.impl": BUILD_AGENT,
         "agent.shell": AGENT_SHELL,

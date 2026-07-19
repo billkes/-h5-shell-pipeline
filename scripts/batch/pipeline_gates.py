@@ -529,9 +529,18 @@ def verify_phase1_pm_outputs(
                 issues.append("默认内容列表.json JSON 不合法")
 
     if csv_full_name:
-        product_doc = workspace / f"{csv_full_name}.md"
-        if not product_doc.is_file():
-            issues.append(f"缺少产品文档: {csv_full_name}.md")
+        if h5_shell:
+            if spec.is_file():
+                spec_text = spec.read_text(encoding="utf-8", errors="replace")
+                if "产品概述" not in spec_text and "Product Overview" not in spec_text:
+                    issues.append("功能文档.md 缺少 #### 产品概述 (Product Overview) 章节")
+            legacy_product = workspace / f"{csv_full_name}.md"
+            if legacy_product.is_file() and not spec.is_file():
+                pass  # legacy workspace — gate still accepts standalone file until spec exists
+        else:
+            product_doc = workspace / f"{csv_full_name}.md"
+            if not product_doc.is_file():
+                issues.append(f"缺少产品文档: {csv_full_name}.md")
 
     if videostream and spec.is_file():
         text = spec.read_text(encoding="utf-8", errors="replace")
@@ -643,6 +652,8 @@ def verify_pm_ui_plan_outputs(
         elif issue.startswith("缺少字段"):
             _hard(issue)
         elif issue.startswith("缺少产品文档"):
+            _soft(issue)
+        elif "产品概述" in issue:
             _soft(issue)
         elif not ok_pm:
             _hard(issue)

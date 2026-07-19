@@ -257,7 +257,13 @@ def _collect_preview_paths(workspace: Path, app_name: str) -> list[str]:
 def _norm_docs_for_phase(phase: AgentPhase) -> list[str]:
     mapping = {
         "plan": _PLAN_NORM_DOCS,
-        "plan_spec": _PLAN_NORM_DOCS,
+        "plan_spec": (
+            *_PLAN_NORM_DOCS,
+            "docs/H5壳产品文档格式.md",
+            "H5壳产品文档格式.md",
+            "docs/法律协议规范.md",
+            "法律协议规范.md",
+        ),
         "plan_docs": (
             "docs/H5壳产品文档格式.md",
             "H5壳产品文档格式.md",

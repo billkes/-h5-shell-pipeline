@@ -268,11 +268,30 @@ def _aggregate_legacy_agent_steps(steps: dict[str, str]) -> dict[str, str]:
     return out
 
 
+def _collapse_agent_plan_docs(steps: dict[str, str]) -> dict[str, str]:
+    """Merge legacy ``agent.plan.docs`` into ``agent.plan.spec``."""
+    from batch.pipeline_steps import AGENT_PLAN_DOCS, AGENT_PLAN_SPEC
+
+    terminal = frozenset({"done", "skipped", "failed"})
+    out = dict(steps)
+    docs_status = out.pop(AGENT_PLAN_DOCS, None)
+    if docs_status is None:
+        return out
+    spec_status = out.get(AGENT_PLAN_SPEC, "pending")
+    if spec_status in terminal and docs_status in terminal:
+        out[AGENT_PLAN_SPEC] = "done" if spec_status == "done" and docs_status == "done" else spec_status
+    elif spec_status == "pending":
+        out[AGENT_PLAN_SPEC] = docs_status
+    elif docs_status == "failed" and spec_status not in ("failed", "done"):
+        out[AGENT_PLAN_SPEC] = "failed"
+    return out
+
+
 def _expand_legacy_plan_agent(steps: dict[str, str]) -> dict[str, str]:
-    """Map legacy ``agent.plan`` onto ``agent.plan.spec/docs/pack``."""
+    """Map legacy ``agent.plan`` onto ``agent.plan.spec/pack``."""
     from batch.pipeline_steps import AGENT_PLAN, PLAN_AGENT_STEPS
 
-    out = dict(steps)
+    out = _collapse_agent_plan_docs(steps)
     legacy_status = out.pop(AGENT_PLAN, None)
     if not legacy_status:
         return out

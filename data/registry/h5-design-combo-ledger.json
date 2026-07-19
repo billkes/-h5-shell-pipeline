@@ -239,7 +239,7 @@
       "pageOverrideCount": 0
     },
     "Monthio": {
-      "batchId": "B0717-",
+      "batchId": "TEST-0717",
       "fingerprintKey": "f218c0a3e724a8f2",
       "visualFingerprint": {
         "primary": "#d97706",
@@ -264,12 +264,7 @@
         "gsap",
         "chart"
       ],
-      "pageOverrideCount": 14,
-      "iconLibrary": [
-        "canonical",
-        "uupm-icons"
-      ],
-      "tokenHash": "20c1289b75e45af1"
+      "pageOverrideCount": 0
     }
   },
   "fingerprints": {

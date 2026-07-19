@@ -21,7 +21,6 @@ from batch.pipeline_gates import verify_pm_ui_plan_outputs, write_plan_gate_repo
 from batch.pipeline_steps import (
     ANALYZE,
     AGENT_H5,
-    AGENT_PLAN_DOCS,
     AGENT_PLAN_PACK,
     AGENT_PLAN_SPEC,
     AGENT_SHELL,
@@ -287,20 +286,7 @@ class V3StepRunner:
             role_slug="build-agent-plan-spec",
             role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
             prompt_builder="build_agent_plan_spec_phase",
-            log_title="Agent · Plan Spec",
-            resume=resume,
-        )
-
-    def _step_agent_plan_docs(self, ctx: AppContext, *, resume: bool = False) -> bool:
-        from batch.prompts import _PM_UI_PLAN_BRAIN_FOCUS
-
-        return self._run_plan_agent_step(
-            ctx,
-            phase="plan_docs",
-            role_slug="build-agent-plan-docs",
-            role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
-            prompt_builder="build_agent_plan_docs_phase",
-            log_title="Agent · Plan Docs",
+            log_title="Agent · Plan Spec + Docs + Legal",
             resume=resume,
         )
 
@@ -807,7 +793,6 @@ _STEP_HANDLERS = {
     SKILL_TOKENS: V3StepRunner._step_skill_tokens,
     LOCK_DIMENSIONS: V3StepRunner._step_lock_dimensions,
     AGENT_PLAN_SPEC: V3StepRunner._step_agent_plan_spec,
-    AGENT_PLAN_DOCS: V3StepRunner._step_agent_plan_docs,
     AGENT_PLAN_PACK: V3StepRunner._step_agent_plan_pack,
     AGENT_SHELL: V3StepRunner._step_agent_shell,
     AGENT_H5: V3StepRunner._step_agent_h5,

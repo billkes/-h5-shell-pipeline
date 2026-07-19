@@ -151,6 +151,26 @@ def test_terms_age_rating_with_split_bold_markers() -> None:
     assert not any("18+ age rating" in i for i in issues)
 
 
+def test_terms_age_rating_word_form_eighteen() -> None:
+    """Agent may spell out 'eighteen' instead of digit 18."""
+    main = "Monthio"
+    privacy = sample_privacy_md(main).replace("Teavoo is rated **18+**.", "Monthio is rated eighteen plus.")
+    terms = sample_terms_md(main).replace(
+        "You must be at least **18 years old** and use the app lawfully.",
+        "You affirm that you are at least eighteen years old.",
+    )
+    combined_privacy = privacy.replace("24 hours", "twenty-four hours")
+    combined_terms = terms.replace("24 hours", "twenty-four hours")
+    issues = verify_legal_md_pair(
+        combined_privacy,
+        combined_terms,
+        main_name=main,
+        privacy_style=2,
+    )
+    assert not any("18+ age rating" in i for i in issues)
+    assert not any("24 hours" in i for i in issues)
+
+
 def test_verify_legal_md_pair_fails_plain_text_sections(tmp_path: Path) -> None:
     main = "Demo"
     bad = "Demo Privacy Policy\n\nLast updated: July 14, 2026\n\nBody only.\n"
