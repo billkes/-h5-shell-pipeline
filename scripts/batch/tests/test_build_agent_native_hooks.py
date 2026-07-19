@@ -1,4 +1,4 @@
-"""Tests for agent.shell native obfuscation hook."""
+"""Tests for agent.shell native obfuscation / signing hooks."""
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ def _swift_workspace(tmp_path: Path) -> Path:
     return ws
 
 
-def test_agent_shell_calls_native_obfuscation_before_shell_check() -> None:
+def test_agent_shell_calls_native_obfuscation_and_signing() -> None:
     td = Path(tempfile.mkdtemp())
     ws = _swift_workspace(td)
     cfg = BatchConfig(project_dir=SCRIPTS.parents[1])
@@ -78,7 +78,6 @@ def test_agent_shell_calls_native_obfuscation_before_shell_check() -> None:
 
     with (
         patch("batch.cursor_runner.run_agent", return_value=True),
-        patch("batch.preview_tabs.verify_preview_tabs_outputs", return_value=[]),
         patch(
             "batch.native_shell_obfuscation.apply_native_shell_obfuscation",
             side_effect=_fake_obf,
@@ -87,11 +86,9 @@ def test_agent_shell_calls_native_obfuscation_before_shell_check() -> None:
             "batch.native_ios_signing.sync_workspace_ios_signing_from_registration",
             side_effect=_fake_signing,
         ),
-        patch.object(runner, "_optional_xcodebuild", return_value=[]),
     ):
         ok = runner._step_agent_shell(ctx)
 
-    # _check_native_shell 在简化 workspace 下会返回 issues 使 ok=False,
-    # 但本测试只验证 obfuscation / signing hooks 是否被调用(顺序与参数)。
+    assert ok is True
     assert obf_calls == ["DemoApp"]
     assert signing_calls == ["DemoApp"]

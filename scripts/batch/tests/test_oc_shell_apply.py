@@ -104,10 +104,11 @@ def test_oc_shell_apply_empty_team_id_valid_pbxproj() -> None:
         assert 'DEVELOPMENT_TEAM = "";' not in pbx
 
 
-def test_pipeline_steps_oc_has_native_check() -> None:
+def test_pipeline_steps_oc_no_native_check() -> None:
     sys.path.insert(0, str(SCRIPTS))
     from batch.pipeline_steps import steps_for_run
 
     steps = steps_for_run(pack_type="h5_oc_shell")
-    assert "native.check" in steps
+    assert "native.check" not in steps
+    assert "dev.h5.gate" not in steps
     assert "dev.pubget" not in steps

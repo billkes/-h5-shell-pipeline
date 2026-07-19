@@ -68,8 +68,6 @@ H5 侧监听 `hahv-callback` CustomEvent 或 `onCallback`。
 | 模板构建 | `./run.sh build-all` |
 | Agent 产包 | `./run.sh --name {App}` |
 
-`native.check` 会扫描 `.m` Bridge token，macOS 上可选 `xcodebuild` 编译验证。
-
 ---
 
 ## 相关文档

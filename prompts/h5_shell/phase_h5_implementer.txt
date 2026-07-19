@@ -20,7 +20,7 @@ ${RESUME_BLOCK}
 ### Deliverables
 - Full Vite tree under `h5/` (Agent-owned; no repo code template)
 - Routes & screens from 功能文档.md Screen Inventory only
-- Gate: `dev.h5.gate`
+- Pipeline compiles via `dev.h5.build`
 
 ### Hard Rules
 - Write **only** under `h5/src/` — never edit `h5_site/`.

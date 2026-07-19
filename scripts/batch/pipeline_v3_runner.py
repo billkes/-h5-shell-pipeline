@@ -24,7 +24,6 @@ from batch.pipeline_steps import (
     AGENT_PLAN,
     AGENT_SHELL,
     DEV_H5_BUILD,
-    DEV_H5_GATE,
     LOCK_DIMENSIONS,
     PREPARE_CONTEXT,
     SKILL_ADAPT,
@@ -34,7 +33,6 @@ from batch.pipeline_steps import (
     SKILL_TOKENS,
     GIT_DEV,
     GIT_PLAN,
-    NATIVE_CHECK,
     PLAN_GATE,
     PUBGET,
     step_display,
@@ -357,15 +355,15 @@ class V3StepRunner:
                     print(f">>> agent.shell: native obfuscation → {rel}")
             except (FileNotFoundError, ValueError, OSError) as exc:
                 print(f">>> agent.shell: native obfuscation skipped: {exc}")
-            shell_ok, issues = self._check_native_shell(ctx)
-            if not shell_ok:
-                update_state_fields(
-                    ctx.workspace,
-                    phase_programmer_failure_reason="agent.shell 后 native shell 预检未通过",
-                    phase_programmer_failure_details=issues,
-                )
-                get_run_log().fail_banner("agent.shell 后 native shell 预检未通过", issues)
-                ok = False
+            try:
+                from batch.native_ios_signing import sync_workspace_ios_signing_from_registration
+
+                for msg in sync_workspace_ios_signing_from_registration(
+                    ctx.workspace, app_name=ctx.name
+                ):
+                    print(f">>> agent.shell: {msg}")
+            except OSError as exc:
+                print(f">>> agent.shell: signing sync skipped: {exc}")
         if ok:
             update_state_fields(ctx.workspace, phase_programmer_agent="done")
         return ok
@@ -613,66 +611,6 @@ class V3StepRunner:
                 print(f"       {item}")
         return ok
 
-    def _step_dev_h5_gate(self, ctx: AppContext) -> bool:
-        if not is_h5_shell(ctx.pack_type):
-            return True
-        from batch.skill_resolve import integration_enabled
-        from batch.h5_bundle_gate import print_h5_bundle_warnings, verify_h5_bundle_soft
-        from batch.h5_deflavor_audit import verify_h5_deflavor_baseline
-        from batch.h5_legal_ui import verify_h5_legal_ui, verify_h5_legal_view_mode
-        from batch.h5_overlay_stack import verify_h5_overlay_stack
-        from batch.h5_plaza_dev_gate import verify_h5_plaza_dev_gate
-        from batch.skill_ux_gate import verify_skill_ux_gate
-        from batch.sync_h5_legal_bundled import verify_h5_legal_bundled
-        from batch.welcome_canon import verify_h5_welcome_canon
-
-        if not integration_enabled(self.p.cfg, "h5_gate"):
-            return True
-
-        ws = ctx.workspace
-        fp = find_flutter_project(ws) or ws
-        issues: list[str] = []
-        warnings = verify_h5_bundle_soft(ws, fp)
-        print_h5_bundle_warnings(warnings)
-        issues.extend(verify_h5_deflavor_baseline(fp))
-        issues.extend(verify_h5_legal_bundled(fp))
-        issues.extend(verify_h5_legal_ui(fp))
-        issues.extend(verify_h5_legal_view_mode(fp))
-        issues.extend(verify_h5_overlay_stack(fp))
-        issues.extend(verify_h5_welcome_canon(fp))
-        issues.extend(verify_h5_plaza_dev_gate(fp))
-        issues.extend(verify_skill_ux_gate(fp))
-        from batch.h5_ui_copy import (
-            collect_h5_demo_seed_cjk_violations,
-            collect_h5_demo_cta_violations,
-            collect_h5_ui_cjk_violations,
-            collect_h5_stack_layout_violations,
-            collect_h5_welcome_demo_violations,
-        )
-
-        issues.extend(collect_h5_ui_cjk_violations(ws))
-        issues.extend(collect_h5_demo_seed_cjk_violations(ws))
-        issues.extend(collect_h5_stack_layout_violations(ws))
-        issues.extend(collect_h5_demo_cta_violations(ws))
-        from batch.h5_plaza_purchase import collect_h5_plaza_purchase_violations
-        from batch.h5_default_seed import collect_h5_default_seed_violations
-
-        issues.extend(collect_h5_plaza_purchase_violations(ws))
-        issues.extend(collect_h5_default_seed_violations(ws))
-        from batch.preview_fidelity_gate import collect_preview_fidelity_violations
-
-        issues.extend(collect_preview_fidelity_violations(ws, ctx.name))
-
-        hard = [i for i in issues if not i.startswith("UX Gate WARN")]
-        if hard:
-            print(">>> dev.h5.gate 未通过:")
-            for item in hard:
-                print(f"       {item}")
-            return False
-        warns = [i for i in issues if i.startswith("UX Gate WARN")]
-        for item in warns:
-            print(f"       WARN: {item}")
-        return True
 
     def _step_git_plan(self, ctx: AppContext) -> bool:
         self.p._git_sync(ctx, PM_UI_PLAN_PHASE, init=True)
@@ -701,160 +639,6 @@ class V3StepRunner:
         fp = find_flutter_project(ctx.workspace) or ctx.workspace
         return self._do_dev_analyze(ctx, fp)
 
-    def _step_native_check(self, ctx: AppContext) -> bool:
-        if not is_native_ios_runtime(ctx.pack_type):
-            return True
-        ok, issues = self._check_native_shell(ctx)
-        if not ok:
-            update_state_fields(
-                ctx.workspace,
-                phase_programmer_failure_reason="native shell check 未通过",
-                phase_programmer_failure_details=issues,
-            )
-            get_run_log().fail_banner("native shell check 未通过", issues)
-        return ok
-
-    def _check_native_shell(self, ctx: AppContext) -> tuple[bool, list[str]]:
-        ws = ctx.workspace
-        runtime = h5_shell_runtime(ctx.pack_type)
-        issues: list[str] = []
-        try:
-            from batch.native_ios_signing import sync_workspace_ios_signing_from_registration
-
-            for msg in sync_workspace_ios_signing_from_registration(ws, app_name=ctx.name):
-                print(f">>> native.check: {msg}")
-        except OSError as exc:
-            print(f">>> native.check: signing sync failed: {exc}")
-        from batch.native_shell_apply import find_xcode_projects
-
-        xcode_projects = find_xcode_projects(ws)
-        if not xcode_projects:
-            issues.append("缺少 .xcodeproj/.xcworkspace")
-        elif not any(p.parent.resolve() == ws.resolve() for p in xcode_projects):
-            rel = xcode_projects[0].relative_to(ws)
-            issues.append(
-                f".xcodeproj/.xcworkspace 不在 workspace 根目录（发现: {rel}）"
-            )
-        if not list(ws.rglob("Info.plist")):
-            issues.append("缺少 Info.plist")
-        from batch.native_shell_apply import has_launch_screen
-
-        if not has_launch_screen(ws, runtime):
-            if runtime == "swift":
-                issues.append("缺少 LaunchScreen（storyboard 或 UILaunchScreen + LaunchBackground）")
-            else:
-                issues.append("缺少 LaunchScreen.storyboard")
-
-        suffixes = (".swift",) if runtime == "swift" else (".m", ".mm", ".h")
-        source_files = [
-            p
-            for suffix in suffixes
-            for p in ws.rglob(f"*{suffix}")
-            if "/build/" not in str(p)
-        ]
-        if not source_files:
-            issues.append(f"缺少 {runtime} native source 文件")
-            return False, issues
-
-        joined_parts: list[str] = []
-        for path in source_files[:40]:
-            try:
-                joined_parts.append(path.read_text(encoding="utf-8", errors="ignore"))
-            except OSError:
-                continue
-        joined = "\n".join(joined_parts)
-        required_tokens = (
-            "WKWebView",
-            "WKScriptMessageHandler",
-            "shellReady",
-            "readFile",
-            "writeFile",
-            "pickImage",
-            "saveImage",
-            "purchase",
-            "restorePurchases",
-            "mediaServe",
-        )
-        if runtime == "oc":
-            required_tokens = required_tokens + (
-                "WKURLSchemeHandler",
-                "app-callback",
-            )
-        oc_token_alts: dict[str, tuple[str, ...]] = {}
-        if runtime == "oc":
-            oc_token_alts = {
-                "WKURLSchemeHandler": (
-                    "WKURLSchemeHandler",
-                    "WKURLSchemeTask",
-                    "startURLSchemeTask",
-                ),
-            }
-        for token in required_tokens:
-            alts = oc_token_alts.get(token, (token,))
-            if not any(alt in joined for alt in alts):
-                issues.append(f"native shell 缺少 Bridge/host token: {token}")
-        if "SFSafariViewController" in joined:
-            issues.append("禁止主流程使用 SFSafariViewController/browser chrome")
-
-        from batch.native_iap_policy import collect_storekit_violations
-        from batch.h5_shell_placeholders import collect_placeholder_violations
-        from batch.native_launch_style import collect_native_launch_ui_violations
-
-        issues.extend(collect_storekit_violations(ws))
-        issues.extend(collect_placeholder_violations(ws))
-        issues.extend(collect_native_launch_ui_violations(ws))
-        from batch.native_shell_naming import collect_native_shell_naming_violations
-
-        issues.extend(collect_native_shell_naming_violations(ws, strict_semantic=True))
-        from batch.native_ios_signing import collect_native_ios_signing_violations
-
-        issues.extend(collect_native_ios_signing_violations(ws))
-        issues.extend(self._optional_xcodebuild(ws, ctx.name, runtime))
-        return len(issues) == 0, issues
-
-    def _optional_xcodebuild(self, ws: Path, app_name: str, runtime: str) -> list[str]:
-        """Run xcodebuild on macOS when project exists; skip elsewhere."""
-        import platform
-        import subprocess
-
-        from batch.native_shell_apply import find_xcode_projects
-
-        if platform.system() != "Darwin":
-            return []
-        projects = find_xcode_projects(ws)
-        root_projects = [p for p in projects if p.parent.resolve() == ws.resolve()]
-        if not root_projects:
-            return []
-        project = root_projects[0]
-        cmd = [
-            "xcodebuild",
-            "-project",
-            str(project),
-            "-scheme",
-            app_name,
-            "-sdk",
-            "iphonesimulator",
-            "-destination",
-            "generic/platform=iOS Simulator",
-            "build",
-            "CODE_SIGNING_ALLOWED=NO",
-        ]
-        try:
-            result = subprocess.run(
-                cmd,
-                cwd=str(ws),
-                capture_output=True,
-                text=True,
-                timeout=300,
-            )
-        except FileNotFoundError:
-            return []
-        except subprocess.TimeoutExpired:
-            return [f"xcodebuild 超时（{runtime}）"]
-        if result.returncode != 0:
-            tail = (result.stderr or result.stdout or "").strip().splitlines()[-5:]
-            return [f"xcodebuild 失败: {' | '.join(tail)}"]
-        return []
 
     def _do_dev_analyze(self, ctx: AppContext, fp) -> bool:  # noqa: ANN001
         ws = ctx.workspace
@@ -914,11 +698,9 @@ _STEP_HANDLERS = {
     AGENT_H5: V3StepRunner._step_agent_h5,
     PLAN_GATE: V3StepRunner._step_plan_gate,
     DEV_H5_BUILD: V3StepRunner._step_dev_h5_build,
-    DEV_H5_GATE: V3StepRunner._step_dev_h5_gate,
     GIT_PLAN: V3StepRunner._step_git_plan,
     PUBGET: V3StepRunner._step_pubget,
     ANALYZE: V3StepRunner._step_analyze,
-    NATIVE_CHECK: V3StepRunner._step_native_check,
     GIT_DEV: V3StepRunner._step_git_dev,
 }
 

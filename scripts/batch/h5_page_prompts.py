@@ -96,7 +96,7 @@ def format_page_implementation_prompt_block(workspace: Path, app_name: str) -> s
         "[H5 page specs — read files below; this block is an index only]",
         "- Create full `h5/` per `docs/H5壳Vite工程规范.md` (no repo code template).",
         "- Norm prose lives in the listed paths (and in RequiredReading repo docs).",
-        "- Pipeline does not generate page Vue/CSS; `dev.h5.gate` validates implementation.",
+        "- Pipeline does not generate page Vue/CSS; Agent owns markup/styles.",
         "",
     ]
 

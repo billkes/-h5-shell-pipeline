@@ -8,7 +8,7 @@ from batch.config import BatchConfig
 
 def test_default_integrations_all_on() -> None:
     assert DEFAULT_UUPM_INTEGRATIONS["enrich_domains"] is True
-    assert DEFAULT_UUPM_INTEGRATIONS["h5_gate"] is True
+    assert "h5_gate" not in DEFAULT_UUPM_INTEGRATIONS
 
 
 def test_load_uupm_integrations_from_cfg() -> None:

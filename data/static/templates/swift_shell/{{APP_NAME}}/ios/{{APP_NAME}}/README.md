@@ -9,7 +9,7 @@
 - `{{APP_NAME}}.html` — H5 入口占位（含锁定 Bridge 的 JS bootstrap）
 - `{{APP_NAME}}App.swift` — App 入口
 - `Bridge/` — WebView、Bridge Handler、Permission、IAP、录音、相册等集中式实现（**标准 persona**：美国人/英国人/中国人）
-- `{prefix}_shell/` — 同上，**混淆 persona**（德国人/法国人/俄罗斯人/日本人等）；流水线 `native.check` 与 `h5-post --fix` 会自动将厂包 `Bridge/` 重命名
+- `{prefix}_shell/` — 同上，**混淆 persona**（德国人/法国人/俄罗斯人/日本人等）；流水线 `agent.shell` 与 `h5-post --fix` 会自动将厂包 `Bridge/` 重命名
 - `{{PREFIX}}_*_*/{{PREFIX}}_*_*_leaf/` — 业务模块（WebContent / WebShell / WebView）
 
 ## 占位符

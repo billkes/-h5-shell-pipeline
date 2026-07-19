@@ -8,7 +8,7 @@
 | 谁 | 做什么 |
 |----|--------|
 | Agent | 创建完整 `h5/`（工具链 + `src/` + 全部业务 UI） |
-| 流水线 | `sync_h5_legal_bundled`、theme/layout contract、`dev.h5.build`、`dev.h5.gate` |
+| 流水线 | `sync_h5_legal_bundled`、theme/layout contract、`dev.h5.build` |
 | Gate | 行为/结构硬检；**不要求**文件长得像旧模板 |
 
 ## 工程骨架（Agent 自建）

@@ -20,7 +20,6 @@ DEFAULT_UUPM_INTEGRATIONS: dict[str, bool] = {
     "icon_brief": True,
     "motion_css": True,
     "sibling_skills_link": True,
-    "h5_gate": True,
 }
 
 

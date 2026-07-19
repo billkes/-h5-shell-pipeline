@@ -168,7 +168,6 @@ def _infer_steps_from_phases(data: dict[str, Any]) -> dict[str, str]:
         GIT_PLAN,
         PLAN_GATE,
         PUBGET,
-        NATIVE_CHECK,
         steps_for_run,
     )
 
@@ -202,7 +201,7 @@ def _infer_steps_from_phases(data: dict[str, Any]) -> dict[str, str]:
     agent_sub = str(data.get("phase_programmer_agent") or "pending")
     h5_sub = str(data.get("phase_h5_agent") or "pending")
     if dev == "done":
-        for s in (PUBGET, ANALYZE, NATIVE_CHECK, GIT_DEV):
+        for s in (PUBGET, ANALYZE, GIT_DEV):
             if s in steps:
                 steps[s] = "done"
         for s in _plan_prep[:6]:
@@ -217,14 +216,14 @@ def _infer_steps_from_phases(data: dict[str, Any]) -> dict[str, str]:
         if BUILD_AGENT in steps:
             steps[BUILD_AGENT] = "done"
     elif dev == "failed":
-        for s in (PUBGET, ANALYZE, NATIVE_CHECK):
+        for s in (PUBGET, ANALYZE):
             if s in steps and steps[s] == "pending":
                 steps[s] = "failed"
                 break
 
     audit_legacy = str(data.get("phase_auditor") or "pending")
     if audit_legacy == "done" and dev != "done":
-        for s in (PUBGET, ANALYZE, NATIVE_CHECK, GIT_DEV):
+        for s in (PUBGET, ANALYZE, GIT_DEV):
             if s in steps:
                 steps[s] = "done"
 
@@ -328,7 +327,6 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
     from batch.pipeline_steps import (
         ANALYZE,
         BUILD_AGENT,
-        DEV_H5_GATE,
         LOCK_DIMENSIONS,
         PREPARE_CONTEXT,
         PREVIEW_TABS,
@@ -339,9 +337,8 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
         SKILL_TOKENS,
         GIT_DEV,
         GIT_PLAN,
-        PLAN_GATE,
         PUBGET,
-        NATIVE_CHECK,
+        _REMOVED_STEP_IDS,
     )
 
     out = _aggregate_legacy_agent_steps(dict(steps))
@@ -370,8 +367,6 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
         _promote_to_done(out, SKILL_PAGES)
     if out.get("skill.tokens") == "done":
         _promote_to_done(out, SKILL_TOKENS)
-    if out.get("dev.h5.gate") == "done":
-        _promote_to_done(out, DEV_H5_GATE)
     if out.get("lock.dimensions") == "done":
         _promote_to_done(out, LOCK_DIMENSIONS)
     if out.get("preview.tabs") == "done":
@@ -395,8 +390,6 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
         _promote_to_done(out, PUBGET)
     if out.get("dev.analyze") == "done":
         _promote_to_done(out, ANALYZE)
-    if out.get("native.check") == "done":
-        _promote_to_done(out, NATIVE_CHECK)
     if out.get("dev.fix") == "done":
         _promote_to_done(out, ANALYZE)
     if out.get("dev.git") == "done":
@@ -411,6 +404,7 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
         "dev.prepare",
         "plan.git",
         "dev.git",
+        *_REMOVED_STEP_IDS,
     ):
         out.pop(old, None)
     aggregated = _aggregate_legacy_agent_steps(out)

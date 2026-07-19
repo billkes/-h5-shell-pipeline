@@ -36,7 +36,7 @@ Agent **Part 1（Plan）** 须一次性产出下列文件。细则以本文为�
 - `{主名字} Privacy Agreement.md`
 - `{主名字} User Agreement.md`
 
-规范：`docs/法律协议规范.md`（workspace 根目录拷贝）。plan.gate / dev.h5.gate 调用 `verify_h5_legal_md()`。
+规范：`docs/法律协议规范.md`（workspace 根目录拷贝）。plan.gate 调用 `verify_h5_legal_md()`。
 
 ## Deliverable 2) `视觉蓝图.md`（English）
 

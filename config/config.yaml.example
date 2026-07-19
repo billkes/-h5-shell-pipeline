@@ -30,7 +30,6 @@ uupm:
     icon_brief: true
     motion_css: true
     sibling_skills_link: true
-    h5_gate: true
 
 # 可选：Logo/Icon AI 生成（design skill，无 key 时跳过）
 design:

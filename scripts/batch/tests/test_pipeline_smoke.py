@@ -58,8 +58,8 @@ def test_pipeline_steps_h5_swift() -> None:
     assert "skill.pages" in steps
     assert "skill.tokens" in steps
     assert "dev.h5.build" in steps
-    assert "dev.h5.gate" in steps
-    assert "native.check" in steps
+    assert "dev.h5.gate" not in steps
+    assert "native.check" not in steps
     assert "dev.pubget" not in steps
 
 
@@ -72,7 +72,8 @@ def test_pipeline_steps_oc_shell() -> None:
     assert "agent.shell" in steps
     assert "agent.h5" in steps
     assert "build.agent" not in steps
-    assert "native.check" in steps
+    assert "native.check" not in steps
+    assert "dev.h5.gate" not in steps
 
 
 def test_repo_container_name_native_shell() -> None:

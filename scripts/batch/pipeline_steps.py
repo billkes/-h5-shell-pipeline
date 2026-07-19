@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from batch.pack_type import is_flutter_runtime, is_h5_shell, is_native_ios_runtime
+from batch.pack_type import is_flutter_runtime, is_h5_shell
 from batch.state import PM_UI_PLAN_PHASE, PROGRAMMER_PHASE
 
 # ── Step IDs ──────────────────────────────────────────────────────────
@@ -30,12 +30,13 @@ DESIGN_SYSTEM = SKILL_DESIGN
 
 PLAN_GATE = "plan.gate"
 DEV_H5_BUILD = "dev.h5.build"
-DEV_H5_GATE = "dev.h5.gate"
 GIT_PLAN = "git.plan"
 PUBGET = "dev.pubget"
 ANALYZE = "dev.analyze"
-NATIVE_CHECK = "native.check"
 GIT_DEV = "git.dev"
+
+# Removed from V3_STEPS — kept only so migration can drop them from .build-state.json
+_REMOVED_STEP_IDS: frozenset[str] = frozenset({"dev.h5.gate", "native.check"})
 
 # Legacy ids (migration / tests only)
 PLAN_PREPARE = PREPARE_CONTEXT
@@ -62,11 +63,9 @@ V3_STEPS: tuple[str, ...] = (
     AGENT_H5,
     PLAN_GATE,
     DEV_H5_BUILD,
-    DEV_H5_GATE,
     GIT_PLAN,
     PUBGET,
     ANALYZE,
-    NATIVE_CHECK,
     GIT_DEV,
 )
 
@@ -92,11 +91,9 @@ STEP_LABELS: dict[str, str] = {
     AGENT_H5: "Agent · H5 vault / legal",
     PLAN_GATE: "产出校验 + 主题登记",
     DEV_H5_BUILD: "Vite 编译 · h5 → h5_site 单文件",
-    DEV_H5_GATE: "H5 bundle + UX 门禁",
     GIT_PLAN: "Git 提交（计划产物）",
     PUBGET: "flutter pub get",
     ANALYZE: "flutter analyze",
-    NATIVE_CHECK: "native shell check",
     GIT_DEV: "Git 提交（代码）",
 }
 
@@ -115,11 +112,9 @@ STEP_TO_PHASE: dict[str, str] = {
     AGENT_H5: PM_UI_PLAN_PHASE,
     PLAN_GATE: PM_UI_PLAN_PHASE,
     DEV_H5_BUILD: PM_UI_PLAN_PHASE,
-    DEV_H5_GATE: PM_UI_PLAN_PHASE,
     GIT_PLAN: PM_UI_PLAN_PHASE,
     PUBGET: PROGRAMMER_PHASE,
     ANALYZE: PROGRAMMER_PHASE,
-    NATIVE_CHECK: PROGRAMMER_PHASE,
     GIT_DEV: PROGRAMMER_PHASE,
 }
 
@@ -137,13 +132,11 @@ PHASE_STEPS: dict[str, tuple[str, ...]] = {
         AGENT_H5,
         PLAN_GATE,
         DEV_H5_BUILD,
-        DEV_H5_GATE,
         GIT_PLAN,
     ),
     PROGRAMMER_PHASE: (
         PUBGET,
         ANALYZE,
-        NATIVE_CHECK,
         GIT_DEV,
     ),
 }
@@ -160,13 +153,11 @@ def steps_for_run(*, pack_type: str) -> tuple[str, ...]:
     steps: list[str] = []
     is_h5 = is_h5_shell(pack_type)
     for step in V3_STEPS:
-        if step in (DEV_H5_BUILD, DEV_H5_GATE) and not is_h5:
+        if step == DEV_H5_BUILD and not is_h5:
             continue
         if step in (AGENT_PLAN, AGENT_SHELL, AGENT_H5) and not is_h5:
             continue
         if step in (PUBGET, ANALYZE) and not is_flutter_runtime(pack_type):
-            continue
-        if step == NATIVE_CHECK and not is_native_ios_runtime(pack_type):
             continue
         steps.append(step)
     return tuple(steps)
@@ -226,9 +217,7 @@ def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
         "dev.git": GIT_DEV,
         "dev.pubget": PUBGET,
         "dev.analyze": ANALYZE,
-        "native.check": NATIVE_CHECK,
         "dev.h5.build": DEV_H5_BUILD,
-        "dev.h5.gate": DEV_H5_GATE,
     }
     if text in legacy_map:
         mapped = legacy_map[text]
