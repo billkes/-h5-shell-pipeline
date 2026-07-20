@@ -60,6 +60,8 @@ def test_v3_plan_pack_prompt_no_visual_blueprint() -> None:
 def test_v3_shell_prompt_is_runtime_unified() -> None:
     text = (PROMPTS / "phase_h5_shell_programmer.txt").read_text(encoding="utf-8")
     assert "${SHELL_RUNTIME}" in text
+    assert "Deep Naming" in text
+    assert "bridgeDeckSelections" in text
     assert "${H5_SHELL_BLOCK}" not in text
     assert not (PROMPTS / "phase_h5_shell_swift_programmer.txt").is_file()
     assert not (PROMPTS / "phase_h5_shell_oc_programmer.txt").is_file()

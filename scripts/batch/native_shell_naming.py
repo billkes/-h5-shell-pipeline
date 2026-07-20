@@ -623,10 +623,11 @@ def build_native_shell_naming_prompt_block(
     return (
         "\n[Native Shell Naming — REQUIRED]\n"
         f"- programmingStyle: {row.programming_style}\n"
-        f"- libLayout (dim-6): `{expected_lib}`\n"
-        f"- assetLayout / h5VaultLayout (dim-7): `{expected_asset}`\n"
+        f"- libLayout (dim-6, Flutter/H5 vault topology — not native code shape): `{expected_lib}`\n"
+        f"- assetLayout / h5VaultLayout (dim-7, H5 deploy — not native code shape): `{expected_asset}`\n"
         f"- h5VaultPattern: `{expected_vault}`\n"
         f"{rule}"
+        "- Native Swift/OC **implementation** style: 编程人设风格.md dims 2–5.\n"
         "- programmingStyle MUST match across 本包登记信息.json / 本包代码组合.json / "
         "本包维度锁.json.\n"
         "- Architecture role folders: ONLY names from architectureFolders in "

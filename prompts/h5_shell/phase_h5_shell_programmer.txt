@@ -13,10 +13,11 @@ ${RESUME_BLOCK}
 ### Required Reading (read FIRST)
 1. `skill-input/agent-spec-index.md`
 2. `skill-input/agent-brain-focus.md`
-3. `H5壳Pack约束.md` · 《H5-Bridge协议.md》 · 《H5壳启动闪屏规范.md》
+3. `H5壳Pack约束.md` · 《H5-Bridge协议.md》 · 《H5壳启动闪屏规范.md`
 4. Runtime-specific: Flutter → this prompt + Pack约束; Swift → `H5壳Swift实现规范.md`; OC → `H5壳OC实现规范.md`
 5. 功能文档.md · 产包计划.md · 本包登记信息.json · 本包代码组合.json
 6. 《${P2_PRODUCT_DOC}》
+7. Native only: `编程人设风格.md` (persona dims 2–5) · `命名混淆规则.md` (deep naming)
 
 ### Deliverables
 - Native container + Bridge matching CSV / 本包登记信息.json draws
@@ -27,6 +28,16 @@ ${RESUME_BLOCK}
 - No visible business UI in Flutter / Swift / OC — Part 3 owns H5 site / legal / plaza.
 - Shell = WebView host + Bridge + shell rasters only.
 - Bridge names are LOCKED to the App name (see 《H5-Bridge协议.md》 §5): register channel `${BRIDGE_CHANNEL}` (WKScriptMessageHandler / injected `window.${BRIDGE_CHANNEL}`) and reply via `window.${BRIDGE_CALLBACK}`; request `{ id, action, payload }`, reply `{ id, data }` / `{ id, error }`. H5 (Part 3) reuses these EXACT names — never derive from the code prefix. Swift/OC templates already lock this; a Flutter shell MUST match.
+
+### Deep Naming — every namable (Native Swift/OC — MANDATORY)
+- Read `命名混淆规则.md` §Native shell — apply `transform_identifier()` to **every** namable: folders, files, classes, **all methods**, **fields**, **`private let` constants**, **locals**, params (when not SDK-fixed), enum cases.
+- FORBIDDEN leaving template semantic names: `loadTimeout`, `pathMonitor`, `monitorQueue`, `shellReadyReceived`, `scheduleLoadTimeout`, etc.
+- Example: `private let loadTimeout: TimeInterval = 30` → transformed name + may vary value (e.g. 28).
+- Rewrite **all** English UI strings and comments per package — no shared copy across apps (`"Page Not Found"`, CDN size comments, etc.).
+
+### Bridge deck (from task.csv — MANDATORY for native)
+- Implement each dimension in `bridgeDeckSelections` exactly — see runtime spec §Bridge card matrix.
+- Do NOT default to a single WKScriptMessageHandler-only path unless that card was drawn.
 
 ## Output
 Write files only. Then one-line summary.
