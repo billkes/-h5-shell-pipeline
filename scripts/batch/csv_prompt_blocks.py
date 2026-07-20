@@ -108,20 +108,34 @@ def csv_native_shell_naming_block(
     return build_native_shell_naming_prompt_block(row, prefix=prefix)
 
 
-def dimension_boundary_block() -> str:
+def dimension_boundary_block(*, native_shell: bool = False) -> str:
     """Tie-break order between the four dimensions, restated for the Agent."""
+    style_dims = (
+        "dims 2–5 implementation style (let/var, async, method split)"
+        if native_shell
+        else "dims 1–5 coding style plus lib/asset layout (dims 6–7)"
+    )
+    naming_scope = (
+        "ios/{AppName}/ Swift/OC identifiers + SeedAssets raster paths"
+        if native_shell
+        else "`lib/` **and** `assets/`"
+    )
     return (
         "\n[Four Dimensions — Tie-break order]\n"
-        "- Naming (命名规则): owns identifier surface for `lib/` **and** `assets/`\n"
+        f"- Naming (命名规则): owns identifier surface for {naming_scope}\n"
         "  (folders, files, classes, methods, fields, params, locals, enum values,\n"
-        "  raster paths in 本包资源布局.json).\n"
+        "  raster paths in 本包资源布局.json when applicable).\n"
         "- Architecture (架构模式): owns role folders and their responsibilities;\n"
         "  it does NOT decide names — naming rule wraps every folder/class name.\n"
-        "- State management (状态管理): owns top-level + cross-screen refresh;\n"
-        "  must not invent new role folders and must not invent identifier styles.\n"
-        "- Programming style (编程人设): owns HOW code is written (dims 1–5)\n"
-        "  plus lib tree topology + asset roots (dims 6–7) — never overrides\n"
-        "  names or architecture role semantics.\n"
+        + (
+            "- State management (状态管理): Flutter-only for h5_flutter_shell;\n"
+            "  non-binding for native Swift/OC shells.\n"
+            if native_shell
+            else "- State management (状态管理): owns top-level + cross-screen refresh;\n"
+            "  must not invent new role folders and must not invent identifier styles.\n"
+        )
+        + f"- Programming style (编程人设): owns HOW code is written ({style_dims})\n"
+        "  — never overrides names, architecture role semantics, or bridgeDeckSelections.\n"
         "- Conflict order: naming > architecture > state mgmt > programming style.\n"
     )
 

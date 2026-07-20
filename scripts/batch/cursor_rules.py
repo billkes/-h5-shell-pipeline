@@ -535,6 +535,14 @@ def write_native_cursor_rules(
         return
     rules_dir = workspace / RULES_SUBDIR
 
+    _write_mdc(
+        rules_dir,
+        "dimension-boundary.mdc",
+        "四维度边界与冲突 tie-break 顺序",
+        "# 四维度边界（命名 > 架构 > 编程风格）\n\n"
+        + dimension_boundary_block(native_shell=True).strip(),
+    )
+
     arch_block = build_native_architecture_prompt_block(row)
     if arch_block.strip():
         _write_mdc(

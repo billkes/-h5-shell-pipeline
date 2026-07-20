@@ -16,6 +16,7 @@ from batch.csv_tasks import (
     architecture_pattern_key,
     state_management_key,
 )
+from batch.pack_type import is_native_ios_runtime
 
 COMBO_FILE = "本包代码组合.json"
 
@@ -181,8 +182,24 @@ def build_programming_style_prompt_block(
     *,
     prefix: str = "",
 ) -> str:
-    """Build Agent instruction block for CSV programming persona (7 dims)."""
+    """Build Agent instruction block for CSV programming persona."""
     layout_block = build_programming_layout_prompt_block(row, prefix=prefix)
+    if is_native_ios_runtime(row.pack_type):
+        return (
+            "\n[CSV Programming Style — Native implementation (dims 2–5) — REQUIRED]\n"
+            f"- programmingStyle (from CSV 编程风格): {row.programming_style}\n"
+            "- Read 编程人设风格.md; locate the row for this persona.\n"
+            "- Apply dims 2–5 to every Swift/OC shell source file:\n"
+            "  2) Style / let-var / access  3) Syntax & iteration\n"
+            "  4) Control flow & async  5) Method split & optional handling\n"
+            "- dim-1 Widget split: N/A for native — ignore.\n"
+            "- dims 6–7 (libLayout / assetLayout): H5 vault & Flutter layout only;\n"
+            "  native directory names follow architectureFolders + naming rule.\n"
+            "- Persona dims 2–5 MUST change control-flow/async/method shape — not only folders.\n"
+            "- Persona MUST NOT override bridgeDeckSelections mechanisms (see 编程人设风格.md).\n"
+            "- Flutter-only lock fields (dartPackageName, stateManagement, skinBucket) are non-binding.\n"
+            f"{layout_block}"
+        )
     return (
         "\n[CSV Programming Style — REQUIRED]\n"
         f"- programmingStyle (from CSV 编程风格): {row.programming_style}\n"
