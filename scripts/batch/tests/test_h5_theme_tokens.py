@@ -5,7 +5,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from batch.h5_theme_tokens import build_theme_block, sync_h5_global_theme, verify_h5_theme_system
+from batch.h5_theme_tokens import (
+    build_theme_block,
+    normalize_css_imports,
+    sync_h5_global_theme,
+    verify_h5_theme_system,
+)
 
 
 def test_build_theme_block_has_light_and_dark() -> None:
@@ -64,3 +69,25 @@ def test_sync_h5_global_theme(tmp_path: Path) -> None:
     assert "prefers-color-scheme: dark" in text
     assert ".h5-app-shell" in text
     assert verify_h5_theme_system(tmp_path) == []
+
+
+def test_normalize_css_imports_moves_misplaced_kit_and_fonts() -> None:
+    """Agent often appends @import after :root — PostCSS then ignores kit.css."""
+    from batch.h5_theme_tokens import _verify_css_import_order
+
+    css = """:root {
+  --demo-primary: #000;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+@import './kit.css';
+
+@tailwind base;
+"""
+    fixed = normalize_css_imports(css)
+    lines = [ln.strip() for ln in fixed.splitlines() if ln.strip() and not ln.strip().startswith("/*")]
+    assert lines[0].startswith("@import url(")
+    assert lines[1] == "@import './kit.css';"
+    assert lines[2].startswith(":root")
+    assert _verify_css_import_order(fixed) == []
+    assert _verify_css_import_order(css) != []

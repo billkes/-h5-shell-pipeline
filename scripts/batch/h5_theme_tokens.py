@@ -457,24 +457,60 @@ def _font_stack_from_master(project: Path, prefix: str) -> dict[str, str]:
     }
 
 
+_IMPORT_LINE_RE = re.compile(
+    r"^\s*@import\s+(?:url\([^)]+\)|['\"][^'\"]+['\"])\s*;?\s*$",
+    re.MULTILINE | re.IGNORECASE,
+)
+_KIT_CSS_IMPORT = "@import './kit.css';"
+
+
+def _strip_css_imports(css: str) -> tuple[list[str], str]:
+    """Extract @import lines; return (imports in file order, body without imports)."""
+    imports: list[str] = []
+
+    def _collect(match: re.Match[str]) -> str:
+        line = match.group(0).strip().rstrip(";") + ";"
+        if line not in imports:
+            imports.append(line)
+        return ""
+
+    body = _IMPORT_LINE_RE.sub(_collect, css)
+    body = re.sub(r"\n{3,}", "\n\n", body).strip()
+    return imports, body
+
+
+def _join_css_imports(imports: list[str], body: str) -> str:
+    if not imports:
+        return body + ("\n" if body and not body.endswith("\n") else "")
+    header = "\n".join(imports)
+    if not body:
+        return header + "\n"
+    return header + "\n\n" + body + ("\n" if not body.endswith("\n") else "")
+
+
+def normalize_css_imports(css: str, *, ensure_kit: bool = True) -> str:
+    """Move all @import to file top (PostCSS requires imports before other rules)."""
+    imports, body = _strip_css_imports(css)
+    if ensure_kit and not any("kit.css" in imp for imp in imports):
+        imports.append(_KIT_CSS_IMPORT)
+    return _join_css_imports(imports, body)
+
+
 def _ensure_google_fonts_import(css: str, project: Path) -> str:
     from batch.uupm_design_system import find_design_system_master, parse_master_typography
 
-    if "@import url(" in css and "fonts.googleapis.com" in css:
-        return css
-    master = find_design_system_master(project)
-    if not master or not master.is_file():
-        return css
-    typo = parse_master_typography(master.read_text(encoding="utf-8", errors="ignore"))
-    url = str(typo.get("google_fonts_url") or "").strip()
-    if not url:
-        return css
-    if not url.startswith("http"):
-        url = f"https://{url.lstrip('/')}"
-    import_line = f"@import url('{url}');"
-    if import_line in css:
-        return css
-    return import_line + "\n\n" + css
+    imports, body = _strip_css_imports(css)
+    has_google = any("fonts.googleapis.com" in imp for imp in imports)
+    if not has_google:
+        master = find_design_system_master(project)
+        if master and master.is_file():
+            typo = parse_master_typography(master.read_text(encoding="utf-8", errors="ignore"))
+            url = str(typo.get("google_fonts_url") or "").strip()
+            if url:
+                if not url.startswith("http"):
+                    url = f"https://{url.lstrip('/')}"
+                imports.insert(0, f"@import url('{url}');")
+    return _join_css_imports(imports, body)
 
 
 def _master_shape_tokens(project: Path, prefix: str) -> dict[str, str]:
@@ -555,6 +591,7 @@ def sync_h5_global_theme(project: Path, *, write: bool = True) -> Path | None:
     updated = _strip_orphan_theme_comments(updated)
     updated = _ensure_static_root_vars(updated, prefix, project=project)
     updated = _ensure_google_fonts_import(updated, project)
+    updated = normalize_css_imports(updated)
     if write and updated != raw:
         css_path.write_text(updated, encoding="utf-8")
     if write and css_path.is_file():
@@ -582,6 +619,31 @@ def sync_h5_global_theme(project: Path, *, write: bool = True) -> Path | None:
     return css_path
 
 
+def _verify_css_import_order(css: str) -> list[str]:
+    """@import must precede all other rules or Vite/PostCSS drops kit.css and fonts."""
+    issues: list[str] = []
+    if "kit.css" not in css:
+        issues.append("UX Gate: global.css 缺少 @import './kit.css'（kit 组件样式不会加载）")
+    saw_rule = False
+    import_after_rule = False
+    for line in css.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("/*"):
+            continue
+        if stripped.lower().startswith("@charset"):
+            continue
+        if stripped.lower().startswith("@import"):
+            if saw_rule:
+                import_after_rule = True
+            continue
+        saw_rule = True
+    if import_after_rule:
+        issues.append(
+            "UX Gate: global.css 中 @import 须位于文件最前（kit.css / Google Fonts 未生效）"
+        )
+    return issues
+
+
 def verify_h5_theme_system(project: Path) -> list[str]:
     issues: list[str] = []
     css_path = project / "h5" / "src" / "styles" / "global.css"
@@ -602,6 +664,7 @@ def verify_h5_theme_system(project: Path) -> list[str]:
         issues.append("UX Gate: global.css 缺少 @media (prefers-color-scheme: dark) token 块")
     if ".h5-app-shell" not in css and "h5-app-shell" not in css:
         issues.append("UX Gate: 缺少 .h5-app-shell 内容层（Ambient 可能遮挡 Welcome）")
+    issues.extend(_verify_css_import_order(css))
     prefix = resolve_prefix(project).lower()
     if prefix:
         theme_slice = css
