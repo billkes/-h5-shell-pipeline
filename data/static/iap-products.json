@@ -8,61 +8,61 @@
         "price": 0.99,
         "originalPrice": null,
         "coins": 99,
-        "name": "Service Tier 1",
+        "name": "System Access 1",
         "tags": [],
         "remarks": null
       },
       {
         "index": 2,
-        "price": 1.49,
+        "price": 1.99,
         "originalPrice": null,
-        "coins": 149,
-        "name": "Service Tier 2",
+        "coins": 199,
+        "name": "System Access 2",
         "tags": [],
         "remarks": null
       },
       {
         "index": 3,
-        "price": 3.99,
+        "price": 4.99,
         "originalPrice": null,
-        "coins": 399,
-        "name": "Service Tier 3",
+        "coins": 499,
+        "name": "System Access 3",
         "tags": [],
         "remarks": null
       },
       {
         "index": 4,
-        "price": 4.95,
+        "price": 6.99,
         "originalPrice": null,
-        "coins": 495,
-        "name": "Service Tier 4",
+        "coins": 799,
+        "name": "System Access 4",
         "tags": [],
         "remarks": null
       },
       {
         "index": 5,
-        "price": 7.99,
+        "price": 9.95,
         "originalPrice": null,
-        "coins": 899,
-        "name": "Service Tier 5",
+        "coins": 1195,
+        "name": "System Access 5",
         "tags": [],
         "remarks": null
       },
       {
         "index": 6,
-        "price": 9.9,
+        "price": 12.99,
         "originalPrice": null,
-        "coins": 1190,
-        "name": "Service Tier 6",
+        "coins": 1499,
+        "name": "System Access 6",
         "tags": [],
         "remarks": null
       },
       {
         "index": 7,
-        "price": 12.95,
+        "price": 15.49,
         "originalPrice": null,
-        "coins": 1495,
-        "name": "Service Tier 7",
+        "coins": 1849,
+        "name": "System Access 7",
         "tags": [],
         "remarks": null
       },
@@ -70,17 +70,17 @@
         "index": 8,
         "price": 19.99,
         "originalPrice": null,
-        "coins": 2499,
-        "name": "Service Tier 8",
+        "coins": 2495,
+        "name": "System Access 8",
         "tags": [],
         "remarks": null
       },
       {
         "index": 9,
-        "price": 29.99,
+        "price": 29.49,
         "originalPrice": null,
-        "coins": 3999,
-        "name": "Service Tier 9",
+        "coins": 3899,
+        "name": "System Access 9",
         "tags": [],
         "remarks": null
       },
@@ -88,26 +88,17 @@
         "index": 10,
         "price": 49.99,
         "originalPrice": null,
-        "coins": 6999,
-        "name": "Service Tier 10",
+        "coins": 6995,
+        "name": "System Access 10",
         "tags": [],
         "remarks": null
       },
       {
         "index": 11,
-        "price": 59.99,
-        "originalPrice": null,
-        "coins": 8499,
-        "name": "Service Tier 11",
-        "tags": [],
-        "remarks": null
-      },
-      {
-        "index": 12,
         "price": 99.99,
         "originalPrice": null,
-        "coins": 14999,
-        "name": "Service Tier 12",
+        "coins": 14995,
+        "name": "System Access 11",
         "tags": [],
         "remarks": null
       }
@@ -122,49 +113,49 @@
         "promoPrice": 0.99,
         "originalPrice": 1.99,
         "coins": 190,
-        "name": "Promo Tier 1"
+        "name": "Flash Access 1"
       },
       {
         "index": 2,
         "promoPrice": 1.99,
         "originalPrice": 4.99,
         "coins": 490,
-        "name": "Promo Tier 2"
+        "name": "Flash Access 2"
       },
       {
         "index": 3,
-        "promoPrice": 2.99,
-        "originalPrice": 5.99,
-        "coins": 740,
-        "name": "Promo Tier 3"
-      },
-      {
-        "index": 4,
         "promoPrice": 4.95,
         "originalPrice": 9.95,
         "coins": 1190,
-        "name": "Promo Tier 4"
+        "name": "Flash Access 3"
+      },
+      {
+        "index": 4,
+        "promoPrice": 6.99,
+        "originalPrice": 12.99,
+        "coins": 1590,
+        "name": "Flash Access 4"
       },
       {
         "index": 5,
         "promoPrice": 11.95,
         "originalPrice": 20.95,
         "coins": 2690,
-        "name": "Promo Tier 5"
+        "name": "Flash Access 5"
       },
       {
         "index": 6,
-        "promoPrice": 19.99,
-        "originalPrice": 29.99,
-        "coins": 4590,
-        "name": "Promo Tier 6"
-      },
-      {
-        "index": 7,
         "promoPrice": 35.99,
         "originalPrice": 49.99,
         "coins": 6990,
-        "name": "Promo Tier 7"
+        "name": "Flash Access 6"
+      },
+      {
+        "index": 7,
+        "promoPrice": 79.99,
+        "originalPrice": 99.99,
+        "coins": 14990,
+        "name": "Flash Access 7"
       }
     ]
   }

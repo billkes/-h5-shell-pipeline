@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any, Literal
 
-REGULAR_COUNT = 12
+REGULAR_COUNT = 11
 PROMO_COUNT = 7
 TOTAL_PRODUCT_COUNT = REGULAR_COUNT + PROMO_COUNT
 
