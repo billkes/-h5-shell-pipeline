@@ -42,6 +42,11 @@ class H5ShellCompatTests(unittest.TestCase):
         self.assertIn("flutter_inappwebview.callHandler(Promise)", filtered)
         self.assertNotIn("JavascriptChannel.postMessage(JSON)", filtered)
 
+    def test_native_swift_pools_have_multiple_bridge_cards(self) -> None:
+        pools = load_h5_bridge_pools(PROJECT_ROOT, pack_type="h5_swift_shell")
+        self.assertGreater(len(pools[COL_BRIDGE_CALL_STYLE]), 1)
+        self.assertGreater(len(pools[COL_WEBVIEW_ENGINE]), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

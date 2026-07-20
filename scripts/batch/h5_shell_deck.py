@@ -36,29 +36,6 @@ H5_SHELL_COMPAT_NAME = "h5-shell-compat-matrix.json"
 H5_NATIVE_SHELL_COMPAT_NAME = "h5-native-shell-compat-matrix.json"
 H5_SHELL_LEDGER_NAME = "h5-shell-combo-ledger.json"
 
-# Locked bridge station for native iOS shells (Swift/OC). The pack_type pins the
-# runtime; we intentionally do not draw random cards for these dimensions so the
-# generated shell always matches the canonical implementation spec.
-LOCKED_NATIVE_IOS_BRIDGE: dict[str, str] = {
-    COL_WEBVIEW_ENGINE: "wkwebview_swift",
-    COL_BRIDGE_CALL_STYLE: "WKScriptMessageHandler.postMessage(JSON)",
-    COL_BRIDGE_CALLBACK_STYLE: "evaluateJavaScript(callbackId(data))",
-    COL_BRIDGE_ENVELOPE: "{action,data} minimal",
-    COL_MEDIA_SERVE: "WKURLSchemeHandler local vault",
-    COL_BRIDGE_ERROR_CODE: "string enum (PERMISSION_DENIED)",
-    COL_BRIDGE_INJECT_TIMING: "WKUserScript atDocumentStart",
-}
-
-LOCKED_NATIVE_OC_BRIDGE: dict[str, str] = {
-    COL_WEBVIEW_ENGINE: "wkwebview_oc",
-    COL_BRIDGE_CALL_STYLE: "window.webkit.messageHandlers.{prefix}.postMessage(JSON)",
-    COL_BRIDGE_CALLBACK_STYLE: "URL scheme callback (app-callback://)",
-    COL_BRIDGE_ENVELOPE: "URL query flattened",
-    COL_MEDIA_SERVE: "WKURLSchemeHandler local vault",
-    COL_BRIDGE_ERROR_CODE: "numeric codes (0/-1/-2)",
-    COL_BRIDGE_INJECT_TIMING: "WKUserScript atDocumentStart",
-}
-
 
 def h5_shell_deck_path(project_dir: Path | str, *, pack_type: str = "") -> Path:
     root = Path(project_dir)
@@ -112,13 +89,6 @@ def load_h5_bridge_pools(project_dir: Path, *, pack_type: str = "") -> dict[str,
     if missing:
         raise ValueError(f"{deck_path.name} 牌池缺少列: {', '.join(missing)}")
 
-    if is_native_ios_runtime(pack_type):
-        if h5_shell_runtime(pack_type) == "oc":
-            locked = LOCKED_NATIVE_OC_BRIDGE
-        else:
-            locked = LOCKED_NATIVE_IOS_BRIDGE
-        for col, val in locked.items():
-            pools[col] = [val]
     return pools
 
 
@@ -403,8 +373,11 @@ def format_h5_shell_bridge_block(row: object) -> str:
             lines.append(f"- {col}: {val}")
     if is_native_ios_runtime(row.pack_type):
         lines.append(
-            "Implement WKWebView + WKScriptMessageHandler Bridge exactly per these draws "
-            "and H5-Bridge协议.md (native host section)."
+            "Implement WKWebView Bridge exactly per these CSV draws — each dimension "
+            "selects a concrete mechanism (callStyle / callbackStyle / envelope / "
+            "mediaServe / errorCode / injectTiming). Read H5壳Swift实现规范.md or "
+            "H5壳OC实现规范.md §Bridge card matrix for the drawn cards. "
+            "WKScriptMessageHandler channel names stay App-name locked per H5-Bridge协议.md §5."
         )
     else:
         lines.append("Implement Bridge exactly per these draws and H5-Bridge协议.md.")

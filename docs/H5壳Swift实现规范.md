@@ -6,21 +6,23 @@
 
 ---
 
-## 1. 技术站锁定
+## 1. 技术站锁定与 Bridge 抽卡
 
-`pack_type == h5_swift_shell` 时，以下七维由 `pack_type.py` 锁定，**不随 CSV Bridge deck 抽卡变化**：
+`pack_type == h5_swift_shell` 时：
 
-| 维度 | 锁定值 | 说明 |
-|------|--------|------|
-| `webviewEngine` | `wkwebview_swift` | `WKWebView` + `WKWebViewConfiguration` |
-| `bridgeCallStyle` | `WKScriptMessageHandler.postMessage(JSON)` 或 `iframe URL scheme` | 两种实现均被允许，但 **每包只选一种**；默认推荐 `WKScriptMessageHandler` |
-| `bridgeCallbackStyle` | `evaluateJavaScript(callbackId(data))` | Native 回传 H5 统一走 `webView.evaluateJavaScript` |
-| `bridgeEnvelope` | `{action,data}` minimal 或版本化信封 | 与 H5 约定一致即可 |
-| `mediaServe` | `WKURLSchemeHandler local vault` | 自定义 scheme（如 `prepoo-asset://`、`mockoo-asset://`） |
-| `bridgeErrorCode` | `string enum` 或 gRPC 风格 | 与 H5 约定一致 |
-| `bridgeInjectTiming` | `WKUserScript atDocumentStart` | 在 `viewDidLoad` 前注入 bridge bootstrap |
+| 维度 | 来源 | 说明 |
+|------|------|------|
+| `webviewEngine` | **pack_type 锁定** | 恒为 `wkwebview_swift` |
+| `bridgeCallStyle` | **task.csv / bridgeDeckSelections 抽卡** | 见 §4.1 卡面矩阵 |
+| `bridgeCallbackStyle` | 抽卡 | 见 §4.3 卡面矩阵 |
+| `bridgeEnvelope` | 抽卡 | 见 §4.4 卡面矩阵 |
+| `mediaServe` | 抽卡 | 见 §5 卡面矩阵 |
+| `bridgeErrorCode` | 抽卡 | 见 §4.5 卡面矩阵 |
+| `bridgeInjectTiming` | 抽卡 | 见 §4.6 卡面矩阵 |
 
-`本包登记信息.json` 中的 `bridgeDeckSelections` 须如实填写上述锁定值，`bridgeCapabilities` 须与功能文档勾选子集一致。
+**MUST**：读取 `本包登记信息.json` → `bridgeDeckSelections`，按抽中卡面实现；禁止默认回退到单一 canonical 路径。H5 `bridge.ts` 须与抽中 `bridgeEnvelope` / `bridgeCallStyle` 对齐。
+
+> Bridge **通道名**（`{appLower}Bridge` / `{appLower}BridgeCallback`）仍由 App 名锁定，见《H5-Bridge协议.md》§5 — 与 `bridgeCallStyle` 机制选择正交。
 
 ---
 
@@ -96,9 +98,19 @@ webView = WKWebView(frame: .zero, configuration: config)
 
 ---
 
-## 4. Bridge 实现
+## 4. Bridge 实现（按 bridgeDeckSelections 抽卡）
 
-### 4.1 方式 A：WKScriptMessageHandler（推荐，Prepoo 风格）
+### 4.1 bridgeCallStyle 卡面
+
+| 抽中卡 | Swift 实现要点 |
+|--------|----------------|
+| `WKScriptMessageHandler.postMessage(JSON)` | `userContentController.add(handler, name: "{appLower}Bridge")`；H5 `window.webkit.messageHandlers.{appLower}Bridge.postMessage({ id, action, payload })` |
+| `window.webkit.messageHandlers.{prefix}.postMessage(JSON)` | 同上；handler name 仍用 App 名派生通道，**不用** dartCodePrefix |
+| `WKUserContentController named handler + JSON body` | 同上 + handler 类独立文件；body 统一 `[String: Any]` 解析 |
+| `custom URL scheme intercept (app-bridge://)` | `decidePolicyFor navigationAction` 拦截 `app-bridge://` query；取消导航；解析 `callbackId/action/data` |
+| `postMessage + CustomEvent bridgeReady` | WKScriptMessageHandler 为主路径；注入脚本在 bootstrap 末尾 `dispatchEvent(new CustomEvent('bridgeReady'))` |
+
+### 4.2 方式 A 示例：WKScriptMessageHandler（Prepoo 风格）
 
 H5 → Native：
 
@@ -169,7 +181,48 @@ func webView(_ webView: WKWebView,
 
 Native → H5 同样走 `evaluateJavaScript("window.__xucKitReply(callbackId, envelope)")`。
 
-### 4.3 回调信封
+### 4.3 bridgeCallbackStyle 卡面
+
+| 抽中卡 | Swift 实现要点 |
+|--------|----------------|
+| `evaluateJavaScript(callbackId(data))` | `webView.evaluateJavaScript("window.{appLower}BridgeCallback('\(id)', \(json))")` |
+| `WKWebView.evaluateJavaScript completionHandler` | 同上 + `completionHandler` 记录失败日志 |
+| `callAsyncJavaScript Promise resolve (iOS 14+)` | `webView.callAsyncJavaScript("window.{appLower}BridgeCallback", arguments: [id, envelope], ...)` |
+| `injected JS dispatchEvent(NativeReply)` | 注入 `window.dispatchEvent(new CustomEvent('NativeReply', { detail: { id, data } }))` |
+| `callbackId Map + evaluateJavaScript` | Native 侧 `pendingCallbacks: [String: (Result) -> Void]` + evaluateJavaScript 触发 H5 全局回调 |
+| `URL scheme callback (app-callback://)` | `loadRequest(URL(string: "app-callback://\(id)?payload=..."))` 或 iframe 导航；H5 监听 hash/iframe |
+
+### 4.4 bridgeEnvelope 卡面
+
+| 抽中卡 | 字段形状 |
+|--------|----------|
+| `{action,data} minimal` | 请求 `{ id, action, payload }`；回复 `{ id, data }` / `{ id, error }` |
+| `RPC {jsonrpc,method,params,id}` | `{ jsonrpc: "2.0", method, params, id }` |
+| `versioned envelope {v,action,payload,callbackId}` | `{ v: 1, action, payload, callbackId }` |
+| `method+args split fields` | `{ id, method, args: [...] }` |
+| `URL query flattened` | scheme 拦截时 query `action` / `data` / `callbackId` 扁平键值 |
+
+### 4.5 bridgeErrorCode 卡面
+
+| 抽中卡 | 示例 |
+|--------|------|
+| `numeric codes (0/-1/-2)` | `{ code: -1, message: "..." }` |
+| `string enum (PERMISSION_DENIED)` | `{ code: "PERMISSION_DENIED" }` |
+| `HTTP-like (400/403/500)` | `{ code: 403, message: "..." }` |
+| `gRPC-style (INVALID_ARGUMENT)` | `{ code: "INVALID_ARGUMENT" }` |
+| `short prefix+number (E101)` | `{ code: "E101" }` |
+
+### 4.6 bridgeInjectTiming 卡面
+
+| 抽中卡 | 注入点 |
+|--------|--------|
+| `WKUserScript atDocumentStart` | `injectionTime: .atDocumentStart` |
+| `WKUserScript atDocumentEnd` | `injectionTime: .atDocumentEnd` |
+| `didFinish navigation inject polyfill` | `webView(_:didFinish:)` 内 `evaluateJavaScript` 一次性注入 |
+| `configuration.userContentController before first load` | `WKWebViewConfiguration` 创建后、`loadRequest` 前 `addUserScript` |
+| `bundled bridge.js in main bundle preload` | Bundle 读 `bridge.js` → `WKUserScript` atDocumentStart |
+
+### 4.7 回调信封（与 envelope 卡面对齐）
 
 成功：
 
@@ -187,22 +240,32 @@ Native → H5 同样走 `evaluateJavaScript("window.__xucKitReply(callbackId, en
 
 ---
 
-## 5. 本地资源服务（WKURLSchemeHandler）
+## 5. 本地资源服务（mediaServe 抽卡）
 
-### 5.1 注册
+### 5.1 mediaServe 卡面
+
+| 抽中卡 | Swift 实现要点 |
+|--------|----------------|
+| `loadFileURL bundle resource` | `webView.loadFileURL(bundleURL, allowingReadAccessTo: bundleRoot)` 仅 seed；用户媒体仍走 Bridge |
+| `WKURLSchemeHandler local vault` | `config.setURLSchemeHandler(handler, forURLScheme: "{appSlug}-asset")` |
+| `custom scheme handler (app-asset://)` | 同上；scheme 名写入 `本包登记信息.json` → `assetScheme` |
+| `readFile Bridge base64 inline` | Bridge `readFile` action 读 Documents → base64 回 H5（小文件 only） |
+| `NSURL fileURLWithPath vault relative` | Scheme handler 内 `FileManager` 拼 Documents 相对路径 |
+
+### 5.2 注册（WKURLSchemeHandler 卡面）
 
 ```swift
 config.setURLSchemeHandler(assetHandler, forURLScheme: "prepoo-asset")
 ```
 
-### 5.2 H5 使用
+### 5.3 H5 使用
 
 ```html
 <img src="prepoo-asset://local/selfies/week_1.jpg">
 <audio src="prepoo-asset://local/voice/note_1.m4a">
 ```
 
-### 5.3 Native 解析
+### 5.4 Native 解析
 
 ```swift
 class {{APP_NAME}}AssetScheme: NSObject, WKURLSchemeHandler {
@@ -230,7 +293,7 @@ class {{APP_NAME}}AssetScheme: NSObject, WKURLSchemeHandler {
 }
 ```
 
-### 5.4 安全要求
+### 5.5 安全要求
 
 - 必须做路径穿越校验（禁止 `../` 超出 Documents）。
 - 禁止直接回传绝对路径给 H5。
@@ -364,7 +427,7 @@ private var fulfilledTransactions: Set<String> {
 
 ---
 
-## 11. 命名约定
+## 11. 命名约定（深度混淆）
 
 ### 11.1 标准风格（美国人 / 英国人 / 中国人）
 
@@ -376,6 +439,22 @@ private var fulfilledTransactions: Set<String> {
 - 前缀：`{prefix}`（如 `xucfw`）
 - 模块目录：`{prefix}_{module_name}/` + `{prefix}_{module_name}_bay/`
 - 类名：`Xucfw<Role><Metaphor><Suffix>`，如 `XucfwPrismNestAnchorLayer`、`XucfwHttpSlotAnchorInteractor`
+
+### 11.3 深度命名（所有 persona — MANDATORY）
+
+`transform_identifier(ruleKey, meta, entity, semantic, salt)` 须覆盖 **每一个可命名位置**，不仅是 class/file：
+
+| entity | 示例 semantic | 混淆前（禁止留 canonical） | 混淆后示例 |
+|--------|---------------|---------------------------|------------|
+| field | loadTimeout | `private let loadTimeout: TimeInterval = 30` | `private let sapLoadTimeoutMdm: TimeInterval = 28` |
+| field | pathMonitor | `private var pathMonitor: NWPathMonitor?` | `private var zsrPathMonitorFzx: NWPathMonitor?` |
+| local | timeout | `let timeout = loadTimeout` | `let mdmTimeoutSap = sapLoadTimeoutMdm` |
+| method | scheduleLoadTimeout | `func scheduleLoadTimeout()` | `func yejScheduleLoadTimeoutDb()` |
+| param | decisionHandler | 仅当非 SDK 协议签名时可改内名 | — |
+
+- **常量取值**可与语义名一起差异化（如 `30` → `28`，`8` → `6`），但须保持行为等价。
+- **英文 UI 文案 / 注释**：每包须重写，禁止跨包复制 `"Page Not Found"`、`~450KB` 等共享字符串。
+- 完整规则见《命名混淆规则.md》§Native shell identifier scope。
 
 ---
 

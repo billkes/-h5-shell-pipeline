@@ -1,6 +1,6 @@
 {
-  "version": "1",
-  "description": "Swift/OC H5 shell Bridge 卡池兼容性。pack_type 锁定 webviewEngine；其余维按 engineExcludes / cardRequiresEngine 过滤。",
+  "version": "2",
+  "description": "Swift/OC H5 shell Bridge 卡池兼容性。pack_type 锁定 webviewEngine；其余维按 engineExcludes / cardRequiresEngine 过滤后由 task fill 抽卡。",
   "packTypeEngine": {
     "h5_swift_shell": "wkwebview_swift",
     "h5_oc_shell": "wkwebview_oc"
@@ -9,11 +9,16 @@
     "wkwebview_swift": {
       "bridgeCallStyle": [
         "Objective-C performSelector bridge only"
-      ]
+      ],
+      "bridgeCallbackStyle": []
     },
     "wkwebview_oc": {
       "bridgeCallStyle": [
+        "Objective-C performSelector bridge only",
         "Swift-only async handler bridge"
+      ],
+      "bridgeCallbackStyle": [
+        "callAsyncJavaScript Promise resolve (iOS 14+)"
       ]
     }
   },

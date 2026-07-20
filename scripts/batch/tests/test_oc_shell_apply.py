@@ -13,13 +13,42 @@ TEMPLATE = ROOT / "data" / "static" / "templates" / "oc_shell" / "{{APP_NAME}}"
 APPLY = ROOT / "data" / "static" / "templates" / "oc_shell" / "apply.py"
 
 
-def test_locked_oc_bridge_deck() -> None:
+def test_native_swift_bridge_pools_not_collapsed() -> None:
+    """Native Swift pools must expose multiple cards per dimension (not hard-locked)."""
     sys.path.insert(0, str(SCRIPTS))
-    from batch.h5_shell_deck import LOCKED_NATIVE_OC_BRIDGE
-    from batch.task_schema import COL_WEBVIEW_ENGINE, COL_BRIDGE_CALLBACK_STYLE
+    from batch.h5_shell_deck import load_h5_bridge_pools
+    from batch.task_schema import (
+        COL_BRIDGE_CALL_STYLE,
+        COL_BRIDGE_CALLBACK_STYLE,
+        COL_BRIDGE_ENVELOPE,
+    )
 
-    assert LOCKED_NATIVE_OC_BRIDGE[COL_WEBVIEW_ENGINE] == "wkwebview_oc"
-    assert "app-callback" in LOCKED_NATIVE_OC_BRIDGE[COL_BRIDGE_CALLBACK_STYLE]
+    pools = load_h5_bridge_pools(ROOT, pack_type="h5_swift_shell")
+    assert len(pools[COL_BRIDGE_CALL_STYLE]) >= 3
+    assert len(pools[COL_BRIDGE_CALLBACK_STYLE]) >= 3
+    assert len(pools[COL_BRIDGE_ENVELOPE]) >= 3
+
+
+def test_native_oc_bridge_pools_not_collapsed() -> None:
+    sys.path.insert(0, str(SCRIPTS))
+    from batch.h5_shell_deck import load_h5_bridge_pools, filter_bridge_cards, load_compat_matrix
+    from batch.task_schema import (
+        COL_BRIDGE_CALL_STYLE,
+        COL_BRIDGE_CALLBACK_STYLE,
+        COL_WEBVIEW_ENGINE,
+    )
+
+    pools = load_h5_bridge_pools(ROOT, pack_type="h5_oc_shell")
+    compat = load_compat_matrix(ROOT, pack_type="h5_oc_shell")
+    assert pools[COL_WEBVIEW_ENGINE] == ["wkwebview_oc"]
+    assert len(pools[COL_BRIDGE_CALL_STYLE]) >= 3
+    callbacks = filter_bridge_cards(
+        COL_BRIDGE_CALLBACK_STYLE,
+        pools[COL_BRIDGE_CALLBACK_STYLE],
+        {COL_WEBVIEW_ENGINE: "wkwebview_oc"},
+        compat,
+    )
+    assert "callAsyncJavaScript Promise resolve (iOS 14+)" not in callbacks
 
 
 def test_oc_shell_apply_produces_sources() -> None:
