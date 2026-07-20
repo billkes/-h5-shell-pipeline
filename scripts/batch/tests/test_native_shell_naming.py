@@ -223,6 +223,71 @@ def test_apply_architecture_folder_rename_from_template() -> None:
         assert not (app / "turcd_ember_pulse").is_dir()
 
 
+def _write_register(ws: Path, app_name: str, prefix: str) -> None:
+    (ws / "本包登记信息.json").write_text(
+        json.dumps(
+            {
+                "appName": app_name,
+                "packType": "h5_swift_shell",
+                "shellRuntime": "swift",
+                "codeAntiCorrelation": {
+                    "dartCodePrefix": prefix,
+                    "programmingStyle": "美国人",
+                },
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+
+def test_bridge_channel_mismatch_detected() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        ws = Path(tmp)
+        bridge_dir = ws / "ios" / "Monthio" / "Bridge"
+        bridge_dir.mkdir(parents=True)
+        (bridge_dir / "WebBridgeHandler.swift").write_text(
+            'config.userContentController.add(handler, name: "monthioBridge")\n'
+            "let script = \"window.monthioBridgeCallback('\\(id)', \\(json));\"\n",
+            encoding="utf-8",
+        )
+        h5 = ws / "h5" / "src" / "bridge"
+        h5.mkdir(parents=True)
+        (h5 / "index.ts").write_text(
+            "const handler = window.webkit?.messageHandlers?.furfbBridge;\n"
+            "window.furfbBridgeCallback = (id, data) => {};\n",
+            encoding="utf-8",
+        )
+        _write_register(ws, "Monthio", "furfb")
+        issues = collect_native_shell_naming_violations(ws)
+        assert any("桥通道名不一致" in i for i in issues)
+        assert any("桥回调名不一致" in i for i in issues)
+
+
+def test_bridge_channel_match_no_violation() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        ws = Path(tmp)
+        bridge_dir = ws / "ios" / "Yeario" / "Bridge"
+        bridge_dir.mkdir(parents=True)
+        (bridge_dir / "WebBridgeHandler.swift").write_text(
+            'config.userContentController.add(handler, name: "yearioBridge")\n'
+            "let script = \"window.yearioBridgeCallback('\\(id)', \\(json));\"\n",
+            encoding="utf-8",
+        )
+        h5 = ws / "h5" / "src" / "bridge"
+        h5.mkdir(parents=True)
+        (h5 / "index.ts").write_text(
+            "const nativeHandler = 'yearioBridge';\n"
+            "const handler = window.webkit?.messageHandlers?.[nativeHandler];\n"
+            "window.yearioBridgeCallback = (id, envelope) => {};\n",
+            encoding="utf-8",
+        )
+        _write_register(ws, "Yeario", "zpwcq")
+        issues = collect_native_shell_naming_violations(ws)
+        assert not any("桥通道名不一致" in i for i in issues)
+        assert not any("桥回调名不一致" in i for i in issues)
+
+
 def test_apply_replacements_handles_static_func_signatures() -> None:
     from batch.native_shell_obfuscation import _apply_replacements
 

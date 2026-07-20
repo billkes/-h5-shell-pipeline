@@ -105,6 +105,21 @@ PM 在 `功能文档.md` 勾选本包启用子集；未启用能力 **不得** �
 
 详细实现见《H5壳Swift实现规范.md》；逐步流程见《H5壳业务流程文字版.md》。
 
+### 通道命名（LOCKED · native ↔ H5 必须逐字一致）
+
+WebView 只注册 **一个** message handler。H5 与壳的 **通道名 / 回调名 / 信封** 必须完全一致，否则壳收不到消息，bridge 调用会 **静默回落到 H5 stub**（IAP / 设备信息 / 存图全部失效，且无任何报错）。
+
+| 项 | 值 | 说明 |
+|----|----|------|
+| 通道名 | `{appNameLower}Bridge` | `appNameLower = appName.lower()`（如 `Monthio` → `monthioBridge`）。**禁止**由代码前缀派生（`{prefix}Bridge` ❌） |
+| H5 发送 | `window.{appNameLower}Bridge.postMessage({ id, action, payload })` | 壳在 `atDocumentStart` 注入 `window.{appNameLower}Bridge`；亦可 `window.webkit.messageHandlers.{appNameLower}Bridge.postMessage(...)` |
+| 壳回调 | `window.{appNameLower}BridgeCallback(id, envelope)` | H5 须 **定义** 该全局函数以接收回执 |
+| 请求信封 | `{ id, action, payload }`（对象，**非** JSON 字符串） | 壳按 `body["id"] / ["action"] / ["payload"]` 读取 |
+| 成功回执 | `{ id, data }` | H5 以 `id` 匹配 pending，`resolve(data)` |
+| 失败回执 | `{ id, error: { code, message } }` | H5 `reject(error)` |
+
+Swift / OC 壳由模板锁定该命名（`{{APP_NAME_LOWER}}Bridge`）；**H5（Agent 产出）与 Flutter 壳（Agent 产出）须对齐同一命名，禁止各层各自造名**。产后 `native.shell.naming` 校验会对比 native 注册名与 h5/src 引用名，不一致即报违规。
+
 ---
 
 ## 6. 登记

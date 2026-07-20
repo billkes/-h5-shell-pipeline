@@ -398,6 +398,72 @@ def native_app_dir(workspace: Path, *, app_name: str = "", runtime: str = "") ->
     return candidate if candidate.is_dir() else None
 
 
+_NATIVE_BRIDGE_CHANNEL_RE = re.compile(r'name:\s*@?"([A-Za-z0-9_]*Bridge)"')
+_NATIVE_BRIDGE_CALLBACK_RE = re.compile(r"window\.([A-Za-z0-9_]+BridgeCallback)\b")
+_H5_BRIDGE_CHANNEL_TOKEN_RE = re.compile(r"\b([A-Za-z][A-Za-z0-9_]*Bridge)\b")
+_H5_SRC_SUFFIXES = frozenset({".ts", ".tsx", ".js", ".mjs", ".vue"})
+_NATIVE_BRIDGE_SUFFIXES = frozenset({".swift", ".m", ".mm"})
+
+
+def _collect_bridge_channel_violations(ws: Path, app_dir: Path | None) -> list[str]:
+    """Native ↔ H5 WKScriptMessageHandler channel/callback names must match.
+
+    Native registers window.webkit.messageHandlers.<appLower>Bridge and replies via
+    window.<appLower>BridgeCallback. When the agent-authored H5 posts to a different
+    channel (e.g. derived from the code prefix), the shell never receives the message
+    and every bridge call silently falls back to the H5 stub — IAP / device / file all
+    break with no error. See 《H5-Bridge协议.md》 §5 通道命名 (LOCKED).
+    """
+    if app_dir is None or not app_dir.is_dir():
+        return []
+
+    native_channels: set[str] = set()
+    native_callbacks: set[str] = set()
+    for path in app_dir.rglob("*"):
+        if not path.is_file() or path.suffix.lower() not in _NATIVE_BRIDGE_SUFFIXES:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        native_channels.update(_NATIVE_BRIDGE_CHANNEL_RE.findall(text))
+        native_callbacks.update(_NATIVE_BRIDGE_CALLBACK_RE.findall(text))
+    if not native_channels:
+        return []
+
+    h5_src = ws / "h5" / "src"
+    if not h5_src.is_dir():
+        return []
+    parts: list[str] = []
+    for path in h5_src.rglob("*"):
+        if path.is_file() and path.suffix.lower() in _H5_SRC_SUFFIXES:
+            try:
+                parts.append(path.read_text(encoding="utf-8", errors="ignore"))
+            except OSError:
+                continue
+    h5_text = "\n".join(parts)
+    if not h5_text.strip():
+        return []
+
+    issues: list[str] = []
+    if not any(channel in h5_text for channel in native_channels):
+        h5_channels = sorted(set(_H5_BRIDGE_CHANNEL_TOKEN_RE.findall(h5_text)))
+        issues.append(
+            "Native ↔ H5 桥通道名不一致：native 注册 "
+            f"{sorted(native_channels)}，但 h5/src 未引用（H5 用了 {h5_channels or '无'}）。"
+            "WKWebView 仅注册 native 通道名，名字对不上则 bridge 调用静默走 H5 stub"
+            "（IAP/设备/存图失效且无报错）。H5 通道名须由 App 名派生并与 native 一致"
+            "（见《H5-Bridge协议.md》§5）。"
+        )
+    if native_callbacks and not any(cb in h5_text for cb in native_callbacks):
+        issues.append(
+            "Native ↔ H5 桥回调名不一致：native 回调 "
+            f"{sorted(native_callbacks)}，h5/src 未定义该全局函数，Promise 永不 resolve"
+            "（见《H5-Bridge协议.md》§5）。"
+        )
+    return issues
+
+
 def collect_native_shell_naming_violations(
     workspace: Path,
     *,
@@ -437,6 +503,8 @@ def collect_native_shell_naming_violations(
 
     if app_dir is None:
         return issues
+
+    issues.extend(_collect_bridge_channel_violations(ws, app_dir))
 
     expected = resolve_native_bridge_folder_basename(ws, persona, prefix)
 

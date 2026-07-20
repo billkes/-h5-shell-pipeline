@@ -35,7 +35,7 @@ These rules come **before** file reading. Ship a premium, product-bound first im
 ### Required Reading (after Visual Depth)
 1. `skill-input/agent-spec-index.md` — includes **front-loaded Welcome/Tab1 Scene Brief excerpts**
 2. `skill-input/agent-brain-focus.md`
-3. `H5壳H5实现检查清单.md` · `H5壳Vite工程规范.md`
+3. `H5壳H5实现检查清单.md` · `H5壳Vite工程规范.md` · 《H5-Bridge协议.md》(§5 通道命名 LOCKED)
 4. Skill UI sources (do **not** invent a parallel kit):
    - `design-system/*/stack-vue.md`
    - `design-system/*/stack-html-tailwind.md`
@@ -45,6 +45,14 @@ These rules come **before** file reading. Ship a premium, product-bound first im
 5. 功能文档.md · 本包视觉锁.json · 本包登记信息.json
 6. 《${P2_PRODUCT_DOC}》
 7. `.cursor/rules/*.mdc`
+
+### Native Bridge Contract — LOCKED (match the shell EXACTLY)
+The native shell (Part 2) registers ONE WKScriptMessageHandler and replies on ONE global callback. The H5 bridge MUST reuse these EXACT names — never derive them from the code prefix:
+- Send: `window.${BRIDGE_CHANNEL}.postMessage({ id, action, payload })` — the shell injects `window.${BRIDGE_CHANNEL}` at documentStart (`window.webkit.messageHandlers.${BRIDGE_CHANNEL}.postMessage(...)` is equivalent).
+- Receive: define `window.${BRIDGE_CALLBACK} = (id, envelope) => { /* match id → resolve envelope.data / reject envelope.error */ };`.
+- Request envelope is an OBJECT, not a JSON string: `{ id, action, payload }`.
+- Reply envelope: success `{ id, data }`; error `{ id, error: { code, message } }`.
+- Wrong channel/callback name ⇒ native never receives the message and EVERY bridge call silently falls back to the JS stub (IAP / device / file all break with no error). `${BRIDGE_CHANNEL}` / `${BRIDGE_CALLBACK}` are derived from the App name and are non-negotiable.
 
 ### Deliverables
 - Full Vite tree under `h5/` (Agent-owned; no repo code template)

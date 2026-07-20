@@ -26,6 +26,7 @@ ${RESUME_BLOCK}
 ### Hard Rules
 - No visible business UI in Flutter / Swift / OC — Part 3 owns H5 site / legal / plaza.
 - Shell = WebView host + Bridge + shell rasters only.
+- Bridge names are LOCKED to the App name (see 《H5-Bridge协议.md》 §5): register channel `${BRIDGE_CHANNEL}` (WKScriptMessageHandler / injected `window.${BRIDGE_CHANNEL}`) and reply via `window.${BRIDGE_CALLBACK}`; request `{ id, action, payload }`, reply `{ id, data }` / `{ id, error }`. H5 (Part 3) reuses these EXACT names — never derive from the code prefix. Swift/OC templates already lock this; a Flutter shell MUST match.
 
 ## Output
 Write files only. Then one-line summary.

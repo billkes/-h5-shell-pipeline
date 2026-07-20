@@ -124,6 +124,7 @@ class PromptBuilder:
             if resume
             else ""
         )
+        app_lower = name.strip().lower()
         return self._fmt(
             self._load("phase_h5_shell_programmer.txt"),
             {
@@ -134,6 +135,8 @@ class PromptBuilder:
                 "P2_PRODUCT_DOC": p2_product_doc,
                 "SHELL_RUNTIME": runtime,
                 "RESUME_BLOCK": resume_block,
+                "BRIDGE_CHANNEL": f"{app_lower}Bridge",
+                "BRIDGE_CALLBACK": f"{app_lower}BridgeCallback",
             },
         )
 
@@ -152,6 +155,7 @@ class PromptBuilder:
             if resume
             else ""
         )
+        app_lower = name.strip().lower()
         return self._fmt(
             self._load("phase_h5_implementer.txt"),
             {
@@ -160,6 +164,8 @@ class PromptBuilder:
                 "FLUTTER_DART_PREFIX": prefix,
                 "P2_PRODUCT_DOC": p2_product_doc,
                 "RESUME_BLOCK": resume_block,
+                "BRIDGE_CHANNEL": f"{app_lower}Bridge",
+                "BRIDGE_CALLBACK": f"{app_lower}BridgeCallback",
             },
         )
 
