@@ -350,9 +350,26 @@ def write_agent_spec_index(
         "",
         f"Phase: **{phase}**",
         "",
-        "Norm prose lives in the paths below — not in the Agent prompt.",
-        "",
     ]
+
+    # Welcome + Tab1 Scene Brief first (h5 phases) — Agent reads this before path lists.
+    if phase in ("h5", "h5_build_repair", "preview"):
+        try:
+            from batch.h5_page_prompts import format_welcome_tab1_frontload_block
+
+            front = format_welcome_tab1_frontload_block(workspace, app_name)
+            if front:
+                lines.append(front.rstrip())
+                lines.append("")
+        except Exception:
+            pass
+
+    lines.extend(
+        [
+            "Other norm prose lives in the paths below — open them after Welcome/Tab1 rules above.",
+            "",
+        ]
+    )
     lines.extend(_section("Norm docs", norm_hits))
     lines.extend(_section("Pack locks (JSON / generated)", _collect_pack_json_paths(workspace)))
 

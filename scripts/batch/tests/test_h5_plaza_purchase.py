@@ -83,5 +83,5 @@ def test_plaza_spec_index_lists_view(tmp_path: Path) -> None:
 
     project = _minimal_vite_project(tmp_path)
     block = format_page_implementation_prompt_block(project, "DemoApp")
-    assert "index only" in block
+    assert "H5 page specs" in block
     assert "311400" not in block

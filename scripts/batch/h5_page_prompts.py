@@ -1,13 +1,44 @@
-"""Per-app H5 page spec file index for Agent prompt — paths only, no inline norm prose."""
+"""Per-app H5 page spec index + front-loaded Welcome/Tab1 Scene Brief for Agent."""
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from batch.h5_legal_ui import project_needs_legal_ui
 from batch.h5_page_scaffold import _discover_scaffold_targets, _router_includes_route
 from batch.h5_vite_gate import h5_src_dir, is_h5_vite_project
 from batch.uupm_design_system import design_system_dir_for_app, master_path_for_app
+
+# Pages whose Scene Brief must be inlined into the Agent front-load (not path-only).
+_FRONTLOAD_PAGES: tuple[str, ...] = ("welcome", "hub")
+
+_SCENE_FIELD_RE = re.compile(
+    r"^\s*-\s*\*\*(?P<key>[^*]+):\*\*\s*(?P<val>.+?)\s*$",
+    re.MULTILINE,
+)
+
+_SCENE_KEYS_WELCOME: tuple[str, ...] = (
+    "Audience",
+    "Core scene",
+    "Local feature",
+    "Visual motif",
+    "Color temperature",
+    "Shape language",
+    "Flow beats to express",
+)
+
+_SCENE_KEYS_HUB: tuple[str, ...] = (
+    "Topology",
+    "Audience",
+    "Core scene",
+    "Local feature",
+    "Visual motif",
+    "Primary zone intent",
+    "Feed style",
+    "Forbidden landing",
+    "Workflow entry hints",
+)
 
 
 def _rel(project: Path, path: Path) -> str:
@@ -23,7 +54,7 @@ def _existing(project: Path, rel: str) -> str | None:
 
 
 def collect_page_spec_file_index(project: Path, app_name: str) -> dict[str, list[str]]:
-    """Return grouped spec paths that exist on disk (content NOT inlined)."""
+    """Return grouped spec paths that exist on disk."""
     project = project.expanduser().resolve()
     out: dict[str, list[str]] = {
         "design_system_pages": [],
@@ -102,21 +133,175 @@ def collect_page_spec_file_index(project: Path, app_name: str) -> dict[str, list
     return out
 
 
+def _extract_bullet_fields(text: str, keys: tuple[str, ...]) -> list[tuple[str, str]]:
+    found: dict[str, str] = {}
+    for match in _SCENE_FIELD_RE.finditer(text):
+        key = match.group("key").strip()
+        val = match.group("val").strip()
+        if key in keys and key not in found and val:
+            found[key] = val
+    return [(k, found[k]) for k in keys if k in found]
+
+
+def _extract_section_bullets(text: str, heading_pat: str, *, limit: int = 6) -> list[str]:
+    match = re.search(
+        rf"(?is)(?:^|\n)###?\s*{heading_pat}\s*\n(.*?)(?:\n###?\s|\n##\s|\Z)",
+        text,
+    )
+    if not match:
+        return []
+    section = match.group(1)
+    bullets: list[str] = []
+    for line in section.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- ") or stripped.startswith("* "):
+            bullets.append(stripped[2:].strip())
+        if len(bullets) >= limit:
+            break
+    return bullets
+
+
+def _extract_hard_constraint_bullets(text: str, heading_pat: str, *, limit: int = 8) -> list[str]:
+    """Prefer 'Hard constraints' / Required / Avoid over optional pattern menus."""
+    match = re.search(
+        rf"(?is)(?:^|\n)###?\s*{heading_pat}\s*\n(.*?)(?:\n###?\s|\n##\s|\Z)",
+        text,
+    )
+    if not match:
+        return []
+    section = match.group(1)
+    # Prefer explicit Hard constraints block inside the section.
+    hard = re.search(
+        r"(?is)Hard constraints?:\s*\n((?:[-*].*\n?)+)",
+        section,
+    )
+    source = hard.group(1) if hard else section
+    bullets: list[str] = []
+    for line in source.splitlines():
+        stripped = line.strip()
+        if not (stripped.startswith("- ") or stripped.startswith("* ")):
+            continue
+        item = stripped[2:].strip()
+        lower = item.lower()
+        # Skip the long "choose ONE pattern" menu items when Hard constraints exist.
+        if hard and (
+            lower.startswith("carousel")
+            or lower.startswith("dialogue")
+            or lower.startswith("narrative")
+            or lower.startswith("interactive preview")
+        ):
+            continue
+        bullets.append(item)
+        if len(bullets) >= limit:
+            break
+    if hard:
+        bullets.insert(
+            0,
+            "Pick ONE onboarding pattern from Scene Brief "
+            "(carousel / dialogue / narrative / interactive preview)",
+        )
+    return bullets[:limit]
+
+
+def extract_page_scene_brief(page_md: str, page_key: str) -> list[str]:
+    """Return short natural-language constraints from a pages/*.md Scene Brief."""
+    lines: list[str] = []
+    keys = _SCENE_KEYS_WELCOME if page_key == "welcome" else _SCENE_KEYS_HUB
+    for key, val in _extract_bullet_fields(page_md, keys):
+        lines.append(f"{key}: {val}")
+
+    if page_key == "welcome":
+        for bullet in _extract_hard_constraint_bullets(
+            page_md, r"Onboarding Pattern Guidance", limit=7
+        ):
+            lines.append(bullet)
+        for bullet in _extract_section_bullets(page_md, r"Component Overrides", limit=10):
+            if bullet.lower().startswith(("required:", "avoid:")):
+                lines.append(bullet)
+    else:
+        for bullet in _extract_section_bullets(page_md, r"Hub Identity Guidance", limit=8):
+            lines.append(bullet)
+        for bullet in _extract_section_bullets(page_md, r"Component Overrides", limit=10):
+            if bullet.lower().startswith(("required:", "avoid:")):
+                lines.append(bullet)
+
+    # De-dupe while preserving order; cap length for prompt budgets.
+    seen: set[str] = set()
+    out: list[str] = []
+    for line in lines:
+        cleaned = re.sub(r"\s+", " ", line).strip()
+        if not cleaned or cleaned in seen:
+            continue
+        seen.add(cleaned)
+        out.append(cleaned)
+        if len(out) >= 18:
+            break
+    return out
+
+
+def format_welcome_tab1_frontload_block(workspace: Path, app_name: str) -> str:
+    """Natural-language Scene Brief excerpts for Welcome + Tab1 (front-loaded)."""
+    workspace = workspace.expanduser().resolve()
+    ds = design_system_dir_for_app(workspace, app_name)
+    pages_dir = ds / "pages"
+    if not pages_dir.is_dir():
+        return ""
+
+    chunks: list[str] = [
+        "## Front-loaded visual depth (Welcome + Tab1)",
+        "",
+        "Implement these Scene Brief constraints **before** inventing layout.",
+        "Do **not** ship a compliance-only skeleton.",
+        "",
+    ]
+    any_page = False
+    for page_key in _FRONTLOAD_PAGES:
+        path = pages_dir / f"{page_key}.md"
+        if not path.is_file():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        brief = extract_page_scene_brief(text, page_key)
+        if not brief:
+            continue
+        any_page = True
+        title = "Welcome" if page_key == "welcome" else "Tab 1 / Hub"
+        chunks.append(f"### {title} — from `{_rel(workspace, path)}`")
+        chunks.append("")
+        for item in brief:
+            chunks.append(f"- {item}")
+        chunks.append("")
+
+    if not any_page:
+        return ""
+    return "\n".join(chunks).rstrip() + "\n"
+
+
 def format_page_implementation_prompt_block(workspace: Path, app_name: str) -> str:
-    """Injected as ${PAGE_OVERRIDES_BLOCK} — file locations only."""
+    """Injected as ${PAGE_OVERRIDES_BLOCK} — front-load Scene Brief + path index."""
     workspace = workspace.expanduser().resolve()
     if not is_h5_vite_project(workspace):
         return ""
 
     index = collect_page_spec_file_index(workspace, app_name)
     lines = [
-        "[H5 page specs — read files below; this block is an index only]",
+        "[H5 page specs — Welcome/Tab1 Scene Brief inlined below; other pages are path index]",
         "- Create full `h5/` per `docs/H5壳Vite工程规范.md` (no repo code template).",
-        "- Norm prose lives in the listed paths (and in RequiredReading repo docs).",
         "- Pipeline generates kit skeleton at `skill-adapt/kit-skeleton.css`; Agent extends into `h5/src/styles/kit.css`.",
         "- All interactive elements MUST use `c-{prefix}-btn|input|checkbox|link|chip` — no bare `<button>`/`<input>`/`<a>`.",
         "",
     ]
+
+    front = format_welcome_tab1_frontload_block(workspace, app_name)
+    if front:
+        # Strip markdown H2 for prompt-block embedding; keep ### subsections.
+        body = front.replace("## Front-loaded visual depth (Welcome + Tab1)\n\n", "")
+        lines.append("**Front-loaded visual depth (Welcome + Tab1):**")
+        lines.append("")
+        lines.extend(body.splitlines())
+        lines.append("")
 
     if index["design_system_pages"]:
         lines.append("**design-system/pages/ (per-page visual + IA overrides):**")

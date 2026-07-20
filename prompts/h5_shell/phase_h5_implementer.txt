@@ -9,15 +9,38 @@ ${RESUME_BLOCK}
 - Prefix: ${FLUTTER_DART_PREFIX}
 - Stack (skill-unified): Vue 3 · Tailwind CSS · Google Fonts · `@phosphor-icons/vue`
 
-### Required Reading (read FIRST)
-1. `skill-input/agent-spec-index.md`
+### Visual Depth — Welcome + Tab1 (READ FIRST · non-negotiable)
+
+These rules come **before** file reading. Ship a premium, product-bound first impression — not a compliance skeleton.
+
+**Welcome (`#/welcome`)**
+- Implement the **Onboarding Pattern** chosen in `design-system/*/pages/welcome.md` Scene Brief (carousel / dialogue / typewriter / narrative / interactive preview). One emotional beat per step — never a single static feature-bullet card.
+- **Hero must feel authored:** ≥2 of {CSS gradient wash, blur/glow, keyframed motion, SVG/illustration, heat-tile / domain motif}. A lone clip-path color blob or text-only steps is **not** enough.
+- **Headline must embody coreScene / audience** from Scene Brief. Forbidden as sole H1: `Welcome to {AppName}`.
+- Consent checkbox + Privacy/User links + disabled Continue — **final beat only**. No Tab bar / paywall on Welcome.
+- Respect `prefers-reduced-motion`; still keep a clear visual hierarchy when motion is reduced.
+
+**Tab 1 / Hub (first tab-root after Continue)**
+- First viewport = **product identity** for this pack's coreScene — not a generic "KPI strip + Manage + empty card".
+- Show topology-bound **primary zone** (from `pages/hub.md` / interactionTopology) even in empty state: skeleton / preview motif + CTA into Primary Workflow.
+- **Contextual greeting** (time-aware or usage-moment) grounded in audience — forbid static labels alone like "Daily check-ins" with no scene voice.
+- Signature interaction from 功能文档 / Professional Surface must be **on-screen and tappable** on Tab 1.
+- Avoid: chip+KPI+recent-carousel template when topology forbids it; Avoid: Bridge plaza on Tab 1.
+
+**Craft bar (all H5 surfaces, especially Welcome + Tab1)**
+- Derive color arc, shape language, and motion from MASTER + `style-brief` / `motion-brief` + page Scene Brief — do not invent a parallel kit.
+- Prefer kit classes `c-{prefix}-*` + Tailwind utilities; extend `kit.css` when Scene Brief needs motifs the skeleton lacks.
+- Aim for **高级感 / 创意感**: intentional hierarchy, atmospheric ambient, signature motif, 2–3 purposeful motions — not flat utility UI.
+
+### Required Reading (after Visual Depth)
+1. `skill-input/agent-spec-index.md` — includes **front-loaded Welcome/Tab1 Scene Brief excerpts**
 2. `skill-input/agent-brain-focus.md`
 3. `H5壳H5实现检查清单.md` · `H5壳Vite工程规范.md`
 4. Skill UI sources (do **not** invent a parallel kit):
    - `design-system/*/stack-vue.md`
    - `design-system/*/stack-html-tailwind.md`
    - `design-system/*/MASTER.md` · `typography-brief.md` · `icon-brief.md`
-   - `design-system/*/pages/*.md`
+   - `design-system/*/pages/welcome.md` · `pages/hub.md` (and other pages/*.md)
    - `skill-adapt/design-tokens.css` · `icon-manifest.json`
 5. 功能文档.md · 本包视觉锁.json · 本包登记信息.json
 6. 《${P2_PRODUCT_DOC}》
@@ -29,10 +52,11 @@ ${RESUME_BLOCK}
 - Wire Tailwind theme to `skill-adapt/design-tokens.css` / MASTER palette
 - Icons: Phosphor Vue components from `icon-manifest.json` / `icon-brief.md`
 - Fonts: Google Fonts CSS import from MASTER / typography-brief
+- `h5/src/styles/global.css`: put **all `@import`** (Google Fonts + `./kit.css`) at the **very top**, before `/* THEME:pipeline */` and `@tailwind` — otherwise PostCSS drops kit styles
 - Routes & screens from 功能文档.md Screen Inventory only
 - Pipeline compiles via `dev.h5.build`
 
-### Hard Rules
+### Hard Rules (engineering)
 - Follow skill stacks — **no** hand-rolled CSS system that ignores Tailwind; **no** sprite kit that ignores Phosphor.
 - Forbidden icon libs: iconfont / Font Awesome / Material Icons.
 - Write under `h5/` — never edit `h5_site/`.

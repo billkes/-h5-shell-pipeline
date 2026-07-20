@@ -152,6 +152,8 @@ def build_welcome_scene_spec(
             "",
             "Immerse the user in **this** product's moment of need. "
             "Do **not** ship a generic 'Welcome to {App}' + feature bullet card.",
+            "Aim for **premium craft** (高级感): authored atmosphere, signature motif, "
+            "2–3 purposeful motions — not a compliance skeleton.",
         ]
     )
 
@@ -164,10 +166,14 @@ def build_welcome_scene_spec(
             "Hard constraints:",
             "- Consent checkbox + Privacy/User links + disabled Continue until agreed "
             "(final beat only).",
-            "- Headlines = situation / confidence / promise — not feature lists.",
-            "- Demo / hero visuals evoke the **core scene** (CSS gradient/blur/motion OK); "
+            "- Headlines = situation / confidence / promise — not feature lists; "
+            "never sole H1 `Welcome to {AppName}`.",
+            "- Hero visual density: ≥2 of {CSS gradient, blur/glow, keyframes, "
+            "SVG/illustration, domain motif}. A lone clip-path blob or text-only "
+            "stepper is **not** enough.",
+            "- Demo / hero visuals evoke the **core scene**; "
             "do not paste app UI screenshots as the hero.",
-            "- Respect `prefers-reduced-motion`.",
+            "- Respect `prefers-reduced-motion` (keep hierarchy when motion is reduced).",
         ]
     )
 
@@ -198,23 +204,26 @@ def build_welcome_scene_spec(
         "components": [
             "Required: onboarding structure beyond a single static feature-bullet card",
             "Required: scene copy grounded in coreScene + audience (see Scene Brief)",
+            "Required: hero visual density ≥2 of {gradient, blur, keyframes, SVG/illustration, domain motif}",
             "Required: persist first-run flag in local storage",
             "Required: legal checkbox + Privacy/User links on final beat only",
             "Required: Continue disabled until consent checked",
             "Avoid: Tab bar before Continue",
             "Avoid: Paywall / store entry on welcome",
             "Avoid: Generic 'Welcome to {AppName}' as the sole headline",
+            "Avoid: Text-only steps or lone clip-path blob as the entire hero",
             "Avoid: Copying another pack's onboarding pattern (carousel vs typewriter etc.)",
         ],
         "unique_components": [
             "product-bound onboarding stage (pattern chosen from Scene Brief)",
-            "scene-immersion hero (motif / coreScene — not stock icon row)",
+            "scene-immersion hero (authored atmosphere — not stock icon row)",
             "legal consent row (checkbox + Privacy/User links)",
         ],
         "recommendations": [
             f"Open on the user's tension around: {f['core_scene'] or 'coreScene'}",
             f"Speak to: {f['audience'] or 'audience'}",
             f"Surface local capability: {f['local_feature'] or 'localFeature'}",
+            "Premium craft: hierarchy + ambient wash + signature motif + purposeful motion",
             "Continue routes to Tab 1 (first tab-root from Screen Inventory)",
             "Show once per install unless data cleared",
         ],
@@ -258,6 +267,8 @@ def build_hub_scene_spec(
             "",
             "Tab 1 is the app identity after Welcome. "
             "It must read as **this** product's home — not a generic chip+KPI dashboard.",
+            "Empty state must still show a **primary-zone skeleton / preview motif** "
+            "(not a lone white card + CTA).",
         ]
     )
 
@@ -270,10 +281,12 @@ def build_hub_scene_spec(
             "Also bind:",
             f"- Usage audience / moment: {f['audience'] or 'audience'}",
             f"- Core scene visible in first viewport: {f['core_scene'] or 'coreScene'}",
-            "- Time-aware or context-aware greeting when it fits the usage moment",
+            "- Time-aware or context-aware greeting (forbid static-only labels like "
+            "'Daily check-ins' with no scene voice)",
             "- FAB / quick actions map to Primary Workflow entry (≤2)",
-            "- Empty state still shows the primary zone skeleton + CTA",
+            "- Empty state still shows the primary zone skeleton / motif + CTA",
             "- Signature H5 interaction from 功能文档 must be reachable on this screen",
+            "- Aim for authored atmosphere (ambient + motif + hierarchy) — not flat utility UI",
         ]
     )
 
@@ -307,10 +320,13 @@ def build_hub_scene_spec(
         "components": [
             "Required: bottom TabBar visible (≥3 tabs)",
             f"Required: primary zone matches topology {f['topo_id'] or '(see Scene Brief)'}",
-            "Required: empty state with CTA into Primary Workflow",
+            "Required: empty state shows primary-zone skeleton/motif + CTA into Primary Workflow",
+            "Required: contextual greeting grounded in audience / usage moment",
             "Required: quick actions map to Primary Workflow entry points",
+            "Required: signature H5 interaction reachable on this screen",
             "Avoid: generic 'category chips + KPI strip + recent carousel' when topology forbids it",
             "Avoid: Bridge plaza entry on Tab 1",
+            "Avoid: empty page that is only a white card + CTA with no motif/skeleton",
             f"Avoid: {pattern['forbidden']}",
         ],
         "unique_components": [
@@ -325,6 +341,7 @@ def build_hub_scene_spec(
             f"Local feature in primary zone: {f['local_feature'] or 'localFeature'}",
             "Hub layout must differ visually from list/detail — it is the home identity",
             "Signature interaction from Professional Surface must be on-screen here",
+            "Premium craft on Tab 1: ambient + motif + hierarchy — not flat utility UI",
         ],
         "scene_brief": scene_brief,
         "pattern_guidance": pattern_guidance,

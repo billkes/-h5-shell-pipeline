@@ -5,7 +5,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from batch.h5_page_prompts import collect_page_spec_file_index, format_page_implementation_prompt_block
+from batch.h5_page_prompts import (
+    collect_page_spec_file_index,
+    extract_page_scene_brief,
+    format_page_implementation_prompt_block,
+    format_welcome_tab1_frontload_block,
+)
 from batch.h5_page_scaffold import route_to_page_type, sync_h5_page_scaffold
 from batch.welcome_canon import format_welcome_spec_doc_refs, resolve_welcome_layout_variant
 
@@ -67,16 +72,49 @@ def test_spec_index_lists_paths_not_prose(tmp_path: Path) -> None:
     )
     pages = project / "design-system" / "demo" / "pages"
     pages.mkdir(parents=True)
-    (pages / "welcome.md").write_text("# Welcome\n", encoding="utf-8")
+    (pages / "welcome.md").write_text(
+        """# Welcome
+### Scene Brief
+- **Audience:** habit builders
+- **Core scene:** month-end review
+### Onboarding Pattern Guidance
+- Carousel (2–3 swipe cards)
+### Component Overrides
+- Required: hero visual density ≥2 of {gradient, blur}
+- Avoid: sole H1 Welcome to App
+""",
+        encoding="utf-8",
+    )
+    (pages / "hub.md").write_text(
+        """# Hub
+### Scene Brief
+- **Core scene:** month-end review
+- **Primary zone intent:** Single canvas
+### Hub Identity Guidance
+- Time-aware greeting
+### Component Overrides
+- Required: contextual greeting
+- Avoid: empty white card only
+""",
+        encoding="utf-8",
+    )
     (project / "功能文档.md").write_text("# spec\n", encoding="utf-8")
     (project / "本包视觉锁.json").write_text("{}", encoding="utf-8")
     welcome = project / "h5" / "src" / "views" / "WelcomeView.vue"
     welcome.write_text("<template>x</template>", encoding="utf-8")
 
     block = format_page_implementation_prompt_block(project, "Demo")
-    assert "index only" in block
+    assert "Front-loaded visual depth" in block
+    assert "month-end review" in block
     assert "design-system/demo/pages/welcome.md" in block
     assert "H5_PAGE_SPECS" not in block
+
+    front = format_welcome_tab1_frontload_block(project, "Demo")
+    assert "Welcome" in front and "Tab 1" in front
+    brief = extract_page_scene_brief(
+        (pages / "welcome.md").read_text(encoding="utf-8"), "welcome"
+    )
+    assert any("Core scene" in b for b in brief)
 
 
 def test_collect_page_spec_file_index(tmp_path: Path) -> None:

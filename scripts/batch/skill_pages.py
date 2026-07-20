@@ -95,25 +95,33 @@ H5_PAGE_SPECS: dict[str, dict[str, Any]] = {
     "welcome": {
         "layout": {
             "Max Width": "480px centered on full-bleed ambient wash",
-            "Layout": "Product-bound onboarding; no Tab bar",
-            "Sections": "1. Scene immersion, 2. Signature value beat, 3. Consent + Continue",
+            "Layout": "Product-bound onboarding (carousel/dialogue/narrative/preview) — not a text-only stepper",
+            "Sections": "1. Scene immersion hero with motif, 2. Signature value beat, 3. Consent + Continue (final only)",
         },
-        "spacing": {"Content Density": "Low — one emotional beat at a time"},
-        "typography": {"Scale": "Display scene headline + body; legal ≥ labelMedium"},
-        "colors": {"Strategy": "Emotional arc from designerSeeds; CTA on final beat"},
+        "spacing": {"Content Density": "Low — one emotional beat at a time; generous hero air"},
+        "typography": {
+            "Scale": "Display scene headline (coreScene voice) + body; legal ≥ labelMedium — never sole 'Welcome to {App}'"
+        },
+        "colors": {
+            "Strategy": "Emotional color arc from designerSeeds; atmospheric ambient; CTA accent on final beat"
+        },
         "components": [
-            "Required: product-bound onboarding (see Scene Brief — not a fixed template)",
+            "Required: product-bound onboarding pattern from Scene Brief (not a fixed template)",
+            "Required: hero visual density ≥2 of {gradient, blur, keyframes, SVG/illustration, domain motif}",
             "Required: persist first-run flag in local storage",
             "Avoid: Tab bar before Continue",
             "Avoid: Paywall or store entry on welcome",
+            "Avoid: text-only steps / lone clip-path blob as the entire hero",
+            "Avoid: sole H1 'Welcome to {AppName}'",
         ],
         "unique_components": [
             "product-bound onboarding stage",
-            "scene-immersion hero",
-            "legal consent row",
+            "scene-immersion hero (authored atmosphere)",
+            "legal consent row (final beat only)",
         ],
         "recommendations": [
             "Derive pattern from coreScene + audience — do not copy another pack",
+            "Aim for premium craft: hierarchy, ambient wash, signature motif, 2–3 purposeful motions",
             "Continue routes to Tab 1",
             "Listing URLs must match in-app Privacy/User pages",
         ],
@@ -121,27 +129,34 @@ H5_PAGE_SPECS: dict[str, dict[str, Any]] = {
     "hub": {
         "layout": {
             "Max Width": "100% with safe-area padding",
-            "Layout": "Tab 1 root — topology-bound primary zone (not generic dashboard)",
-            "Sections": "1. Contextual header, 2. Primary zone, 3. Quick actions, 4. Contextual feed",
+            "Layout": "Tab 1 root — topology-bound primary zone as product identity (not generic dashboard)",
+            "Sections": "1. Contextual greeting, 2. Primary zone (skeleton when empty), 3. Quick actions, 4. Contextual feed",
         },
-        "spacing": {"Content Density": "Medium — hierarchy around primary zone"},
-        "typography": {"Scale": "Contextual greeting + domain status"},
-        "colors": {"Strategy": "Primary zone accent; semantic status; elevated feed"},
+        "spacing": {"Content Density": "Medium — clear hierarchy around the signature primary zone"},
+        "typography": {
+            "Scale": "Time/usage-aware greeting + domain status; display numerals when metrics are core"
+        },
+        "colors": {
+            "Strategy": "Primary zone brand accent; semantic status; elevated feed — atmospheric not flat utility"
+        },
         "components": [
             "Required: bottom Tab bar visible (≥3 tabs)",
-            "Required: primary zone matches interactionTopology + coreScene",
+            "Required: primary zone matches interactionTopology + coreScene (visible even when empty)",
+            "Required: contextual greeting grounded in audience / usage moment",
+            "Required: signature H5 interaction from 功能文档 reachable on this screen",
             "Avoid: Bridge plaza entry on hub",
-            "Avoid: generic chip+KPI template when topology forbids it",
+            "Avoid: generic chip+KPI+recent-carousel when topology forbids it",
+            "Avoid: empty page that is only a white card + CTA with no motif/skeleton",
         ],
         "unique_components": [
-            "topology primary zone",
-            "contextual greeting",
+            "topology primary zone (with empty-state skeleton)",
+            "contextual greeting / status header",
             "workflow quick actions",
             "contextual feed",
         ],
         "recommendations": [
-            "Tab 1 = product identity after Welcome",
-            "Empty hub still shows primary zone skeleton + CTA",
+            "Tab 1 = product identity after Welcome — first viewport must feel authored",
+            "Empty hub still shows primary zone skeleton / preview motif + CTA",
             "Signature H5 interaction must be reachable here",
         ],
     },

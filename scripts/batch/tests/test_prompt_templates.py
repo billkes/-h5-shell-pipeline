@@ -75,6 +75,13 @@ def test_v3_h5_prompt_has_no_block_injection() -> None:
     assert "stack-html-tailwind.md" in text
     assert "@phosphor-icons/vue" in text
     assert "tailwindcss" in text
+    # Visual depth hard rules must appear BEFORE Required Reading (front-loaded).
+    assert "### Visual Depth — Welcome + Tab1" in text
+    assert text.index("### Visual Depth — Welcome + Tab1") < text.index(
+        "### Required Reading"
+    )
+    assert "Welcome to {AppName}" in text
+    assert "contextual greeting" in text.lower() or "Contextual greeting" in text
 
 
 def test_global_brain_block_removed() -> None:
