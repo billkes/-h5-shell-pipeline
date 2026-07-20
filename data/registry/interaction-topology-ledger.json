@@ -44,6 +44,11 @@
       "topologyId": "T5_workspace",
       "label": "Single workspace",
       "batchId": "TEST-0717"
+    },
+    "Reviio": {
+      "topologyId": "T6_checklist_session",
+      "label": "Checklist session",
+      "batchId": "TEST-0717"
     }
   },
   "batchUsage": {
@@ -61,6 +66,7 @@
       "T2_capture_first",
       "T4_wizard",
       "T5_workspace",
+      "T6_checklist_session",
       "T8_reminder_ring"
     ]
   }

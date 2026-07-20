@@ -265,6 +265,34 @@
         "chart"
       ],
       "pageOverrideCount": 0
+    },
+    "Reviio": {
+      "batchId": "TEST-0717",
+      "fingerprintKey": "f218c0a3e724a8f2",
+      "visualFingerprint": {
+        "primary": "#d97706",
+        "accent": "#059669",
+        "background": "#fffbeb",
+        "heading": "fira code",
+        "body": "fira sans",
+        "pattern": "app store style landing",
+        "style": "heat map & heatmap style",
+        "category": "habit tracker"
+      },
+      "candidateId": "c1",
+      "style": "Heat Map & Heatmap Style",
+      "category": "Habit Tracker",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web",
+        "style",
+        "typography",
+        "color",
+        "gsap",
+        "chart"
+      ],
+      "pageOverrideCount": 0
     }
   },
   "fingerprints": {
@@ -275,6 +303,6 @@
     "e46fa3726bb3263f": "Yeario",
     "0b272c7b2c9004da": "Letioo",
     "c967f68ea4e6505b": "Peopio",
-    "f218c0a3e724a8f2": "Monthio"
+    "f218c0a3e724a8f2": "Reviio"
   }
 }
