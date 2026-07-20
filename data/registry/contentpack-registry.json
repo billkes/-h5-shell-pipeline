@@ -1153,6 +1153,163 @@
       },
       "registeredAt": "2026-07-19",
       "usedAt": "2026-07-19"
+    },
+    {
+      "appName": "Reviio",
+      "fullName": "Reviio - Habit & Review",
+      "appSlug": "reviio",
+      "packType": "h5_swift_shell",
+      "shellRuntime": "swift",
+      "bundleId": "test.duckegg.ios",
+      "repo": "https://codeup.aliyun.com/6366640f0cd435624679b545/linlin/Reviio-Swift.git",
+      "batchId": "TEST-0717",
+      "themeAngle": "Review-first habit companion: a daily checklist-session of streak-ring check-ins feeds a yearly completion heatmap with milestone badges and a month-end growth review report + exportable growth card. Fully offline, account-free, on-device only.",
+      "firstProductCode": "Month00",
+      "protocolStyle": "风格3",
+      "privacyFile": "2号",
+      "h5EntryUrl": "http://127.0.0.1:5174/",
+      "h5EntryUrlDev": "http://127.0.0.1:5174/",
+      "h5EntryUrlProd": "https://test.darin.beauty/reviio/wykna_entry.htm",
+      "h5DevServerPort": "5174",
+      "h5SourceRoot": "h5/",
+      "h5BuildCommand": "npm run build:deploy",
+      "h5SiteUploadRoot": "h5_site/",
+      "h5SiteRoot": "h5_site/",
+      "h5SiteEntry": "wykna_entry.htm",
+      "h5VaultPattern": "h5_modular_svg",
+      "h5VaultLayout": "assets_prefix_surfaces_glyphs",
+      "bundleVaultDir": "h5_site/",
+      "bundleEntryPath": "h5_site/wykna_entry.htm",
+      "h5VaultFiles": [
+        "h5_site/wykna_entry.htm",
+        "h5_site/wykna_baseline.css",
+        "h5_site/wykna_marks.svg",
+        "h5_site/wykna_core.js"
+      ],
+      "launchPlaceholderAsset": "native:Assets.xcassets/launch_placeholder.imageset/launch_placeholder.png",
+      "launchPlaceholderSize": "1125x2436",
+      "bridgeDeckSelections": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "WKScriptMessageHandler.postMessage(JSON)",
+        "bridgeCallbackStyle": "evaluateJavaScript(callbackId(data))",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "WKURLSchemeHandler local vault",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentStart"
+      },
+      "bridgeChannel": "window.reviioBridge",
+      "bridgeCallbackChannel": "window.reviioBridgeCallback",
+      "bridgeErrorCodes": [
+        "PERMISSION_DENIED",
+        "IAP_UNAVAILABLE",
+        "USER_CANCELLED"
+      ],
+      "bridgeCapabilities": [
+        "shellReady",
+        "getDeviceInfo",
+        "getProducts",
+        "purchase",
+        "restorePurchases",
+        "writeFile",
+        "saveImageToAlbum",
+        "copyToClipboard",
+        "getLegalText",
+        "mediaServe"
+      ],
+      "kitDeckSelections": {
+        "kitAtomSet": "list/chart/badge/panel/drawer",
+        "kitCssMethodology": "OOCSS",
+        "kitAtomGranularity": "high-level-21",
+        "kitDomShape": "text-chart-wrapper",
+        "kitJsPattern": "class-based-observer",
+        "kitJsNamespace": "{Prefix}.chart.*",
+        "kitStorageAdapter": "sqlite-wrapper",
+        "kitMotionApproach": "spring-physics",
+        "h5StateModel": "global-store",
+        "h5RouterPattern": "history-router",
+        "h5ScreenPattern": "tabbed-layout"
+      },
+      "kitJsNamespaceResolved": "Wykna.chart",
+      "designerDeckSelections": {
+        "colorTemperature": "Streak amber + habit green",
+        "shapeLanguage": "Heat Map & Heatmap Style",
+        "typographyPersonality": "Fira Code",
+        "navigationPattern": "Checklist session",
+        "heroVisualMotif": "月末生成习惯复盘报告 · 习惯打卡与月度数据可视化分析 · Checklist session",
+        "interactionFlavor": "Standard",
+        "iconStyle": "Phosphor outlined bold"
+      },
+      "codeAntiCorrelation": {
+        "dartCodePrefix": "wykna",
+        "namingStyle": "screen_suffix",
+        "folderStyle": "by_feature",
+        "architecture": "layered",
+        "stateManagement": "setstate",
+        "codeOrganization": "fine_grained",
+        "fileNaming": "snake_case",
+        "importStyle": "package_prefix",
+        "constantsLayout": "per_feature",
+        "iapModuleName": "PurchaseService",
+        "reportModuleName": "AbuseReportHandler",
+        "constantsModuleName": "ThemeConfig",
+        "networkLayerName": "HttpClient",
+        "routeCoordinatorName": "RouteMap",
+        "utilityHelperName": "ValidationService",
+        "architectureFolders": {
+          "models": {
+            "role": "models",
+            "folderSuffix": "arc_slot",
+            "folderBasename": "wykna_arc_slot",
+            "stubBasename": "wykna_drift_vault_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "views": {
+            "role": "views",
+            "folderSuffix": "mesh_ring",
+            "folderBasename": "wykna_mesh_ring",
+            "stubBasename": "wykna_quill_pulse_anchor",
+            "stubClassSuffix": "Layer"
+          },
+          "controllers": {
+            "role": "controllers",
+            "folderSuffix": "vault_hub",
+            "folderBasename": "wykna_vault_hub",
+            "stubBasename": "wykna_mesh_wave_anchor",
+            "stubClassSuffix": "Controller"
+          }
+        },
+        "programmingStyle": "法国人",
+        "architecturePattern": "mvc",
+        "csvStateManagement": "SetState",
+        "csvArchitecturePattern": "MVC",
+        "namingObfuscationRule": "辅音核心策略",
+        "namingRuleMeta": {
+          "ruleKey": "consonant_core",
+          "packageSeed": "wykna",
+          "affix": "prefix",
+          "lengthRange": [
+            2,
+            4
+          ],
+          "joinStyles": {
+            "class": "pascal",
+            "record": "pascal",
+            "method": "camel",
+            "field": "camel",
+            "param": "camel",
+            "local": "camel",
+            "enum_value": "camel",
+            "file": "snake",
+            "folder": "snake"
+          },
+          "batchId": "TEST-0717",
+          "namingObfuscationRule": "辅音核心策略"
+        }
+      },
+      "name": "Reviio",
+      "description": "Theme: 月度习惯复盘; Track: 个人成长; Audience: 需要追踪长期习惯并进行月度复盘的自我提升者; Core scene: 月末生成习惯复盘报告; Local feature: 习惯打卡与月度数据可视化分析; Product flow: Track daily habits for 月末生成习惯复盘报告; log streak data into 习惯打卡与月度数据可视化分析; highlight completed months on a yearly heatmap with optional milestone badges; browse the monthly habit trends and export a growth summary card for 需要追踪长期习惯并进行月度复盘的自我提升者; StoreKit unlocks premium habit templates, PDF growth reports, and dark themes with Restore Purchases in Me.",
+      "registeredAt": "2026-07-20",
+      "usedAt": "2026-07-20"
     }
   ],
   "entries": []
