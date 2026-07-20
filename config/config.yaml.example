@@ -20,7 +20,10 @@ runtime:
   legacy_pipeline: false
 
 # ui-ux-pro-max 设计系统（skill.design / skill.adapt / skill.enrich）
-# 默认自动探测 ../ui-ux-pro-max-skill；也可显式指定：
+# 技能仓库须与流水线根目录「同级」，目录名固定为 ui-ux-pro-max-skill。
+# 默认自动探测顺序：uupm.skill_dir > 环境变量 UUPM_SKILL_DIR >
+#   <流水线根目录>/../ui-ux-pro-max-skill（当前布局即 .cursor/rules/ui-ux-pro-max-skill）。
+# 保持同级关系即可零配置命中；skill_dir 仅在放到非同级路径时才需显式指定。
 uupm:
   skill_dir: ""
   integrations:
