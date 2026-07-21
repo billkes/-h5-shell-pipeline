@@ -293,6 +293,141 @@
         "chart"
       ],
       "pageOverrideCount": 0
+    },
+    "Palioy": {
+      "batchId": "TEST-0717",
+      "fingerprintKey": "0fea169a3b77764c",
+      "visualFingerprint": {
+        "primary": "#0d9488",
+        "accent": "#ea580c",
+        "background": "#f0fdfa",
+        "heading": "inter",
+        "body": "inter",
+        "pattern": "app store style landing",
+        "style": "saas mobile (high-tech boutique)",
+        "category": "productivity tool"
+      },
+      "candidateId": "c1",
+      "style": "SaaS Mobile (High-Tech Boutique)",
+      "category": "Productivity Tool",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web",
+        "style",
+        "typography",
+        "color",
+        "gsap"
+      ],
+      "pageOverrideCount": 0
+    },
+    "Somaoo": {
+      "batchId": "TEST-0717",
+      "fingerprintKey": "0fea169a3b77764c",
+      "visualFingerprint": {
+        "primary": "#0d9488",
+        "accent": "#ea580c",
+        "background": "#f0fdfa",
+        "heading": "inter",
+        "body": "inter",
+        "pattern": "app store style landing",
+        "style": "saas mobile (high-tech boutique)",
+        "category": "productivity tool"
+      },
+      "candidateId": "c1",
+      "style": "SaaS Mobile (High-Tech Boutique)",
+      "category": "Productivity Tool",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web",
+        "style",
+        "typography",
+        "color",
+        "gsap"
+      ],
+      "pageOverrideCount": 0
+    },
+    "Nureoo": {
+      "batchId": "TEST-0717",
+      "fingerprintKey": "0fea169a3b77764c",
+      "visualFingerprint": {
+        "primary": "#0d9488",
+        "accent": "#ea580c",
+        "background": "#f0fdfa",
+        "heading": "inter",
+        "body": "inter",
+        "pattern": "app store style landing",
+        "style": "saas mobile (high-tech boutique)",
+        "category": "productivity tool"
+      },
+      "candidateId": "c1",
+      "style": "SaaS Mobile (High-Tech Boutique)",
+      "category": "Productivity Tool",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web",
+        "style",
+        "typography",
+        "color",
+        "gsap"
+      ],
+      "pageOverrideCount": 0
+    },
+    "Taluoo": {
+      "batchId": "TEST-0717",
+      "fingerprintKey": "0fea169a3b77764c",
+      "visualFingerprint": {
+        "primary": "#0d9488",
+        "accent": "#ea580c",
+        "background": "#f0fdfa",
+        "heading": "inter",
+        "body": "inter",
+        "pattern": "app store style landing",
+        "style": "saas mobile (high-tech boutique)",
+        "category": "productivity tool"
+      },
+      "candidateId": "c1",
+      "style": "SaaS Mobile (High-Tech Boutique)",
+      "category": "Productivity Tool",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web",
+        "style",
+        "typography",
+        "color",
+        "gsap"
+      ],
+      "pageOverrideCount": 0
+    },
+    "Meloyy": {
+      "batchId": "TEST-0717",
+      "fingerprintKey": "0fea169a3b77764c",
+      "visualFingerprint": {
+        "primary": "#0d9488",
+        "accent": "#ea580c",
+        "background": "#f0fdfa",
+        "heading": "inter",
+        "body": "inter",
+        "pattern": "app store style landing",
+        "style": "saas mobile (high-tech boutique)",
+        "category": "productivity tool"
+      },
+      "candidateId": "c1",
+      "style": "SaaS Mobile (High-Tech Boutique)",
+      "category": "Productivity Tool",
+      "uxDomainsUsed": [
+        "ux",
+        "icons",
+        "web",
+        "style",
+        "typography",
+        "color",
+        "gsap"
+      ],
+      "pageOverrideCount": 0
     }
   },
   "fingerprints": {
@@ -303,6 +438,7 @@
     "e46fa3726bb3263f": "Yeario",
     "0b272c7b2c9004da": "Letioo",
     "c967f68ea4e6505b": "Peopio",
-    "f218c0a3e724a8f2": "Reviio"
+    "f218c0a3e724a8f2": "Reviio",
+    "0fea169a3b77764c": "Meloyy"
   }
 }

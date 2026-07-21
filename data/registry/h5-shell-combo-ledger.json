@@ -149,9 +149,149 @@
         "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
         "bridgeInjectTiming": "WKUserScript atDocumentStart"
       }
+    },
+    "Palioo": {
+      "batchId": "TEST-0717",
+      "hash": "a1ca108af99846ec",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "custom URL scheme intercept (app-bridge://)",
+        "bridgeCallbackStyle": "URL scheme callback (app-callback://)",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "custom scheme handler (app-asset://)",
+        "bridgeErrorCode": "HTTP-like (400/403/500)",
+        "bridgeInjectTiming": "bundled bridge.js in main bundle preload"
+      }
+    },
+    "Somaoo": {
+      "batchId": "TEST-0717",
+      "hash": "085de1eb072ffed0",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "postMessage + CustomEvent bridgeReady",
+        "bridgeCallbackStyle": "callbackId Map + evaluateJavaScript",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "readFile Bridge base64 inline",
+        "bridgeErrorCode": "numeric codes (0/-1/-2)",
+        "bridgeInjectTiming": "bundled bridge.js in main bundle preload"
+      }
+    },
+    "Nurioo": {
+      "batchId": "TEST-0717",
+      "hash": "8c77fe0b2d76db21",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "WKUserContentController named handler + JSON body",
+        "bridgeCallbackStyle": "injected JS dispatchEvent(NativeReply)",
+        "bridgeEnvelope": "method+args split fields",
+        "mediaServe": "custom scheme handler (app-asset://)",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentEnd"
+      }
+    },
+    "Talooi": {
+      "batchId": "TEST-0717",
+      "hash": "026ab118c4c06abd",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "window.webkit.messageHandlers.{prefix}.postMessage(JSON)",
+        "bridgeCallbackStyle": "URL scheme callback (app-callback://)",
+        "bridgeEnvelope": "RPC {jsonrpc,method,params,id}",
+        "mediaServe": "loadFileURL bundle resource",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentStart"
+      }
+    },
+    "Melioo": {
+      "batchId": "TEST-0717",
+      "hash": "6f849309bf4104a7",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "custom URL scheme intercept (app-bridge://)",
+        "bridgeCallbackStyle": "callAsyncJavaScript Promise resolve (iOS 14+)",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "readFile Bridge base64 inline",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "bundled bridge.js in main bundle preload"
+      }
+    },
+    "Palioy": {
+      "batchId": "TEST-0717",
+      "hash": "a1ca108af99846ec",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "custom URL scheme intercept (app-bridge://)",
+        "bridgeCallbackStyle": "URL scheme callback (app-callback://)",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "custom scheme handler (app-asset://)",
+        "bridgeErrorCode": "HTTP-like (400/403/500)",
+        "bridgeInjectTiming": "bundled bridge.js in main bundle preload"
+      }
+    },
+    "Nureoo": {
+      "batchId": "TEST-0717",
+      "hash": "8c77fe0b2d76db21",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "WKUserContentController named handler + JSON body",
+        "bridgeCallbackStyle": "injected JS dispatchEvent(NativeReply)",
+        "bridgeEnvelope": "method+args split fields",
+        "mediaServe": "custom scheme handler (app-asset://)",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentEnd"
+      }
+    },
+    "Taluoo": {
+      "batchId": "TEST-0717",
+      "hash": "026ab118c4c06abd",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "window.webkit.messageHandlers.{prefix}.postMessage(JSON)",
+        "bridgeCallbackStyle": "URL scheme callback (app-callback://)",
+        "bridgeEnvelope": "RPC {jsonrpc,method,params,id}",
+        "mediaServe": "loadFileURL bundle resource",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "WKUserScript atDocumentStart"
+      }
+    },
+    "Meloyy": {
+      "batchId": "TEST-0717",
+      "hash": "6f849309bf4104a7",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "custom URL scheme intercept (app-bridge://)",
+        "bridgeCallbackStyle": "callAsyncJavaScript Promise resolve (iOS 14+)",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "readFile Bridge base64 inline",
+        "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
+        "bridgeInjectTiming": "bundled bridge.js in main bundle preload"
+      }
     }
   },
   "hashes": {
-    "9c9a8c5eb5a00556": "Yeario"
+    "9c9a8c5eb5a00556": "Yeario",
+    "a1ca108af99846ec": "Palioy",
+    "085de1eb072ffed0": "Somaoo",
+    "8c77fe0b2d76db21": "Nureoo",
+    "026ab118c4c06abd": "Taluoo",
+    "6f849309bf4104a7": "Meloyy"
   }
 }

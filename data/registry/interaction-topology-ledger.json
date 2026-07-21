@@ -49,6 +49,51 @@
       "topologyId": "T6_checklist_session",
       "label": "Checklist session",
       "batchId": "TEST-0717"
+    },
+    "Palioo": {
+      "topologyId": "T7_compare_board",
+      "label": "Compare board",
+      "batchId": "TEST-0717"
+    },
+    "Somaoo": {
+      "topologyId": "T3_timeline",
+      "label": "Timeline journey",
+      "batchId": "TEST-0717"
+    },
+    "Nurioo": {
+      "topologyId": "T1_dashboard",
+      "label": "Dashboard-first",
+      "batchId": "TEST-0717"
+    },
+    "Talooi": {
+      "topologyId": "T5_workspace",
+      "label": "Single workspace",
+      "batchId": "TEST-0717"
+    },
+    "Melioo": {
+      "topologyId": "T7_compare_board",
+      "label": "Compare board",
+      "batchId": "TEST-0717"
+    },
+    "Palioy": {
+      "topologyId": "T1_dashboard",
+      "label": "Dashboard-first",
+      "batchId": "TEST-0717"
+    },
+    "Nureoo": {
+      "topologyId": "T3_timeline",
+      "label": "Timeline journey",
+      "batchId": "TEST-0717"
+    },
+    "Taluoo": {
+      "topologyId": "T6_checklist_session",
+      "label": "Checklist session",
+      "batchId": "TEST-0717"
+    },
+    "Meloyy": {
+      "topologyId": "T4_wizard",
+      "label": "Wizard pipeline",
+      "batchId": "TEST-0717"
     }
   },
   "batchUsage": {
@@ -63,10 +108,13 @@
       "T8_reminder_ring"
     ],
     "TEST-0717": [
+      "T1_dashboard",
       "T2_capture_first",
+      "T3_timeline",
       "T4_wizard",
       "T5_workspace",
       "T6_checklist_session",
+      "T7_compare_board",
       "T8_reminder_ring"
     ]
   }
