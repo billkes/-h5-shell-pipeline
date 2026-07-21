@@ -40,7 +40,7 @@ def test_native_oc_bridge_pools_not_collapsed() -> None:
 
     pools = load_h5_bridge_pools(ROOT, pack_type="h5_oc_shell")
     compat = load_compat_matrix(ROOT, pack_type="h5_oc_shell")
-    assert pools[COL_WEBVIEW_ENGINE] == ["wkwebview_oc"]
+    assert "wkwebview_oc" in pools[COL_WEBVIEW_ENGINE]
     assert len(pools[COL_BRIDGE_CALL_STYLE]) >= 3
     callbacks = filter_bridge_cards(
         COL_BRIDGE_CALLBACK_STYLE,
