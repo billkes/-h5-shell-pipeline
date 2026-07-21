@@ -43,6 +43,7 @@ H5 业务在 `h5_site/{{PREFIX}}_entry.htm`（或远程 `h5EntryUrl`），**禁�
 1. 读 `register.json` / `本包登记信息.json` 的 `h5EntryUrl`
 2. `WKWebView` `loadRequest` 该 URL
 3. H5 首帧后调 `shellReady` → Native 撤 Launch Veil
+4. Launch / Veil：**`UIViewContentModeScaleAspectFill`**；删 App 重装验 **首次**冷启动无缩小弹回（《H5壳启动闪屏规范》）
 
 ---
 

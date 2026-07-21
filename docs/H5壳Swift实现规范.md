@@ -315,13 +315,15 @@ iOS LaunchScreen（纯色 / 1125×2436 占位图）
 
 ### 6.1 Swift 壳必做
 
-1. `LaunchScreen.storyboard` 全屏纯色或占位图，与 H5 首屏背景一致。
+1. `LaunchScreen.storyboard` 全屏 **1125×2436** 图（加工后换真图），与 H5 首屏背景一致。
 2. `App` 启动后立即显示 `{{APP_NAME}}LaunchVeil`（`UIViewController` 或 SwiftUI `View`）。
-3. `WebViewController` 创建 WKWebView 时背景透明。
-4. `viewDidLoad` 中 `loadRequest(h5EntryUrl)`。
-5. Bridge 收到 `shellReady` 后，延迟一帧再撤 Veil。
-6. **CDN-safe 加载**（`WebShellViewModel`）：`loadTimeout=30s` 仅用于 provisional；`didFinish` 后取消 provisional 定时器并启用 `shellReadyFallback=8s`；`mainFrameDidFinish` 防误报 offline；`WebViewController` 忽略 `NSURLErrorCancelled(-999)`；远程 `useProtocolCachePolicy`。
-7. 加载失败显示英文 Retry 页，重新 `loadRequest`。
+3. Launch / Veil `UIImageView`：**`contentMode = .scaleAspectFill`** + clipsToBounds；**禁止** `scaleToFill` / `scaleAspectFit`。
+4. `WebViewController` 创建 WKWebView 时背景透明。
+5. `viewDidLoad` 中 `loadRequest(h5EntryUrl)`。
+6. Bridge 收到 `shellReady` 后，延迟一帧再撤 Veil。
+7. **CDN-safe 加载**（`WebShellViewModel`）：`loadTimeout=30s` 仅用于 provisional；`didFinish` 后取消 provisional 定时器并启用 `shellReadyFallback=8s`；`mainFrameDidFinish` 防误报 offline；`WebViewController` 忽略 `NSURLErrorCancelled(-999)`；远程 `useProtocolCachePolicy`。
+8. 加载失败显示英文 Retry 页，重新 `loadRequest`。
+9. **验收**：删 App 重装 → **首次**冷启动无缩小弹回（见《H5壳启动闪屏规范》）。
 
 ### 6.2 H5 必做
 
@@ -398,6 +400,13 @@ private var fulfilledTransactions: Set<String> {
 
 权限被拒时：英文单行弹窗，不跳设置。
 
+**权限必须接到功能（20260721）**：plist 有 key 不够；H5/Bridge 须有对应入口（选图/拍照/录音），且能走完授权流。启用录音则 **录完可回放**（`playAudio` / AudioPlayer）。禁止「声明三大权限但无 UI」。
+
+```bash
+rg 'NSCamera|NSPhoto|NSMicrophone' <工作区> --glob '**/Info.plist'
+rg 'pickImage|takePhoto|startRecord|playAudio' <工作区>/h5/src --glob '*.{ts,vue}'
+```
+
 ---
 
 ## 10. 登记信息字段
@@ -472,9 +481,13 @@ private var fulfilledTransactions: Set<String> {
 - [ ] `webviewEngine` 锁定为 `wkwebview_swift`
 - [ ] Bridge handler 注册先于 `loadRequest`
 - [ ] `shellReady` 收到后才撤 LaunchVeil
+- [ ] Launch/Veil **`scaleAspectFill`**；删 App 重装首次冷启动无缩小弹回
 - [ ] 自定义 asset scheme 能服务 Documents 和 Bundle seed
-- [ ] 权限拒弹窗英文单行，不跳设置
+- [ ] Seed / 品牌图在 `ios/` 工程内可见（非仅对话目录）
+- [ ] 权限拒弹窗英文单行，不跳设置；**权限 key ↔ 功能入口对齐**
+- [ ] 录音（若启用）录完可回放
 - [ ] IAP 取消购买无失败弹窗，真失败英文 Alert
 - [ ] 无 `<input type="file">`、无系统 alert、无 base64 大图
 - [ ] H5 首屏底色与 LaunchScreen / LaunchVeil 一致
 - [ ] Swift 侧无可见业务 UI（Welcome、TabBar、Shop 等）
+- [ ] 协议有在线链时走 `openExternalUrl` 外开（见 Legal 弹层规范模式 B）
