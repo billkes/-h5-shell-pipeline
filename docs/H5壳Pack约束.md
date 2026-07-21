@@ -45,9 +45,31 @@ Screen Inventory：**4–5 个 H5 tab-root**（bottom TabBar）；wizard、`#/le
 - 《H5壳业务流程文字版.md》— 按 Bridge 能力阅读
 - 《H5壳广场页规范.md》— `#/plaza`（若在 Inventory）
 - 《H5去风味规范.md》
-- Legal UI：《H5壳Legal弹层规范.md》；内容 `sync_h5_legal_bundled.py`
+- Legal UI：《H5壳Legal弹层规范.md》；内容 `docs/法律协议规范.md`；**产包后协议主路径见下节「产包后共性」**
 - Vault：《H5壳Vault合规维护规范.md》
 - Bridge：《H5-Bridge协议.md》
+- 加工 checklist：脑库 `2_领域/App-Store-审核风控/h5-shell-加工checklist/SKILL`
+
+---
+
+## 产包后共性（Palioy / Somaoo · 20260721）
+
+> 产包兜底只保证能跑；**加工收尾**须过下列共性。细则落对应规范 + 加工 checklist 编组，禁止旁路另开一轮。
+
+| # | 共性 | 规范落点 | 加工编组 |
+|---|------|----------|----------|
+| 1 | 启动图首次冷启动无缩小弹回 | 《H5壳启动闪屏规范》· Swift/OC §启动 | **A** |
+| 2 | 协议在线 URL + 系统浏览器外开 | 《H5壳Legal弹层规范》· 《H5-Bridge协议》B07 | **D** |
+| 3 | Seed / 品牌图在 **iOS 工程内**真图齐全 | 《H5壳Vault合规维护规范》 | **I**（联 **A/H**） |
+| 4 | 录音可回放；麦克风权限可走通 | 《H5-Bridge协议》B03/B04 · 《H5去风味规范》 | **E**+**F** |
+| 5 | 列表/Sheet 不贴 Dock；弹窗有安全区 | 《H5去风味规范》safe-area | **E** |
+| 6 | 主题 motif 一眼贴合；Tab1 有亮点 | 《H5壳Plan交付规范》视觉锁 | **L** |
+| 7 | Welcome 非模板；关键交互可见 | 《H5壳Plan交付规范》Welcome | **D** |
+| 8 | 导出 = 预览（同构图同比例） | 《H5壳Plan交付规范》Export | **L** |
+| 9 | 权限 plist key ↔ H5/Bridge 入口对齐 | 《H5壳Swift实现规范》§权限 · 同 OC | **F** |
+| 10 | 主 Tab 内容收敛、间距有章法 | 《H5壳Plan交付规范》· 视觉锁 | **L** |
+
+源笔记：对话目录 `2026-07-21-Palioy-Somaoo-产包后双包公共调整.md`
 
 ## CSV 维度边界
 

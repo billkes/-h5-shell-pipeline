@@ -38,6 +38,17 @@ Agent **Part 1（Plan）** 须一次性产出下列文件。细则以本文为�
 
 **锁定：** Screen Inventory 为权威； listed = MUST implement；禁止 optional/may/可选项。
 
+### Export / Welcome / 主题收口（产包后必过 · 20260721）
+
+| 项 | 必须 | 禁止 |
+|----|------|------|
+| **Export** | 预览与导出 **同构图同比例**；按预览实际像素导出 | 导出再缩放导致文案变形；预览有图导出空白 |
+| **Welcome** | 三屏贴合主题；关键交互可见可发现 | 纯模板口号墙；交互控件对比度不足 |
+| **主题贴合** | Tab1 有英雄焦点；motif 一眼可读 | 灰土默认底、乱配色、装饰抢戏 |
+| **内容收敛** | 主 Tab 合并展示、间距有章法 | 多视图并列过载 |
+
+功能文档 **Export / Save Flow** 与 **Primary Workflow** 须写明导出保真约束；Welcome 槽位以 `pages/welcome.md` 为准并在实现阶段验交互可见性。
+
 ## Deliverable 1b) Legal agreements（English MD）
 
 - `{主名字} Privacy Agreement.md`
@@ -45,6 +56,7 @@ Agent **Part 1（Plan）** 须一次性产出下列文件。细则以本文为�
 
 与 `功能文档.md` 同一步（`agent.plan.spec`）产出。规范：`docs/法律协议规范.md`。plan.gate 调用 `verify_h5_legal_md()`。
 
+**产包后（有在线链接时）**：产品概述 / 登记须写入可访问 HTTPS；H5 点击走 **系统浏览器**（见《H5壳Legal弹层规范.md》外开模式）。MD 仍为文档产物与 gate 正文源。
 ## Deliverable 2) 视觉规范（**不再**产出 `视觉蓝图.md`）
 
 h5_shell 包的 UI 规范由 skill 链写入 workspace，Agent **禁止**再写 `视觉蓝图.md`（与 skill 产物冲突）：
