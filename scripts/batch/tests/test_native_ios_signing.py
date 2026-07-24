@@ -58,6 +58,29 @@ def test_patch_ios_app_build_settings_manual_profile(tmp_path: Path) -> None:
     assert 'PROVISIONING_PROFILE_SPECIFIER = "";' in patched
     assert '"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = duckeggkaifaProfile;' in patched
     assert "PRODUCT_BUNDLE_IDENTIFIER = test.duckegg.ios;" in patched
+    assert "TARGETED_DEVICE_FAMILY = 1;" in patched
+    assert "IPHONEOS_DEPLOYMENT_TARGET = 13.0;" in patched
+    assert "SUPPORTS_MACCATALYST = NO;" in patched
+
+
+def test_patch_project_wide_forces_ios13_iphone_only() -> None:
+    from batch.xcode_delivery import _patch_project_wide_settings
+
+    raw = """
+\t\t\tbuildSettings = {
+\t\t\t\tIPHONEOS_DEPLOYMENT_TARGET = 15.0;
+\t\t\t\tTARGETED_DEVICE_FAMILY = "1,2";
+\t\t\t\tSUPPORTS_MACCATALYST = YES;
+\t\t\t\tSUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+\t\t\t};
+""".strip()
+    patched = _patch_project_wide_settings(raw)
+    assert "IPHONEOS_DEPLOYMENT_TARGET = 13.0;" in patched
+    assert "TARGETED_DEVICE_FAMILY = 1;" in patched
+    assert "SUPPORTS_MACCATALYST = NO;" in patched
+    assert "SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;" in patched
+    assert "15.0" not in patched
+    assert '"1,2"' not in patched
 
 
 def test_collect_native_ios_signing_violations_ok(tmp_path: Path) -> None:

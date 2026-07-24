@@ -6,6 +6,7 @@ from pathlib import Path
 
 from batch.h5_vite_scaffold import (
     apply_h5_vite_scaffold,
+    ensure_browser_bridge_mock,
     ensure_h5_vite_scaffold,
     scaffold_exists,
 )
@@ -49,3 +50,42 @@ def test_ensure_syncs_when_h5_exists(tmp_path: Path) -> None:
     )
     assert out == h5
     assert "host: true" in (h5 / "vite.config.ts").read_text(encoding="utf-8")
+
+
+def test_ensure_browser_bridge_mock_writes_and_patches(tmp_path: Path) -> None:
+    h5 = tmp_path / "h5"
+    bridge = h5 / "src" / "bridge"
+    bridge.mkdir(parents=True)
+    (bridge / "index.ts").write_text(
+        "export function bridgeCall(action: string, payload = {}) {\n"
+        "  return new Promise((resolve, reject) => {\n"
+        "    const body = { ...payload, action };\n"
+        "    if (action === 'shellReady') resolve({});\n"
+        "    else reject(new Error('Bridge unavailable'));\n"
+        "  });\n"
+        "}\n",
+        encoding="utf-8",
+    )
+    changed = ensure_browser_bridge_mock(h5, app_name_lower="demo")
+    assert "src/bridge/browserMock.ts" in changed
+    assert "src/bridge/index.ts" in changed
+    mock = (bridge / "browserMock.ts").read_text(encoding="utf-8")
+    assert "demoBridge" in mock
+    assert "{{APP_NAME_LOWER}}" not in mock
+    index = (bridge / "index.ts").read_text(encoding="utf-8")
+    assert "tryBrowserBridgeMock" in index
+    assert "Bridge unavailable" not in index
+
+
+def test_ensure_browser_bridge_mock_idempotent(tmp_path: Path) -> None:
+    h5 = tmp_path / "h5"
+    bridge = h5 / "src" / "bridge"
+    bridge.mkdir(parents=True)
+    (bridge / "index.ts").write_text(
+        "import { tryBrowserBridgeMock } from './browserMock';\n"
+        "void tryBrowserBridgeMock;\n",
+        encoding="utf-8",
+    )
+    ensure_browser_bridge_mock(h5, app_name_lower="acme")
+    second = ensure_browser_bridge_mock(h5, app_name_lower="acme")
+    assert "src/bridge/index.ts" not in second

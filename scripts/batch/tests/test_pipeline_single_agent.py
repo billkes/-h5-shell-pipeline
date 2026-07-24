@@ -58,6 +58,16 @@ def test_legacy_build_agent_maps_to_agent_plan_spec() -> None:
     assert parse_step_range("agent.plan.pack", steps) == [AGENT_PLAN_PACK]
 
 
+def test_rerun_accepts_range_like_bare_input() -> None:
+    steps = steps_for_run(pack_type="h5_swift_shell")
+    bare = parse_step_range("1-7", steps)
+    assert len(bare) == 7
+    assert parse_step_range("rerun 1-7", steps) == bare
+    assert parse_step_range("rerun 5", steps) == parse_step_range("5", steps)
+    assert parse_step_range("rerun prepare.context", steps) == [steps[0]]
+    assert parse_step_range("rerun build.agent", steps) == [AGENT_PLAN_SPEC]
+
+
 def test_non_h5_shell_has_no_agent_steps() -> None:
     steps = steps_for_run(pack_type="tool_flutter")
     assert AGENT_PLAN_SPEC not in steps

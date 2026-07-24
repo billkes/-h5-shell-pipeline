@@ -11,6 +11,11 @@ from batch.h5_site_paths import app_slug_from_name, sync_h5_dev_entry_urls
 from batch.pack_type import is_h5_shell
 
 H5_SOURCE_ROOT = "h5/"
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+BROWSER_MOCK_SNIPPET = (
+    _REPO_ROOT / "data" / "static" / "h5_snippets" / "bridge" / "browserMock.ts"
+)
+_BROWSER_MOCK_MARKER = "tryBrowserBridgeMock"
 
 
 def _prefix_cap(prefix: str) -> str:
@@ -130,6 +135,95 @@ def ensure_vite_lan_server(h5_dir: Path) -> bool:
     return True
 
 
+def _app_name_lower_for_project(project: Path, app_name: str) -> str:
+    name = (app_name or "").strip()
+    if not name:
+        reg = _read_register(project)
+        name = str(reg.get("appName") or reg.get("name") or "").strip()
+    if not name:
+        name = project.name.split("-")[0] if project.name else "app"
+    return name.lower()
+
+
+def ensure_browser_bridge_mock(
+    h5_dir: Path,
+    *,
+    app_name_lower: str,
+    force: bool = False,
+) -> list[str]:
+    """Install browserMock.ts and soft-wire bridgeCall no-native branch.
+
+    Returns list of relative paths changed. Does not invent a full bridge/index.ts;
+    only patches an existing reject('Bridge unavailable') fallback when present.
+    """
+    changed: list[str] = []
+    if not BROWSER_MOCK_SNIPPET.is_file():
+        return changed
+    bridge_dir = h5_dir / "src" / "bridge"
+    if not bridge_dir.is_dir() and not (h5_dir / "src").is_dir():
+        return changed
+    bridge_dir.mkdir(parents=True, exist_ok=True)
+    dest = bridge_dir / "browserMock.ts"
+    raw = BROWSER_MOCK_SNIPPET.read_text(encoding="utf-8")
+    body = raw.replace("{{APP_NAME_LOWER}}", app_name_lower)
+    if force or not dest.is_file() or "{{APP_NAME_LOWER}}" in dest.read_text(encoding="utf-8"):
+        dest.write_text(body, encoding="utf-8")
+        changed.append("src/bridge/browserMock.ts")
+    elif dest.read_text(encoding="utf-8") != body and force:
+        dest.write_text(body, encoding="utf-8")
+        changed.append("src/bridge/browserMock.ts")
+
+    index = bridge_dir / "index.ts"
+    if not index.is_file():
+        return changed
+    text = index.read_text(encoding="utf-8")
+    if _BROWSER_MOCK_MARKER in text:
+        return changed
+    if "Bridge unavailable" not in text:
+        # Snippet installed; Agent / implementer must wire per README
+        return changed
+
+    import_line = "import { tryBrowserBridgeMock } from './browserMock';\n"
+    if "from './browserMock'" not in text and 'from "./browserMock"' not in text:
+        m = list(re.finditer(r"^import .+?;\s*\n", text, re.M))
+        if m:
+            pos = m[-1].end()
+            text = text[:pos] + import_line + text[pos:]
+        else:
+            text = import_line + text
+
+    patterns = [
+        (
+            r"if\s*\(\s*action\s*===\s*['\"]shellReady['\"]\s*\)\s*resolve\(\{\}\)\s*;\s*"
+            r"else\s*reject\(\s*new\s*Error\(\s*['\"]Bridge unavailable['\"]\s*\)\s*\)\s*;",
+            "if (action === 'shellReady') resolve({});\n"
+            "    else void tryBrowserBridgeMock(action, body).then(resolve, reject);",
+        ),
+        (
+            r"reject\(\s*new\s*Error\(\s*['\"]Bridge unavailable['\"]\s*\)\s*\)\s*;",
+            "void tryBrowserBridgeMock("
+            "action, typeof body !== 'undefined' ? body : payload).then(resolve, reject);",
+        ),
+    ]
+    patched = False
+    for pat, repl in patterns:
+        new_text, n = re.subn(pat, repl, text, count=1, flags=re.S)
+        if n:
+            text = new_text
+            patched = True
+            break
+
+    if not patched:
+        text += (
+            "\n// TODO: replace Bridge unavailable reject with "
+            "tryBrowserBridgeMock (data/static/h5_snippets/bridge/README.md)\n"
+        )
+
+    index.write_text(text, encoding="utf-8")
+    changed.append("src/bridge/index.ts")
+    return changed
+
+
 def apply_h5_vite_scaffold(
     project: Path,
     *,
@@ -170,8 +264,13 @@ def ensure_h5_vite_scaffold(
     ensure_vite_lan_server(dst)
     ensure_public_native_img_symlink(dst, project)
     ensure_public_vault_symlink(dst, p)
+    mock_changed = ensure_browser_bridge_mock(
+        dst,
+        app_name_lower=_app_name_lower_for_project(project, app_name),
+    )
+    if mock_changed:
+        print(f">>> lock.dimensions: browser bridge mock → {', '.join(mock_changed)}")
     sync_h5_dev_entry_urls(project)
-    del app_name
     return dst
 
 

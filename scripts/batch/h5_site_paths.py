@@ -199,16 +199,23 @@ def site_deploy_dir_rel(reg: dict[str, Any], *, app_name: str = "") -> str:
 
 def site_entry_name_from_register(reg: dict[str, Any]) -> str:
     explicit = str(reg.get("h5SiteEntry") or "").strip()
-    return explicit or DEFAULT_H5_SITE_ENTRY
+    if not explicit:
+        return DEFAULT_H5_SITE_ENTRY
+    # Strip directory prefixes and coerce legacy names to index.html
+    base = explicit.replace("\\", "/").rsplit("/", 1)[-1]
+    if base in ("index.html", "index.htm"):
+        return "index.html"
+    return DEFAULT_H5_SITE_ENTRY
 
 
 def site_entry_rel(reg: dict[str, Any], prefix: str, *, app_name: str = "") -> str:
-    explicit = str(reg.get("bundleEntryPath") or reg.get("h5SiteEntryPath") or "").strip()
-    if explicit:
-        return explicit.replace("\\", "/")
+    """Locked deploy entry: always ``h5_site/{appSlug}/index.html``.
+
+    Legacy ``{prefix}_entry.htm`` / modular paths in register are coerced.
+    """
+    del prefix
     deploy = site_deploy_dir_rel(reg, app_name=app_name)
-    entry_name = site_entry_name_from_register(reg)
-    return f"{deploy.rstrip('/')}/{entry_name}"
+    return f"{deploy.rstrip('/')}/{DEFAULT_H5_SITE_ENTRY}"
 
 
 def resolve_h5_remote_config(

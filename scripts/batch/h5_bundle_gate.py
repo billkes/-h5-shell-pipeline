@@ -710,6 +710,15 @@ def verify_h5_bundle_soft(
                 f"H5 Gate：vault 内未见 polish/baseline CSS（{vault_dir.name}/）"
             )
         pattern = str(data.get("h5VaultPattern") or "").strip()
+        from batch.h5_vite_scaffold import scaffold_exists
+
+        # Vite packages are always monolith — reject legacy modular patterns in register.
+        if scaffold_exists(root) and pattern and pattern != "h5_monolith":
+            warnings.append(
+                f"H5 Gate：Vite 包 h5VaultPattern 必须为 h5_monolith"
+                f"（当前 `{pattern}`）→ 部署仅为 h5_site/{{appSlug}}/index.html"
+            )
+            pattern = "h5_monolith"
         if pattern and entry_file.is_file():
             stem = entry_file.stem  # e.g. paaew_entry
             prefix = stem.rsplit("_", 1)[0] if "_" in stem else stem
@@ -744,8 +753,6 @@ def verify_h5_bundle_soft(
                         )
                     )
             if pattern == "h5_monolith" and len(file_names) > 1:
-                from batch.h5_vite_scaffold import scaffold_exists
-
                 if scaffold_exists(root):
                     extras = sorted(file_names - {entry_file.name})
                     warnings.append(
@@ -757,8 +764,6 @@ def verify_h5_bundle_soft(
                         f"H5 Gate：h5VaultPattern=h5_monolith 但 vault 含 {len(file_names)} 个文件"
                     )
             if pattern == "h5_monolith" and dir_names:
-                from batch.h5_vite_scaffold import scaffold_exists
-
                 if scaffold_exists(root):
                     warnings.append(
                         f"H5 Gate：Vite deploy dir 不应含子目录 {sorted(dir_names)} — 运行 dev.h5.build"

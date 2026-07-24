@@ -104,30 +104,34 @@ _ASSET_LAYOUT_DESC: dict[str, str] = {
     ),
 }
 
-# h5_shell — vault file topology derived from dim-7 assetLayout (NOT Flutter Image.asset roots).
+# h5_shell deploy is ALWAYS Vite singlefile monolith — programming persona no longer
+# forks {prefix}_entry.htm / css / js layouts (legacy keys kept for gate back-compat).
 H5_VAULT_PATTERN_BY_ASSET_LAYOUT: dict[str, str] = {
     "assets_img_flat": "h5_monolith",
     "assets_prefix_bundled": "h5_monolith",
-    "assets_images_flat": "h5_modular_css",
-    "assets_media_split": "h5_modular_css",
-    "assets_prefix_surfaces_glyphs": "h5_modular_svg",
-    "assets_prefix_panels_icons": "h5_modular_full",
-    "assets_bundle_prefix": "h5_modular_full",
+    "assets_images_flat": "h5_monolith",
+    "assets_media_split": "h5_monolith",
+    "assets_prefix_surfaces_glyphs": "h5_monolith",
+    "assets_prefix_panels_icons": "h5_monolith",
+    "assets_bundle_prefix": "h5_monolith",
 }
+
+H5_DEPLOY_PATTERN = "h5_monolith"
 
 _H5_VAULT_PATTERN_DESC: dict[str, str] = {
     "h5_monolith": (
-        "Single `index.html` under `h5_site/{appSlug}/` (Vite singlefile deploy output)."
+        "Single `index.html` under `h5_site/{appSlug}/` "
+        "(vite-plugin-singlefile deploy output — ONLY allowed pattern)."
     ),
+    # Legacy descriptors — kept so old register dumps remain readable; never emitted.
     "h5_modular_css": (
-        "`{prefix}_entry.htm` + `{prefix}_baseline.css` (polish baseline externalized)."
+        "DEPRECATED — was `{prefix}_entry.htm` + `{prefix}_baseline.css`."
     ),
     "h5_modular_svg": (
-        "entry + baseline.css + `{prefix}_marks.svg` (hidden symbol sprite file)."
+        "DEPRECATED — was entry + baseline.css + `{prefix}_marks.svg`."
     ),
     "h5_modular_full": (
-        "entry + baseline.css + marks.svg + `{prefix}_panels/` raster slots "
-        "(referenced by relative URL from entry)."
+        "DEPRECATED — was entry + baseline.css + marks.svg + `{prefix}_panels/`."
     ),
 }
 
@@ -139,36 +143,26 @@ def resolve_h5_vault_layout(
     asset_layout: str | None = None,
     app_name: str = "",
 ) -> dict[str, Any]:
-    """Return h5_shell vault topology from programming persona dim-7."""
+    """Return fixed H5 deploy topology: h5_site/{appSlug}/index.html (monolith).
+
+    ``persona`` / ``prefix`` / ``asset_layout`` only affect ``h5VaultLayout`` labeling
+    (Native asset naming); deploy pattern is always ``h5_monolith``.
+    """
+    del prefix  # deploy path uses appSlug, not dart prefix
     key = persona_key(persona)
     layout_key = asset_layout or ASSET_LAYOUT_BY_PERSONA.get(key, "assets_images_flat")
-    pattern = H5_VAULT_PATTERN_BY_ASSET_LAYOUT.get(layout_key, "h5_modular_css")
+    pattern = H5_DEPLOY_PATTERN
     slug = app_slug_from_name(app_name) if app_name else "app"
     upload_root = DEFAULT_H5_SITE_ROOT
     deploy_dir = f"{upload_root.rstrip('/')}/{slug}/"
-    if pattern == "h5_monolith":
-        entry = f"{deploy_dir}index.html"
-        files: list[str] = [entry]
-    else:
-        p = (prefix or "app").strip().lower()
-        if not re.fullmatch(r"[a-z]{4,6}", p):
-            p = "app"
-        entry = f"{upload_root}{p}_entry.htm"
-        files = [entry]
-        if pattern in {"h5_modular_css", "h5_modular_svg", "h5_modular_full"}:
-            files.append(f"{upload_root}{p}_baseline.css")
-        if pattern in {"h5_modular_svg", "h5_modular_full"}:
-            files.append(f"{upload_root}{p}_marks.svg")
-        if pattern == "h5_modular_full":
-            files.append(f"{upload_root}{p}_panels/")
-        deploy_dir = upload_root
+    entry = f"{deploy_dir}index.html"
     return {
         "h5VaultPattern": pattern,
         "h5VaultLayout": layout_key,
         "bundleVaultDir": deploy_dir,
         "bundleEntryPath": entry,
-        "h5VaultFiles": files,
-        "h5VaultPatternDesc": _H5_VAULT_PATTERN_DESC.get(pattern, pattern),
+        "h5VaultFiles": [entry],
+        "h5VaultPatternDesc": _H5_VAULT_PATTERN_DESC[pattern],
     }
 
 
@@ -210,17 +204,20 @@ def build_h5_vault_layout_prompt_block(
     files = "\n".join(f"  - `{f}`" for f in h5["h5VaultFiles"])
     remote_block = build_h5_remote_prompt_block(app_name or prefix, prefix=prefix)
     return (
-        "\n[H5 Site Structure — from programmingStyle dim-7 assetLayout — REQUIRED]\n"
-        "- Flutter CSV 架构模式 (MVP/MVC/…) governs **shell runtime only** (Flutter / Swift / OC).\n"
-        "- Deployable H5 site (NOT Flutter pubspec assets) uses **h5VaultPattern**:\n"
+        "\n[H5 Site Structure — LOCKED monolith — REQUIRED]\n"
+        "- Flutter CSV 架构模式 (MVP/MVC/…) + programmingStyle govern **shell runtime / "
+        "Native naming only** — they do **NOT** change H5 deploy file layout.\n"
+        "- Deployable H5 site is **always** vite-plugin-singlefile monolith:\n"
         f"  - h5VaultPattern: `{h5['h5VaultPattern']}` — {h5['h5VaultPatternDesc']}\n"
         f"  - h5SiteRoot: `{h5['h5SiteRoot']}`\n"
-        f"  - h5SiteEntry: `{h5['h5SiteEntry']}`\n"
-        "- Required site files:\n"
+        f"  - h5SiteEntry: `{h5['h5SiteEntry']}` (must be `index.html`)\n"
+        "- Required site files (exactly one):\n"
         f"{files}\n"
-        "- Register `h5VaultPattern`, `h5VaultLayout`, `h5SourceRoot`, `h5SiteRoot`, `h5SiteEntry`, "
-        "`h5BuildCommand`, `appSlug`, `h5EntryUrl`, `h5EntryUrlDev`, `h5EntryUrlProd` in 本包登记信息.json.\n"
-        "- **Forbidden**: hand-editing `h5SiteEntry` deploy file — use `h5/` + `dev.h5.build`.\n"
+        "- **Forbidden**: `{prefix}_entry.htm`, split css/js/htm deploy trees, or "
+        "`h5_modular_*` patterns.\n"
+        "- Register `h5VaultPattern=h5_monolith`, `h5VaultLayout`, `h5SourceRoot`, `h5SiteRoot`, "
+        "`h5SiteEntry=index.html`, `h5BuildCommand`, `appSlug`, `h5EntryUrl*` in 本包登记信息.json.\n"
+        "- **Forbidden**: hand-editing `h5_site/` — use `h5/` + `dev.h5.build`.\n"
         "- **Forbidden**: declaring `h5SiteRoot` under Flutter `pubspec.yaml` assets.\n"
         f"{remote_block}"
     )
@@ -392,15 +389,20 @@ def layout_from_lock(lock: dict[str, Any] | None) -> dict[str, Any]:
             merged.get("assetSlots") or [],
             theme_hint=theme,
         )
-        for key in (
-            "h5VaultPattern",
-            "h5VaultLayout",
-            "bundleVaultDir",
-            "bundleEntryPath",
-            "h5VaultFiles",
-        ):
-            if ps.get(key):
-                merged[key] = ps[key]
+        # Deploy layout is always monolith — ignore stale h5_modular_* from old locks.
+        if ps.get("h5VaultPattern") or ps.get("bundleEntryPath"):
+            reg = lock.get("registration") or {}
+            app_name = ""
+            if isinstance(reg, dict):
+                app_name = str(reg.get("appName") or reg.get("name") or "").strip()
+            merged.update(
+                resolve_h5_vault_layout(
+                    str(persona or "美国人"),
+                    prefix=prefix,
+                    asset_layout=str(merged.get("assetLayout") or ""),
+                    app_name=app_name,
+                )
+            )
         return merged
     fresh_slots = _merge_h5_retry_slots_if_missing(
         lock,
@@ -432,6 +434,7 @@ def enrich_programming_style_block(
     theme_hint: str = "",
     include_tool_slots: bool = False,
     include_h5_vault: bool = False,
+    app_name: str = "",
 ) -> dict[str, Any]:
     """Merge layout keys into programmingStyle section of dimension lock."""
     layout = resolve_persona_layout(
@@ -454,11 +457,17 @@ def enrich_programming_style_block(
         }
     )
     if include_h5_vault and prefix:
+        name = (app_name or "").strip()
+        if not name and isinstance(lock, dict):
+            reg = lock.get("registration") or {}
+            if isinstance(reg, dict):
+                name = str(reg.get("appName") or reg.get("name") or "").strip()
         out.update(
             resolve_h5_vault_layout(
                 persona,
                 prefix=prefix,
                 asset_layout=str(layout.get("assetLayout") or ""),
+                app_name=name,
             )
         )
         rule_key, meta = _naming_from_lock_helper(lock) if lock else ("", None)
@@ -512,6 +521,12 @@ def refresh_tool_asset_manifest(workspace: Path, lock: dict[str, Any]) -> dict[s
 
     persona = ps.get("value") if isinstance(ps, dict) else str(ps or "")
     prefix = str((lock.get("namingObfuscationRule") or {}).get("dartCodePrefix") or "")
+    reg = lock.get("registration") or {}
+    app_name = ""
+    if isinstance(reg, dict):
+        app_name = str(reg.get("appName") or reg.get("name") or "").strip()
+    if not app_name:
+        app_name = workspace.name.split("-")[0] if workspace.name else ""
     enriched = enrich_programming_style_block(
         ps if isinstance(ps, dict) else {"value": persona, "enforcement": "soft"},
         persona=str(persona),
@@ -520,6 +535,7 @@ def refresh_tool_asset_manifest(workspace: Path, lock: dict[str, Any]) -> dict[s
         theme_hint=_read_theme_hint(workspace),
         include_tool_slots=not is_h5,
         include_h5_vault=is_h5,
+        app_name=app_name,
     )
     lock = dict(lock)
     lock["programmingStyle"] = enriched
@@ -670,6 +686,12 @@ def apply_layout_to_workspace(workspace: Path) -> dict[str, Any]:
     persona = ps.get("value") if isinstance(ps, dict) else str(ps or "")
     ps_block = lock.get("programmingStyle") or {}
     is_h5 = bool(ps_block.get("h5VaultPattern")) if isinstance(ps_block, dict) else False
+    reg = lock.get("registration") or {}
+    app_name = ""
+    if isinstance(reg, dict):
+        app_name = str(reg.get("appName") or reg.get("name") or "").strip()
+    if not app_name:
+        app_name = workspace.name.split("-")[0] if workspace.name else ""
     enriched = enrich_programming_style_block(
         ps if isinstance(ps, dict) else {"value": persona, "enforcement": "soft"},
         persona=str(persona),
@@ -678,6 +700,7 @@ def apply_layout_to_workspace(workspace: Path) -> dict[str, Any]:
         theme_hint=_read_theme_hint(workspace),
         include_tool_slots=not _workspace_has_content_list(workspace) and not is_h5,
         include_h5_vault=is_h5,
+        app_name=app_name,
     )
     lock["programmingStyle"] = enriched
     (workspace / LOCK_FILE).write_text(

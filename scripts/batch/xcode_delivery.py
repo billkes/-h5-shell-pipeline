@@ -326,6 +326,11 @@ def _patch_ios_app_build_settings(text: str, cfg: BatchConfig) -> str:
             "NO",
         )
         block = _set_or_replace_setting(block, "TARGETED_DEVICE_FAMILY", "1")
+        block = _set_or_replace_setting(
+            block,
+            "IPHONEOS_DEPLOYMENT_TARGET",
+            "13.0",
+        )
         return block
 
     for config_name in ("Debug", "Release", "Profile"):
@@ -352,9 +357,16 @@ def _patch_project_wide_settings(text: str) -> str:
             "SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO"
         ),
         'TARGETED_DEVICE_FAMILY = "1,2"': "TARGETED_DEVICE_FAMILY = 1",
+        "TARGETED_DEVICE_FAMILY = 1,2": "TARGETED_DEVICE_FAMILY = 1",
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
+    # Force iOS 13+ / iPhone-only for all build configurations.
+    text = re.sub(
+        r"IPHONEOS_DEPLOYMENT_TARGET = [^;]+;",
+        "IPHONEOS_DEPLOYMENT_TARGET = 13.0;",
+        text,
+    )
     return text
 
 

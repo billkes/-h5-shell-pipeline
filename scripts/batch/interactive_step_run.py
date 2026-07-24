@@ -11,6 +11,7 @@ from batch.orchestrator import BatchOrchestrator
 from batch.pipeline_steps import STEP_LABELS, parse_step_range, steps_for_run
 from batch.pipeline_v3_runner import V3StepRunner, format_step_status_lines
 from batch.queue import QueueTask
+from batch.registry import find_package_by_name
 from batch.state import read_state
 
 
@@ -34,8 +35,16 @@ def print_step_status(cfg: BatchConfig, task: QueueTask) -> None:
     print(f"\n当前项目: {task.name} ({task.pack_type})")
     print(f"工作区: {ws}")
     sf = ws / ".build-state.json"
+    registered = find_package_by_name(cfg.contentpack_registry, task.name)
     if not sf.is_file():
-        print("  （尚无 .build-state.json — 首次跑将自动创建）")
+        if registered:
+            reg_at = str(registered.get("registeredAt") or "?")
+            print(
+                f"  （已登记 {reg_at}，工作区无断点 — "
+                f"选「强制重跑指定步骤」可重跑范围，如 1-7）"
+            )
+        else:
+            print("  （尚无 .build-state.json — 首次跑将自动创建）")
     print("")
     for line in format_step_status_lines(ws, ordered):
         print(line)
@@ -54,7 +63,7 @@ def _interactive_select_steps(
     print("可选步骤（见上方编号）：")
     print("  输入编号 / 步骤 id / 范围（如 5 或 build.agent 或 7-10）")
     print("  continue — 从首个失败/未完成步骤继续")
-    print("  rerun N  — 重跑第 N 步（重置状态）")
+    print("  rerun N / N-M — 强制重跑指定步或范围（重置状态）")
     print("  回车     — 取消")
     print("")
     raw = input("请选择: ").strip()
@@ -89,7 +98,7 @@ def interactive_run_mode(
     print("  [2] 选择步骤跑")
     print("  [3] 从失败步骤继续")
     print("  [4] 查看当前断点状态")
-    print("  [5] 重跑指定步骤")
+    print("  [5] 强制重跑指定步骤（含范围，如 1-7）")
     print("  [6] 强制从头跑（完整包 · --force）")
     print("  [0] 返回 / 取消")
     print("")
@@ -129,7 +138,9 @@ def interactive_run_mode(
 
         if choice == "5":
             print_step_status(cfg, task)
-            raw = input("重跑编号或步骤 id（如 build.agent）: ").strip()
+            raw = input(
+                "重跑编号 / 步骤 id / 范围（如 5 或 1-7 或 prepare.context）: "
+            ).strip()
             ordered = steps_for_run(
                 pack_type=task.pack_type,
             )

@@ -118,6 +118,7 @@ def build_lock_payload(
                 },
             },
             include_h5_vault=is_h5_shell(getattr(row, "pack_type", "") or ""),
+            app_name=str(getattr(row, "name", "") or ""),
         ),
         "scaffoldFiles": combo.get("scaffoldFiles") or [],
     }

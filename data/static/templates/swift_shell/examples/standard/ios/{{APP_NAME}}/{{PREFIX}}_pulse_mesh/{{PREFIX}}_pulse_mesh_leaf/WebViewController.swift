@@ -1,4 +1,4 @@
-import SwiftUI
+import UIKit
 import WebKit
 
 final class {{APP_NAME}}WebViewController: UIViewController {

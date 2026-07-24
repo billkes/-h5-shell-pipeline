@@ -152,3 +152,16 @@ Swift / OC 壳由模板锁定该命名（`{{APP_NAME_LOWER}}Bridge`）；**H5（
 两种模式勿混用同一入口。B07 为外开能力；有在线链的加工包须启用并真机验证。
 
 **录音闭环**：启用 B03（`startRecord`/`stopRecord`）则须同时具备可听的 B04（`playAudio`）或 H5 `AudioPlayer` 读沙盒回放；录完不能播 = 未完成。
+
+---
+
+## 7. 浏览器 DEV 回落（非协议能力 · 不替代真机）
+
+无 WKWebView / Flutter handler 时，H5 须接入 `tryBrowserBridgeMock`（snippet：`data/static/h5_snippets/bridge/browserMock.ts`）：
+
+- 对 B01–B06 等媒体与设备类调用 **resolve** 假数据，避免 Vite 浏览器调试卡死
+- **禁止**在生产壳路径执行 mock
+- 真机 Plaza 仍为原生验权唯一验收
+
+细则见《H5壳Vite工程规范.md》§Browser Bridge mock · 《H5壳广场页规范.md》。
+

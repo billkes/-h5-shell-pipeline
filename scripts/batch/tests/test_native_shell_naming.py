@@ -106,7 +106,9 @@ def test_programming_style_mismatch_across_ledgers() -> None:
                     "appName": "Teavoo",
                     "packType": "h5_swift_shell",
                     "h5VaultLayout": "assets_prefix_surfaces_glyphs",
-                    "h5VaultPattern": "h5_modular_svg",
+                    "h5VaultPattern": "h5_monolith",
+                    "bundleEntryPath": "h5_site/teavoo/index.html",
+                    "h5SiteEntry": "index.html",
                     "codeAntiCorrelation": {
                         "dartCodePrefix": "bthfc",
                         "programmingStyle": "法国人",
@@ -136,7 +138,9 @@ def test_architecture_folders_must_match_disk() -> None:
                     "appName": "Teavoo",
                     "packType": "h5_swift_shell",
                     "h5VaultLayout": "assets_prefix_surfaces_glyphs",
-                    "h5VaultPattern": "h5_modular_svg",
+                    "h5VaultPattern": "h5_monolith",
+                    "bundleEntryPath": "h5_site/teavoo/index.html",
+                    "h5SiteEntry": "index.html",
                     "codeAntiCorrelation": {
                         "dartCodePrefix": "bthfc",
                         "programmingStyle": "法国人",

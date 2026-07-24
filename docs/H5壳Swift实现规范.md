@@ -24,6 +24,16 @@
 
 > Bridge **通道名**（`{appLower}Bridge` / `{appLower}BridgeCallback`）仍由 App 名锁定，见《H5-Bridge协议.md》§5 — 与 `bridgeCallStyle` 机制选择正交。
 
+### 平台锁定
+
+| 项 | 值 | 说明 |
+|----|-----|------|
+| `IPHONEOS_DEPLOYMENT_TARGET` | **13.0** | 厂包 `project.yml` 与交付脚本强制 |
+| `TARGETED_DEVICE_FAMILY` | **1** | 仅 iPhone；禁止 iPad |
+| App 入口 | UIKit `AppDelegate` | **禁止** SwiftUI `App`/`WindowGroup`（最低 iOS 14） |
+| IAP | StoreKit 1 | 兼容 iOS 13；禁止裸用 StoreKit 2 |
+| 相册 | `UIImagePickerController` | 兼容 iOS 13；禁止裸用 PHPicker |
+
 ---
 
 ## 2. 项目骨架
@@ -316,7 +326,7 @@ iOS LaunchScreen（纯色 / 1125×2436 占位图）
 ### 6.1 Swift 壳必做
 
 1. `LaunchScreen.storyboard` 全屏 **1125×2436** 图（加工后换真图），与 H5 首屏背景一致。
-2. `App` 启动后立即显示 `{{APP_NAME}}LaunchVeil`（`UIViewController` 或 SwiftUI `View`）。
+2. `AppDelegate`（`{{APP_NAME}}App.swift`）启动后立即挂载根 `UIViewController` 并显示 `{{APP_NAME}}LaunchVeil`。
 3. Launch / Veil `UIImageView`：**`contentMode = .scaleAspectFill`** + clipsToBounds；**禁止** `scaleToFill` / `scaleAspectFit`。
 4. `WebViewController` 创建 WKWebView 时背景透明。
 5. `viewDidLoad` 中 `loadRequest(h5EntryUrl)`。
@@ -351,22 +361,24 @@ Swift 侧负责**容器级**去浏览器味，H5 侧负责**交互级**去风味
 
 ---
 
-## 8. IAP（StoreKit 2）
+## 8. IAP（StoreKit 1）
 
 ### 8.1 职责切分
 
 | 层 | 负责 |
 |----|------|
 | H5 | 商店页 UI、商品列表、点击购买、Loading 遮罩、余额展示 |
-| Swift Bridge | `getProducts`、`purchase`、StoreKit 2 事务监听、幂等去重、回调 H5 |
+| Swift Bridge | `getProducts`、`purchase`、StoreKit 1（`SKProductsRequest` / `SKPaymentQueue`）事务监听、幂等去重、回调 H5 |
 
 ### 8.2 Swift 流程
 
-1. H5 调用 `getProducts({ productIds })` → Swift 用 `Product.products(for:)` 查询 → 回价格表。
-2. H5 点击购买 → 显示全屏不可穿透 Loading → Swift 调用 `product.purchase()`。
-3. 成功：验证交易状态、去重（记录 `fulfilledTransactions`）、回调 H5 `purchaseSuccess`。
+1. H5 调用 `getProducts({ productIds })` → Swift 用 `SKProductsRequest` 查询 → 回价格表。
+2. H5 点击购买 → 显示全屏不可穿透 Loading → Swift `SKPaymentQueue.add(SKPayment(product:))`。
+3. 成功：`finishTransaction`、去重（记录 `fulfilledTransactions`）、回调 H5 `purchaseSuccess`。
 4. 用户取消：关闭 Loading，**不弹**失败弹窗。
 5. 真失败：关闭 Loading，英文 Alert + 可重试。
+
+> **禁止**裸用 StoreKit 2（`Product` / `Transaction`）— 最低系统为 iOS 13。
 
 ### 8.3 去重
 
@@ -421,12 +433,12 @@ rg 'pickImage|takePhoto|startRecord|playAudio' <工作区>/h5/src --glob '*.{ts,
   "packType": "h5_swift_shell",
   "shellRuntime": "swift",
   "dartCodePrefix": "erbpv",
-  "bundleEntryPath": "Prepoo.html",
-  "h5SiteRoot": "h5_site/",
-  "h5SiteEntry": "erbpv_entry.htm",
-  "h5EntryUrl": "https://test.darin.beauty/prepoo/erbpv_entry.htm",
+  "bundleEntryPath": "h5_site/prepoo/index.html",
+  "h5SiteRoot": "h5_site/prepoo/",
+  "h5SiteEntry": "index.html",
+  "h5EntryUrl": "https://test.darin.beauty/prepoo/",
   "h5EntryUrlDev": "http://127.0.0.1:5174/",
-  "h5EntryUrlProd": "https://test.darin.beauty/prepoo/erbpv_entry.htm",
+  "h5EntryUrlProd": "https://test.darin.beauty/prepoo/",
   "assetScheme": "prepoo-asset",
   "bridgeScheme": "app-bridge",
   "bridgeDeckSelections": { ... },

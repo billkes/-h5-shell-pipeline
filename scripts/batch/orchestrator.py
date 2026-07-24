@@ -176,16 +176,24 @@ class BatchOrchestrator:
             run_log.detail(f"描述: {task.desc}")
 
         ensure_contentpack_registry(self.cfg.contentpack_registry)
+        # Explicit step select / rerun / continue already expresses run intent —
+        # do not short-circuit on registry or "fully complete".
+        step_intent = bool(
+            self.cfg.pipeline_step_ids
+            or self.cfg.pipeline_step_rerun
+            or self.cfg.pipeline_step_continue
+        )
         registered = find_package_by_name(self.cfg.contentpack_registry, task.name)
         if (
             registered
             and not self.cfg.force_rerun
+            and not step_intent
             and not (ws / ".build-state.json").is_file()
         ):
             reg_at = str(registered.get("registeredAt") or "?")
             print(
                 f"  >>> 跳过：{task.name} 已在 contentpack-registry 登记"
-                f"（{reg_at}），工作区无断点；使用 --force 重跑"
+                f"（{reg_at}），工作区无断点；使用 --force 或菜单「强制重跑指定步骤」"
             )
             elapsed = int(time.time() - app_started)
             run_log.queue(f"跳过（已登记 · 无断点） ({elapsed}s)")
@@ -195,6 +203,7 @@ class BatchOrchestrator:
 
         if (
             not self.cfg.force_rerun
+            and not step_intent
             and (ws / ".build-state.json").is_file()
             and self._package_fully_complete(ws)
         ):

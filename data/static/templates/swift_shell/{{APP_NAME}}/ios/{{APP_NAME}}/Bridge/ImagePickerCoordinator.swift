@@ -1,4 +1,3 @@
-import PhotosUI
 import UIKit
 
 struct ImageResult {
@@ -11,24 +10,20 @@ final class ImagePickerCoordinator: NSObject {
     func present(from vc: UIViewController, useCamera: Bool, completion: @escaping (Result<ImageResult, Error>) -> Void) {
         self.completion = completion
 
-        if useCamera {
-            guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
-                completion(.failure(NSError(domain: "{{APP_NAME}}", code: 1, userInfo: [NSLocalizedDescriptionKey: "Camera not available"])))
-                return
-            }
-            let picker = UIImagePickerController()
-            picker.sourceType = .camera
-            picker.delegate = self
-            picker.allowsEditing = false
-            vc.present(picker, animated: true)
-        } else {
-            var config = PHPickerConfiguration(photoLibrary: .shared())
-            config.selectionLimit = 1
-            config.filter = .images
-            let picker = PHPickerViewController(configuration: config)
-            picker.delegate = self
-            vc.present(picker, animated: true)
+        let source: UIImagePickerController.SourceType = useCamera ? .camera : .photoLibrary
+        guard UIImagePickerController.isSourceTypeAvailable(source) else {
+            let message = useCamera ? "Camera not available" : "Photo library not available"
+            completion(.failure(NSError(domain: "{{APP_NAME}}", code: 1, userInfo: [NSLocalizedDescriptionKey: message])))
+            return
         }
+        let picker = UIImagePickerController()
+        picker.sourceType = source
+        picker.delegate = self
+        picker.allowsEditing = false
+        if useCamera {
+            picker.cameraCaptureMode = .photo
+        }
+        vc.present(picker, animated: true)
     }
 
     private func finish(with result: Result<ImageResult, Error>) {
@@ -64,24 +59,5 @@ extension ImagePickerCoordinator: UIImagePickerControllerDelegate, UINavigationC
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true)
         finish(with: .failure(NSError(domain: "{{APP_NAME}}", code: 4, userInfo: [NSLocalizedDescriptionKey: "Cancelled"])))
-    }
-}
-
-extension ImagePickerCoordinator: PHPickerViewControllerDelegate {
-    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-        picker.dismiss(animated: true)
-        guard let provider = results.first?.itemProvider, provider.canLoadObject(ofClass: UIImage.self) else {
-            finish(with: .failure(NSError(domain: "{{APP_NAME}}", code: 5, userInfo: [NSLocalizedDescriptionKey: "No image selected"])))
-            return
-        }
-        provider.loadObject(ofClass: UIImage.self) { [weak self] object, error in
-            DispatchQueue.main.async {
-                if let image = object as? UIImage {
-                    self?.processImage(image)
-                } else {
-                    self?.finish(with: .failure(error ?? NSError(domain: "{{APP_NAME}}", code: 6, userInfo: [NSLocalizedDescriptionKey: "Failed to load image"])))
-                }
-            }
-        }
     }
 }

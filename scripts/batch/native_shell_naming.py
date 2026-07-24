@@ -12,7 +12,7 @@ from batch.csv_tasks import CsvTaskRow, normalize_programming_style
 from batch.h5_shell_placeholders import prefix_from_workspace
 from batch.pack_type import h5_shell_runtime
 from batch.programming_layout import (
-    H5_VAULT_PATTERN_BY_ASSET_LAYOUT,
+    H5_DEPLOY_PATTERN,
     persona_key,
     resolve_persona_layout,
 )
@@ -156,7 +156,7 @@ def _collect_programming_style_violations(
     expected_layout = resolve_persona_layout(persona, prefix=prefix)
     expected_lib = str(expected_layout.get("libLayout") or "")
     expected_asset = str(expected_layout.get("assetLayout") or "")
-    expected_vault = H5_VAULT_PATTERN_BY_ASSET_LAYOUT.get(expected_asset, "")
+    expected_vault = "h5_monolith"
 
     reg_lib = str(reg.get("libLayout") or "").strip()
     reg_asset = str(reg.get("h5VaultLayout") or reg.get("assetLayout") or "").strip()
@@ -619,13 +619,13 @@ def build_native_shell_naming_prompt_block(
     expected_layout = resolve_persona_layout(row.programming_style, prefix=p)
     expected_lib = str(expected_layout.get("libLayout") or "")
     expected_asset = str(expected_layout.get("assetLayout") or "")
-    expected_vault = H5_VAULT_PATTERN_BY_ASSET_LAYOUT.get(expected_asset, "")
+    expected_vault = H5_DEPLOY_PATTERN
     return (
         "\n[Native Shell Naming — REQUIRED]\n"
         f"- programmingStyle: {row.programming_style}\n"
-        f"- libLayout (dim-6, Flutter/H5 vault topology — not native code shape): `{expected_lib}`\n"
-        f"- assetLayout / h5VaultLayout (dim-7, H5 deploy — not native code shape): `{expected_asset}`\n"
-        f"- h5VaultPattern: `{expected_vault}`\n"
+        f"- libLayout (dim-6, Flutter lib topology — not native code shape): `{expected_lib}`\n"
+        f"- assetLayout / h5VaultLayout (dim-7, Native asset naming only): `{expected_asset}`\n"
+        f"- h5VaultPattern (LOCKED deploy): `{expected_vault}` → `h5_site/{{appSlug}}/index.html`\n"
         f"{rule}"
         "- Native Swift/OC **implementation** style: 编程人设风格.md dims 2–5.\n"
         "- programmingStyle MUST match across 本包登记信息.json / 本包代码组合.json / "

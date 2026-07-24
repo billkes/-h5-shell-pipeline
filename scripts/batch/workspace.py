@@ -484,9 +484,15 @@ def fix_xcode_project_settings(
             "SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO"
         ),
         'TARGETED_DEVICE_FAMILY = "1,2"': "TARGETED_DEVICE_FAMILY = 1",
+        "TARGETED_DEVICE_FAMILY = 1,2": "TARGETED_DEVICE_FAMILY = 1",
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
+    text = re.sub(
+        r"IPHONEOS_DEPLOYMENT_TARGET = [^;]+;",
+        "IPHONEOS_DEPLOYMENT_TARGET = 13.0;",
+        text,
+    )
 
     if bundle_id_prefix and app_name:
         slug = re.sub(r"[^a-z0-9]", "", app_name.lower())

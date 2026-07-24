@@ -50,6 +50,23 @@ class H5SitePathsTests(unittest.TestCase):
         }
         self.assertEqual(site_entry_rel(reg, "demo"), "h5_site/demo/index.html")
 
+    def test_site_entry_rel_coerces_legacy_entry_htm(self) -> None:
+        reg = {
+            "appSlug": "spinoo",
+            "bundleEntryPath": "h5_site/spxx_entry.htm",
+            "h5SiteEntry": "spxx_entry.htm",
+        }
+        self.assertEqual(site_entry_rel(reg, "spxx"), "h5_site/spinoo/index.html")
+
+    def test_resolve_h5_vault_always_monolith(self) -> None:
+        from batch.programming_layout import resolve_h5_vault_layout
+
+        for persona in ("美国人", "法国人", "日本人", "中国人", "德国人"):
+            layout = resolve_h5_vault_layout(persona, prefix="abcd", app_name="Pettoo")
+            self.assertEqual(layout["h5VaultPattern"], "h5_monolith")
+            self.assertEqual(layout["bundleEntryPath"], "h5_site/pettoo/index.html")
+            self.assertEqual(layout["h5VaultFiles"], ["h5_site/pettoo/index.html"])
+
     def test_site_root_from_register_legacy_upload_root(self) -> None:
         reg = {"h5SiteRoot": "h5_site/", "appSlug": "temioo"}
         self.assertEqual(site_root_from_register(reg), "h5_site/temioo/")

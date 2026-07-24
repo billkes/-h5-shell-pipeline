@@ -201,12 +201,15 @@ def step_index(step_id: str, steps: tuple[str, ...]) -> int:
 
 
 def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
-    """Parse ``7``, ``7-10``, or step id like ``dev.analyze``."""
+    """Parse ``7``, ``7-10``, ``rerun 1-7``, or step id like ``dev.analyze``."""
     text = raw.strip().lower()
     if not text:
         return []
     if text in ("continue", "c", "续跑", "继续"):
         return []
+    if text.startswith("rerun "):
+        # Same grammar as bare input: N, N-M, or step id.
+        return parse_step_range(text[6:], steps)
     legacy_map = {
         "plan.prepare": PREPARE_CONTEXT,
         "dev.prepare": PREPARE_CONTEXT,
@@ -243,17 +246,6 @@ def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
     by_id = {s: i for i, s in enumerate(steps)}
     if text in by_id:
         return [text]
-    if text.startswith("rerun "):
-        text = text[6:].strip()
-        if text in legacy_map:
-            text = legacy_map[text]
-        if text in by_id:
-            return [text]
-        if text.isdigit():
-            idx = int(text) - 1
-            if 0 <= idx < len(steps):
-                return [steps[idx]]
-        return []
     if "-" in text:
         parts = text.split("-", 1)
         if all(p.isdigit() for p in parts):

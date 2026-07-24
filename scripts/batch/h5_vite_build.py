@@ -60,6 +60,9 @@ def run_h5_vite_build(project: Path, *, skip_install: bool = False) -> tuple[boo
     prefix = resolve_prefix(project, reg)
     slug = _resolve_app_slug(project, reg)
     entry_name = str(reg.get("h5SiteEntry") or "index.html").strip() or "index.html"
+    # Coerce legacy `{prefix}_entry.htm` / relative paths to locked monolith name.
+    if entry_name not in ("index.html", "index.htm") or "/" in entry_name or "\\" in entry_name:
+        entry_name = "index.html"
     env = {
         **os.environ,
         "H5_PREFIX": prefix,

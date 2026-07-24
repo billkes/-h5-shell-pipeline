@@ -44,7 +44,7 @@ def write_h5_runtime_brief(workspace: Path, app_name: str) -> Path | None:
                 "cd h5",
                 "npm install",
                 "npm run dev          # Vite :5174 — --host",
-                "npm run build:deploy # → ../h5_site/{prefix}_entry.htm",
+                "npm run build:deploy # → ../h5_site/{appSlug}/index.html",
                 "```",
                 "",
                 "## Anti-patterns (runtime)",

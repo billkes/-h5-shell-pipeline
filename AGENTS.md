@@ -85,3 +85,4 @@ pytest scripts/batch/tests/test_pipeline_smoke.py -q
 - 配置优先级：命令行 > 环境变量 > config.yaml > config.env > 默认值
 - 断点续跑：`output/.../App/.build-state.json`
 - 产出目录 `output/` 不提交 Git；`h5_site/` 为 Vite 部署产物（`dev.h5.build` 生成），同样不提交
+- 浏览器 Vite DEV：无壳时 Bridge 走 `h5/src/bridge/browserMock.ts`（snippet 见 `data/static/h5_snippets/bridge/`），避免媒体调用卡死 UI；真机 Plaza 仍为原生验收

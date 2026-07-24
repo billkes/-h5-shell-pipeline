@@ -40,7 +40,7 @@
 ### 2.1 H5 站点文件（Implementer）
 
 - 站点根：`h5SiteRoot`（默认 `h5_site/`）
-- 入口：`h5SiteEntry`（如 `{prefix}_entry.htm`）
+- 入口：`h5SiteEntry`（固定 `index.html`，位于 `h5_site/{appSlug}/`）
 - 结构按 **`h5VaultPattern`**
 - **禁止**路径片段：`h5`、`index`、`web`、`bridge`、`webview`
 

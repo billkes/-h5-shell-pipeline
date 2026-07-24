@@ -141,3 +141,13 @@ def test_has_launch_screen_swift_accepts_ui_launch_screen() -> None:
         (colorset / "Contents.json").write_text("{}", encoding="utf-8")
         assert has_launch_screen(ws, "swift")
         assert not has_launch_screen(ws, "oc")
+
+
+def test_has_launch_screen_accepts_storyboard() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        ws = Path(tmp)
+        story = ws / "ios" / "Mockoo" / "Base.lproj"
+        story.mkdir(parents=True)
+        (story / "LaunchScreen.storyboard").write_text("<document/>", encoding="utf-8")
+        assert has_launch_screen(ws, "swift")
+        assert has_launch_screen(ws, "oc")

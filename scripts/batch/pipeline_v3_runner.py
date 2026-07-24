@@ -322,7 +322,37 @@ class V3StepRunner:
         return self.p._run_skill_tokens(ctx)
 
     def _step_lock_dimensions(self, ctx: AppContext) -> bool:
-        return self.p._run_lock_dimensions(ctx)
+        ok = self.p._run_lock_dimensions(ctx)
+        if not ok:
+            return False
+        if is_h5_shell(ctx.pack_type):
+            from batch.agent_prompt_pack import (
+                AGENT_PROMPTS_DIR,
+                RUNBOOK_MD_REL,
+                write_agent_prompt_pack,
+            )
+
+            try:
+                runbook = write_agent_prompt_pack(
+                    ctx.workspace,
+                    prompts=self.p.prompts,
+                    pack_context=self._agent_pack_context(ctx),
+                    app_name=ctx.name,
+                    pack_type=ctx.pack_type,
+                )
+                n = len(runbook.get("execution_order") or [])
+                get_run_log().detail(
+                    f"agent prompt pack → {n} filled prompts + {RUNBOOK_MD_REL}"
+                )
+                print(
+                    f">>> lock.dimensions: pre-filled {n} Agent prompts → "
+                    f"{AGENT_PROMPTS_DIR}/ (+ {RUNBOOK_MD_REL})"
+                )
+            except (OSError, FileNotFoundError, AttributeError) as exc:
+                get_run_log().detail(f"agent prompt pack 失败: {exc}")
+                print(f">>> lock.dimensions: agent prompt pack skipped: {exc}")
+                return False
+        return True
 
     def _step_design_system(self, ctx: AppContext) -> bool:
         return self.p._run_skill_design(ctx)

@@ -38,7 +38,7 @@ Screen Inventory：**4–5 个 H5 tab-root**（bottom TabBar）；wizard、`#/le
 
 ## H5 启动（Implementer）
 
-`h5/src/views/`；hash router；`dev.h5.build` → `h5_site/{prefix}_entry.htm`；splash 双 rAF 后 `shellReady`。
+`h5/src/views/`；hash router；`dev.h5.build` → `h5_site/{appSlug}/index.html`；splash 双 rAF 后 `shellReady`。
 
 ## 关联规范
 

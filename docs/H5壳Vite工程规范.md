@@ -30,7 +30,7 @@
 ```
 h5/
 ├── package.json          # vue · vue-router · vite · vite-plugin-singlefile · tailwindcss · @phosphor-icons/vue
-├── vite.config.ts        # build → ../h5_site/{prefix}_entry.htm；dev port 5174；host: true
+├── vite.config.ts        # build → ../h5_site/{appSlug}/index.html；dev port 5174；host: true
 ├── tailwind.config.*     # theme.extend.colors ← design-tokens / MASTER
 ├── index.html
 ├── tsconfig.json
@@ -51,13 +51,14 @@ h5/
 ### package.json 约定
 
 - `dev`: `vite --host`
-- `build` / `build:deploy`: 单文件产物到 `h5_site/`，入口对齐 `本包登记信息.json`
+- `build` / `build:deploy`: 单文件产物到 `h5_site/{appSlug}/index.html`（vite-plugin-singlefile；禁止拆 css/js/htm）
 - 依赖至少：`vue`、`vue-router`、`vite`、`vite-plugin-singlefile`、`tailwindcss`、`@phosphor-icons/vue`
 
 ### vite.config.ts 约定
 
 - `server.host: true`，端口 **5174**
-- 单文件打包输出到约定的 `h5_site` 路径
+- 单文件打包输出到 `../h5_site/{appSlug}/index.html`（`appSlug` = 应用名小写；入口文件名固定 `index.html`）
+- **禁止** `{prefix}_entry.htm`、外挂 `.css` / `.js` 部署树、或 `h5_modular_*` 产物形态
 
 ## 实现原则
 
@@ -67,6 +68,22 @@ h5/
    - 每页：`design-system/{app}/pages/*.md`
    - Legal / Plaza / Overlay：`docs/H5壳*.md`
 3. **合规靠 gate**：Welcome / Legal / Plaza / layout contract 等运行时约束。
+
+## Browser Bridge mock（Vite DEV · 必做）
+
+浏览器无壳时，媒体 / 权限 Bridge **不得**用 `reject('Bridge unavailable')` 打断业务流程。
+
+| 项 | 约定 |
+|----|------|
+| 真相源 snippet | `data/static/h5_snippets/bridge/browserMock.ts` |
+| 落地路径 | `h5/src/bridge/browserMock.ts`（替换 `{{APP_NAME_LOWER}}`） |
+| 接线 | 无 native handler 时 `tryBrowserBridgeMock(action, payload)` → **resolve** 假 path / granted |
+| 显图 | `getBrowserMockDisplayUrl(path)` 优先于 custom scheme |
+| 壳内 | `isNativeShellPresent()` 为 true 时 **不走** mock |
+| 真机 | 仍用 Plaza 验权；mock 不替代真机验收 |
+| 禁止 | 业务页裸写 `<input type="file">`（选文件只许在 browserMock 内） |
+
+流水线：`ensure_h5_vite_scaffold` 在已有 `h5/` 上会拷贝 snippet，并尽量把历史 `Bridge unavailable` reject 改成 mock 调用。
 
 ## Legal body 格式（行为约束）
 

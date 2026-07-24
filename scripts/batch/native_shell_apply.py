@@ -48,7 +48,7 @@ def native_shell_layout_ok(workspace: Path, app_name: str) -> bool:
 
 
 def has_launch_screen(workspace: Path, runtime: str) -> bool:
-    """OC 用 LaunchScreen.storyboard；Swift 模板用 UILaunchScreen + LaunchBackground。"""
+    """OC/Swift 均用 LaunchScreen.storyboard；兼容旧 Swift UILaunchScreen + LaunchBackground。"""
     ws = workspace.resolve()
     if list(ws.rglob("*LaunchScreen*.storyboard")):
         return True
@@ -62,12 +62,14 @@ def has_launch_screen(workspace: Path, runtime: str) -> bool:
             text = plist.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
-        if "UILaunchScreen" in text:
+        if "UILaunchScreen" in text or "UILaunchStoryboardName" in text:
             has_ui_launch = True
             break
     if not has_ui_launch:
         return False
-    return any(ws.rglob("**/LaunchBackground.colorset/Contents.json"))
+    return any(ws.rglob("**/LaunchBackground.colorset/Contents.json")) or any(
+        ws.rglob("**/LaunchPlaceholder.imageset/Contents.json")
+    )
 
 
 def clear_stale_native_shell(workspace: Path, app_name: str) -> list[str]:

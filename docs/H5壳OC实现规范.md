@@ -22,6 +22,13 @@
 
 > Bridge 通道名仍由 App 名锁定（《H5-Bridge协议.md》§5）。`callAsyncJavaScript Promise resolve (iOS 14+)` **不会**出现在 OC 抽卡池。
 
+### 平台锁定
+
+| 项 | 值 |
+|----|-----|
+| `IPHONEOS_DEPLOYMENT_TARGET` | **13.0** |
+| `TARGETED_DEVICE_FAMILY` | **1**（仅 iPhone） |
+
 ---
 
 ## 2. 项目骨架（v1 扁平 6 类）
@@ -34,7 +41,7 @@
 | `{{PREFIX_CAP}}PulseCredit` | StoreKit IAP |
 | `{{PREFIX_CAP}}WebViewDeflavor` | 去键盘辅助栏、禁双击缩放 |
 
-H5 业务在 `h5_site/{{PREFIX}}_entry.htm`（或远程 `h5EntryUrl`），**禁止** Native 业务 UI。
+H5 业务在 `h5_site/{{APP_SLUG}}/index.html`（或远程目录 URL `h5EntryUrl`），**禁止** Native 业务 UI。
 
 ---
 

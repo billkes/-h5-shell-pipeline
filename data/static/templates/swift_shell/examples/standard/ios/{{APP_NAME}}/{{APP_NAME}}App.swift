@@ -1,4 +1,3 @@
-import SwiftUI
 import UIKit
 
 enum {{APP_NAME}}LaunchStyle {
@@ -6,25 +5,19 @@ enum {{APP_NAME}}LaunchStyle {
 }
 
 @main
-struct {{APP_NAME}}App: App {
-    init() {
+final class {{APP_NAME}}AppDelegate: UIResponder, UIApplicationDelegate {
+    var window: UIWindow?
+
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+    ) -> Bool {
         {{APP_NAME}}WebViewDeflavor.install()
-        _ = {{APP_NAME}}LaunchStyle.backgroundColor
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.backgroundColor = {{APP_NAME}}LaunchStyle.backgroundColor
+        window.rootViewController = {{APP_NAME}}WebViewController()
+        window.makeKeyAndVisible()
+        self.window = window
+        return true
     }
-
-    var body: some Scene {
-        WindowGroup {
-            {{APP_NAME}}HostContainer()
-                .ignoresSafeArea()
-                .background(Color(uiColor: {{APP_NAME}}LaunchStyle.backgroundColor))
-        }
-    }
-}
-
-struct {{APP_NAME}}HostContainer: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> {{APP_NAME}}WebViewController {
-        {{APP_NAME}}WebViewController()
-    }
-
-    func updateUIViewController(_ uiViewController: {{APP_NAME}}WebViewController, context: Context) {}
 }
