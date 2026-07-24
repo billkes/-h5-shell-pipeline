@@ -32,6 +32,10 @@ def test_v3_plan_spec_prompt_lists_merged_deliverables() -> None:
     assert "产品概述" in text
     assert "Do **not** write `{CSV_FULL_NAME}.md`" in text
     assert "skill-input/agent-spec-index.md" in text
+    assert "法律协议规范.md" in text
+    assert "docs/法律协议规范.md" not in text
+    assert "`.cursor/rules/*.mdc` · `docs/rules/`" not in text
+    assert "do **not** open repo `docs/rules/`" in text
 
 
 def test_product_doc_format_excludes_removed_sections() -> None:
@@ -77,13 +81,21 @@ def test_v3_h5_prompt_has_no_block_injection() -> None:
     assert "stack-html-tailwind.md" in text
     assert "@phosphor-icons/vue" in text
     assert "tailwindcss" in text
-    # Visual depth hard rules must appear BEFORE Required Reading (front-loaded).
-    assert "### Visual Depth — Welcome + Tab1" in text
-    assert text.index("### Visual Depth — Welcome + Tab1") < text.index(
+    # Surface depth hard rules must appear BEFORE Required Reading (front-loaded).
+    assert "### Surface Depth — must-have surfaces" in text
+    assert text.index("### Surface Depth — must-have surfaces") < text.index(
         "### Required Reading"
     )
     assert "Welcome to {AppName}" in text
     assert "contextual greeting" in text.lower() or "Contextual greeting" in text
+    assert "**Store**" in text
+    assert "**Me / Settings**" in text
+    assert "**Primary Workflow / Export" in text
+    assert "**Other tab-roots**" in text
+    assert "**Splash**" in text
+    # Explicitly not front-loading Legal/Plaza polish in this block.
+    assert "**Legal**" not in text.split("### Required Reading")[0]
+    assert "**Plaza**" not in text.split("### Required Reading")[0]
 
 
 def test_global_brain_block_removed() -> None:

@@ -13,7 +13,7 @@ ${RESUME_BLOCK}
 2. `skill-input/agent-brain-focus.md` — optional global-brain paths
 3. `H5壳Plan交付规范.md` — deliverable format & depth
 4. 《${PRODUCT_REQ_DOC}》
-5. `.cursor/rules/*.mdc` · `docs/rules/`
+5. Stay inside this package workspace — do **not** open repo `docs/rules/` or paths outside the app root.
 
 ### Deliverables (write all)
 1. `功能文档.md` — English feature spec

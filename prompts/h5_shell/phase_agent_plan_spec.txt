@@ -13,9 +13,9 @@ ${RESUME_BLOCK}
 2. `skill-input/agent-brain-focus.md`
 3. `H5壳Plan交付规范.md` — Deliverable 1) `功能文档.md`（含中文产品概述）
 4. `H5壳功能文档深度标准.md` · `H5壳交互拓扑与PlanGate策略.md` · `H5壳产品文档格式.md`
-5. `docs/法律协议规范.md`
+5. `法律协议规范.md`
 6. 《${PRODUCT_REQ_DOC}》
-7. `.cursor/rules/*.mdc` · `docs/rules/`
+7. Stay inside this package workspace — do **not** open repo `docs/rules/` or paths outside the app root.
 
 ### Deliverable 1) `功能文档.md` — **single merged spec** (English + 中文产品概述)
 
@@ -43,8 +43,8 @@ Screen Inventory in this file is authoritative for all later steps.
 
 ### Deliverables (write all three files)
 1. `功能文档.md` — merged spec as above
-2. `${name} Privacy Agreement.md` — English per `docs/法律协议规范.md`
-3. `${name} User Agreement.md` — English per `docs/法律协议规范.md`
+2. `${name} Privacy Agreement.md` — English per `法律协议规范.md`
+3. `${name} User Agreement.md` — English per `法律协议规范.md`
 
 ### Legal MD gate literals (plan.gate hard-check — include verbatim)
 - Header: `Latest Updated: May 18, 2026`

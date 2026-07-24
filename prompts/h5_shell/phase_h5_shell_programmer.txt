@@ -18,6 +18,7 @@ ${RESUME_BLOCK}
 5. 功能文档.md · 产包计划.md · 本包登记信息.json · 本包代码组合.json
 6. 《${P2_PRODUCT_DOC}》
 7. Native only: `编程人设风格.md` (persona dims 2–5) · `命名混淆规则.md` (deep naming)
+8. Stay inside this package workspace — do **not** open repo `docs/rules/` or paths outside the app root.
 
 ### Deliverables
 - Native container + Bridge matching CSV / 本包登记信息.json draws

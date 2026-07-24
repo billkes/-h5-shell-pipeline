@@ -24,19 +24,12 @@ REPAIR_BRIEF_REL = "skill-input/plan-gate-repair-brief.md"
 H5_BUILD_REPAIR_BRIEF_REL = "skill-input/h5-build-repair-brief.md"
 
 _PLAN_NORM_DOCS: tuple[str, ...] = (
-    "docs/H5壳Plan交付规范.md",
     "H5壳Plan交付规范.md",
-    "docs/H5壳Pack约束.md",
     "H5壳Pack约束.md",
-    "docs/H5壳功能文档深度标准.md",
     "H5壳功能文档深度标准.md",
-    "docs/H5壳交互拓扑与PlanGate策略.md",
     "H5壳交互拓扑与PlanGate策略.md",
-    "docs/H5壳产品文档格式.md",
     "H5壳产品文档格式.md",
-    "docs/H5壳Micro-UI Kit约束.md",
     "H5壳Micro-UI Kit约束.md",
-    "docs/法律协议规范.md",
     "法律协议规范.md",
     "data/static/component_kit/README.md",
     "data/static/component_kit/baseline.md",
@@ -44,11 +37,13 @@ _PLAN_NORM_DOCS: tuple[str, ...] = (
 )
 
 _SHELL_NORM_DOCS: tuple[str, ...] = (
-    "docs/H5壳Pack约束.md",
     "H5壳Pack约束.md",
     "H5-Bridge协议.md",
     "H5壳业务流程文字版.md",
     "H5壳启动闪屏规范.md",
+    "H5壳Swift实现规范.md",
+    "H5壳OC实现规范.md",
+    "H5壳WKWebView性能与层叠规范.md",
     "架构模式矩阵.md",
     "状态管理矩阵.md",
     "编程人设风格.md",
@@ -56,24 +51,21 @@ _SHELL_NORM_DOCS: tuple[str, ...] = (
 )
 
 _H5_NORM_DOCS: tuple[str, ...] = (
-    "docs/H5壳H5实现检查清单.md",
     "H5壳H5实现检查清单.md",
-    "docs/H5壳Vite工程规范.md",
     "H5壳Vite工程规范.md",
-    "docs/H5壳Legal弹层规范.md",
     "H5壳Legal弹层规范.md",
     "H5壳广场页规范.md",
-    "docs/H5壳Overlay路由规范.md",
     "H5壳Overlay路由规范.md",
     "H5去风味规范.md",
-    "docs/H5壳Pack约束.md",
     "H5壳Pack约束.md",
-    "docs/H5壳Micro-UI Kit约束.md",
     "H5壳Micro-UI Kit约束.md",
+    "H5-Bridge协议.md",
+    "H5壳Vault合规维护规范.md",
+    "data/static/h5_snippets/bridge/README.md",
+    "data/static/h5_snippets/bridge/browserMock.ts",
 )
 
 _PREVIEW_NORM_DOCS: tuple[str, ...] = (
-    "docs/H5壳Pack约束.md",
     "H5壳Pack约束.md",
     "_preview/preview-canonical.md",
 )
@@ -259,15 +251,10 @@ def _norm_docs_for_phase(phase: AgentPhase) -> list[str]:
         "plan": _PLAN_NORM_DOCS,
         "plan_spec": (
             *_PLAN_NORM_DOCS,
-            "docs/H5壳产品文档格式.md",
-            "H5壳产品文档格式.md",
-            "docs/法律协议规范.md",
-            "法律协议规范.md",
+            "H5壳Flutter产品要求.md",
         ),
         "plan_docs": (
-            "docs/H5壳产品文档格式.md",
             "H5壳产品文档格式.md",
-            "docs/法律协议规范.md",
             "法律协议规范.md",
         ),
         "plan_pack": _PLAN_NORM_DOCS,
@@ -295,10 +282,13 @@ def write_agent_brain_focus(
             "",
             f"Role: `{role_slug}`",
             "",
-            "Read global-brain paths for this role (if whitelisted project):",
+            "Stay inside **this package workspace**. Do **not** open repo",
+            "`docs/rules/` or any path outside the app root.",
+            "",
+            "Prefer these workspace docs for this role:",
             role_focus.strip(),
             "",
-            "Repo rules: `.cursor/rules/*.mdc` · `docs/rules/`",
+            "Also available: package `.cursor/rules/*.mdc` (written into this workspace).",
             "",
         ]
     )

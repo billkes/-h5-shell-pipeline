@@ -17,6 +17,35 @@ from batch.ui_compliance import IAP_SOURCE, copy_iap_spec_file
 CURSOR_UUPM_SKILL_REL = Path(".cursor/skills/ui-ux-pro-max")
 CURSOR_UUPM_SCRIPT_PREFIX = ".cursor/skills/ui-ux-pro-max/scripts/"
 
+# Closed corpus for H5 Agents — all copied into the package workspace root.
+# Do NOT include pipeline-only docs/rules/* (theme firewall, task-init, etc.).
+H5_SHELL_WORKSPACE_DOCS: tuple[str, ...] = (
+    "H5壳Flutter产品要求.md",
+    "H5壳Plan交付规范.md",
+    "H5壳Pack约束.md",
+    "H5壳Micro-UI Kit约束.md",
+    "H5壳H5实现检查清单.md",
+    "H5壳功能文档深度标准.md",
+    "H5壳交互拓扑与PlanGate策略.md",
+    "H5壳产品文档格式.md",
+    "H5-Bridge协议.md",
+    "H5壳业务流程文字版.md",
+    "H5去风味规范.md",
+    "H5壳IAP协议.md",
+    "H5壳Legal弹层规范.md",
+    "H5壳Vite工程规范.md",
+    "H5壳Overlay路由规范.md",
+    "H5壳广场页规范.md",
+    "H5壳启动闪屏规范.md",
+    "H5壳Swift实现规范.md",
+    "H5壳OC实现规范.md",
+    "H5壳Vault合规维护规范.md",
+    "H5壳WKWebView性能与层叠规范.md",
+    "法律协议规范.md",
+)
+
+H5_SNIPPETS_BRIDGE_REL = Path("data/static/h5_snippets/bridge")
+
 
 def _ensure_symlink(link: Path, target: Path) -> None:
     """Create or refresh ``link`` → ``target`` (idempotent).
@@ -158,6 +187,18 @@ def copy_component_kit_to_workspace(cfg: BatchConfig, workspace: Path) -> None:
     shutil.copytree(src, dest)
 
 
+def copy_h5_bridge_snippets_to_workspace(cfg: BatchConfig, workspace: Path) -> None:
+    """Copy browser Bridge mock snippet into the package (closed corpus)."""
+    src = cfg.project_dir / H5_SNIPPETS_BRIDGE_REL
+    if not src.is_dir():
+        return
+    dest = workspace / H5_SNIPPETS_BRIDGE_REL
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(src, dest)
+
+
 def write_layout_manifest(workspace: Path, dart_pkg: str) -> None:
     combo = workspace / "本包代码组合.json"
     if not combo.is_file():
@@ -288,25 +329,7 @@ def copy_workspace_docs(
     elif pack_type == "tool_flutter":
         mapping.append((docs / "工具包Flutter产品要求.md", workspace))
     elif is_h5_shell(pack_type):
-        for name in (
-            "H5壳Flutter产品要求.md",
-            "H5壳Plan交付规范.md",
-            "H5壳Pack约束.md",
-            "H5壳Micro-UI Kit约束.md",
-            "H5壳H5实现检查清单.md",
-            "H5壳功能文档深度标准.md",
-            "H5壳交互拓扑与PlanGate策略.md",
-            "H5壳产品文档格式.md",
-            "H5-Bridge协议.md",
-            "H5壳业务流程文字版.md",
-            "H5去风味规范.md",
-            "H5壳IAP协议.md",
-            "H5壳Flutter交付自检清单.md",
-            "H5壳Legal弹层规范.md",
-            "H5壳Vite工程规范.md",
-            "H5壳Overlay路由规范.md",
-            "H5壳广场页规范.md",
-        ):
+        for name in H5_SHELL_WORKSPACE_DOCS:
             src = docs / name
             if src.is_file():
                 mapping.append((src, workspace))
@@ -335,6 +358,8 @@ def copy_workspace_docs(
     )
     copy_iap_spec_file(cfg.project_dir / IAP_SOURCE, workspace)
     copy_component_kit_to_workspace(cfg, workspace)
+    if is_h5_shell(pack_type):
+        copy_h5_bridge_snippets_to_workspace(cfg, workspace)
     ensure_workspace_skills(cfg, workspace)
     if getattr(cfg, "iap_bundle_prefix", ""):
         print(

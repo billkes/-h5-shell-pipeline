@@ -9,9 +9,11 @@ ${RESUME_BLOCK}
 - Prefix: ${FLUTTER_DART_PREFIX}
 - Stack (skill-unified): Vue 3 · Tailwind CSS · Google Fonts · `@phosphor-icons/vue`
 
-### Visual Depth — Welcome + Tab1 (READ FIRST · non-negotiable)
+### Surface Depth — must-have surfaces (READ FIRST · non-negotiable)
 
-These rules come **before** file reading. Ship a premium, product-bound first impression — not a compliance skeleton.
+These rules come **before** file reading. Ship product-bound surfaces — not compliance skeletons.
+Apply only when the route exists in Screen Inventory (except Welcome/Tab1 craft bar always applies to listed surfaces).
+Do **not** invent Legal / Plaza polish blocks here — follow checklist + dedicated norms only when Inventory lists them.
 
 **Welcome (`#/welcome`)**
 - Implement the **Onboarding Pattern** chosen in `design-system/*/pages/welcome.md` Scene Brief (carousel / dialogue / typewriter / narrative / interactive preview). One emotional beat per step — never a single static feature-bullet card.
@@ -27,12 +29,39 @@ These rules come **before** file reading. Ship a premium, product-bound first im
 - Signature interaction from 功能文档 / Professional Surface must be **on-screen and tappable** on Tab 1.
 - Avoid: chip+KPI+recent-carousel template when topology forbids it; Avoid: Bridge plaza on Tab 1.
 
-**Craft bar (all H5 surfaces, especially Welcome + Tab1)**
+**Primary Workflow / Export surface** (from 功能文档 Primary Workflow · Export / Save Flow)
+- The signature edit → preview → export (or equivalent) path must be **reachable in ≤2 taps from Tab1** when Inventory implies it.
+- Empty state still shows a **composition / preview motif** tied to coreScene — not a blank form.
+- **Export = preview** (same composition, same aspect) when Export / Save Flow is listed — no alternate “export-only” skin.
+- Controls use kit + Scene Brief language; forbid a second visual system for the export sheet.
+
+**Other tab-roots** (Tab2…TabN in `_preview` / Screen Inventory)
+- **One job per tab** — headline + primary zone match that tab’s Inventory role; do not clone Tab1 with a renamed title.
+- Empty state still shows that tab’s professional surface (skeleton / motif + CTA), not a generic “No data” card only.
+- Keep bottom TabBar labels/icons aligned with preview-canonical / Inventory names.
+
+**Store** (only if Inventory lists a store / IAP route)
+- First viewport = **catalog identity** for this pack (theme-tied header + product cards) — not a bare SKU table.
+- SKUs / prices / restore from `iap-catalog.generated.md` via Bridge `purchase` / restore — no hard-coded fake prices.
+- Purchase barrier UX must be clear; Restore Purchases reachable without hunting.
+- Same craft language as Hub (tokens + Phosphor + motion bar) — Store is product UI, not a system settings dump.
+
+**Me / Settings** (only if Inventory lists Me / Settings / Profile)
+- Hub for account, restore, and compliance **links** — not a second home feed.
+- First viewport has clear sections (profile / purchases / about) with kit hierarchy; forbid KPI strips copied from Tab1.
+- Restore Purchases + Privacy/User entry points visible; do not bury them under nested “More”.
+- Do **not** park the Primary Workflow editor on Me.
+
+**Splash** (only if Inventory lists an H5 splash route)
+- Minimal branded hold → double rAF → `shellReady`; no fake progress theater.
+- Motif aligned with Welcome/MASTER; no business forms on splash.
+
+**Craft bar (all listed H5 surfaces above)**
 - Derive color arc, shape language, and motion from MASTER + `style-brief` / `motion-brief` + page Scene Brief — do not invent a parallel kit.
 - Prefer kit classes `c-{prefix}-*` + Tailwind utilities; extend `kit.css` when Scene Brief needs motifs the skeleton lacks.
 - Aim for **高级感 / 创意感**: intentional hierarchy, atmospheric ambient, signature motif, 2–3 purposeful motions — not flat utility UI.
 
-### Required Reading (after Visual Depth)
+### Required Reading (after Surface Depth)
 1. `skill-input/agent-spec-index.md` — includes **front-loaded Welcome/Tab1 Scene Brief excerpts**
 2. `skill-input/agent-brain-focus.md`
 3. `H5壳H5实现检查清单.md` · `H5壳Vite工程规范.md` · 《H5-Bridge协议.md》(§5 通道命名 LOCKED)
@@ -44,7 +73,8 @@ These rules come **before** file reading. Ship a premium, product-bound first im
    - `skill-adapt/design-tokens.css` · `icon-manifest.json`
 5. 功能文档.md · 本包视觉锁.json · 本包登记信息.json
 6. 《${P2_PRODUCT_DOC}》
-7. `.cursor/rules/*.mdc`
+7. Package `.cursor/rules/*.mdc` when needed (already in this workspace)
+8. Stay inside this package workspace — do **not** open repo `docs/rules/` or paths outside the app root.
 
 ### Native Bridge Contract — LOCKED (match the shell EXACTLY)
 The native shell (Part 2) registers ONE WKScriptMessageHandler and replies on ONE global callback. The H5 bridge MUST reuse these EXACT names — never derive them from the code prefix:
@@ -75,7 +105,7 @@ In `bridgeCall`, when native `${BRIDGE_CHANNEL}` / `webkit.messageHandlers` is *
 - Native WKWebView / Flutter: mock must **not** run (`isNativeShellPresent()`)
 - Real-device Plaza remains final native verification
 
-See `data/static/h5_snippets/bridge/README.md` · `docs/H5壳Vite工程规范.md` §Browser Bridge mock.
+See `data/static/h5_snippets/bridge/README.md` · `H5壳Vite工程规范.md` §Browser Bridge mock.
 
 ### Hard Rules (engineering)
 - Follow skill stacks — **no** hand-rolled CSS system that ignores Tailwind; **no** sprite kit that ignores Phosphor.

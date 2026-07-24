@@ -16,22 +16,25 @@ from pathlib import Path
 
 from batch.config import BatchConfig
 
-# Written to skill-input/agent-brain-focus.md (not injected into prompt body).
-_PROGRAMMER_BRAIN_FOCUS = """   - `01_tech_common/Flutter-iap-storekit-pitfalls.md`
-   - `01_tech_common/Flutter-legal-webview-pitfalls.md`
-   - `01_tech_common/Flutter-ui-layout-pitfalls.md`
-   - `01_tech_common/Flutter-asset-alignment-pitfalls.md`
-   - `01_tech_common/Flutter-dart-model-pitfalls.md`
-   - `01_tech_common/Cursor-Agent上下文隔离.md`
-   - `01_tech_common/cursor-ios-batch断点续跑.md`
-   - `02_audit_risk/a面研发checklist/` (all applicable `.md`)"""
+# Written to skill-input/agent-brain-focus.md (workspace-local closed corpus).
+_PROGRAMMER_BRAIN_FOCUS = """   - `H5壳Pack约束.md`
+   - `H5-Bridge协议.md`
+   - `H5壳启动闪屏规范.md`
+   - `H5壳Swift实现规范.md` / `H5壳OC实现规范.md` (per shellRuntime)
+   - `H5壳WKWebView性能与层叠规范.md`
+   - `H5壳H5实现检查清单.md`
+   - `H5壳Vite工程规范.md`
+   - `H5壳Legal弹层规范.md` · `H5壳广场页规范.md` · `H5去风味规范.md`
+   - `命名混淆规则.md` · `编程人设风格.md`
+   - `data/static/h5_snippets/bridge/` (browser mock)"""
 
-_PM_UI_PLAN_BRAIN_FOCUS = """   - `01_tech_common/A-Crush项目总览.md`
-   - `01_tech_common/Cursor-Agent上下文隔离.md`
-   - `01_tech_common/Flutter-ui-layout-pitfalls.md`
-   - `01_tech_common/Flutter-asset-alignment-pitfalls.md`
-   - `02_audit_risk/App-Store-Guideline-4.3-Spam.md`
-   - `02_audit_risk/0630-4.3复盘结论.md`"""
+_PM_UI_PLAN_BRAIN_FOCUS = """   - `H5壳Plan交付规范.md`
+   - `H5壳功能文档深度标准.md`
+   - `H5壳交互拓扑与PlanGate策略.md`
+   - `H5壳产品文档格式.md`
+   - `法律协议规范.md`
+   - `H5壳Flutter产品要求.md`
+   - `H5壳Pack约束.md` · `H5壳Micro-UI Kit约束.md`"""
 
 
 class PromptBuilder:
