@@ -74,3 +74,4 @@ Screen Inventory：**4–5 个 H5 tab-root**（bottom TabBar）；wizard、`#/le
 ## CSV 维度边界
 
 命名 > 架构 > 状态管理 > 编程人设。Flutter CSV `状态管理`/`架构模式` **仅约束壳**；H5 业务以 `h5StateModel` / `h5RouterPattern` / `h5ScreenPattern` 为准（见《H5壳Micro-UI Kit约束.md》）。
+assets/（单份资源）、bridge-stub.js（浏览器API stub）、H5无图片
