@@ -15,7 +15,7 @@ hash-router 包中 **Legal / Filter / Bottom Sheet / Dialog** 等带 scrim 的�
 | 筛选 Bottom Sheet | `#/journal/filter` | Journal 页 + `u-app-veil-sheet` |
 | 确认框 / IAP 屏障 | 无路由或 Bridge 回调 | `document.body.insertAdjacentHTML` / `appendChild` |
 
-Kit 参考：`data/static/h5_overlay_router_kit/overlay_router.js.snippet`
+实现要点见下文「`app_core.js` 必含」；无单独 overlay kit 目录。
 
 ## `app_core.js` 必含
 
@@ -42,7 +42,7 @@ Kit 参考：`data/static/h5_overlay_router_kit/overlay_router.js.snippet`
 |------|------|
 | H5 Implementer 后 | `verify_h5_overlay_stack()` HARD FAIL |
 | Phase 6 | `audit_h5_overlay_stack.py` PASS |
-| 交付自检 | 《H5壳Flutter交付自检清单.md》§2 overlay 行 |
+| 交付自检 | 《H5壳H5实现检查清单.md》· Overlay 相关项 |
 
 ## 参考实现
 

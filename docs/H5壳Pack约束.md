@@ -45,10 +45,10 @@ Screen Inventory：**4–5 个 H5 tab-root**（bottom TabBar）；wizard、`#/le
 - 《H5壳业务流程文字版.md》— 按 Bridge 能力阅读
 - 《H5壳广场页规范.md》— `#/plaza`（若在 Inventory）
 - 《H5去风味规范.md》
-- Legal UI：《H5壳Legal弹层规范.md》；内容 `docs/法律协议规范.md`；**产包后协议主路径见下节「产包后共性」**
+- Legal UI：《H5壳Legal弹层规范.md》；内容《法律协议规范.md》；**产包后协议主路径见下节「产包后共性」**
 - Vault：《H5壳Vault合规维护规范.md》
 - Bridge：《H5-Bridge协议.md》
-- 加工 checklist：脑库 `2_领域/App-Store-审核风控/h5-shell-加工checklist/SKILL`
+- 产包后加工 checklist：**流水线仓 / 加工侧**维护，不在产包 Agent 封闭语料内。
 
 ---
 
@@ -69,7 +69,7 @@ Screen Inventory：**4–5 个 H5 tab-root**（bottom TabBar）；wizard、`#/le
 | 9 | 权限 plist key ↔ H5/Bridge 入口对齐 | 《H5壳Swift实现规范》§权限 · 同 OC | **F** |
 | 10 | 主 Tab 内容收敛、间距有章法 | 《H5壳Plan交付规范》· 视觉锁 | **L** |
 
-源笔记：对话目录 `2026-07-21-Palioy-Somaoo-产包后双包公共调整.md`
+产包后共性条目来自多包加工复盘；细节由加工侧维护，产包 Agent 以本表 + 上表规范落点为准。
 
 ## CSV 维度边界
 

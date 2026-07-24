@@ -37,7 +37,7 @@ openLegal(kind):
 - 隐私与条款 URL **分开**（非产品明确要求相同）
 
 参考 snippet（可拷入包）：`data/static/h5_snippets/legal/legalLinks.ts`  
-深读：脑库 [[2_领域/cursor-ios-batch-流水线/h5-shell-协议外链系统浏览器-pitfalls-20260720]] · 加工 [[2_领域/App-Store-审核风控/h5-shell-加工checklist/编组D-H5首屏合规/SKILL]]
+产包后外开真机验证由加工侧执行；**勿**出产包工作区追脑库 pitfalls / 加工 checklist。
 
 ---
 
@@ -111,5 +111,5 @@ Plan 产出 MD（无在线 URL）
 
 ## 导航
 
-- 上级：[[docs/rules/H5壳包开发规则]]
-- 相关：[[docs/H5壳Vite工程规范]] · [[docs/H5壳Overlay路由规范]] · [[docs/法律协议规范]] · [[docs/H5-Bridge协议]] · [[docs/H5壳Pack约束]]
+- 相关（产包工作区内）：《H5壳Vite工程规范.md》· 《H5壳Overlay路由规范.md》· 《法律协议规范.md》· 《H5-Bridge协议.md》· 《H5壳Pack约束.md》
+- 流水线仓 `docs/rules/` **勿**作为产包 Agent 必读路径。

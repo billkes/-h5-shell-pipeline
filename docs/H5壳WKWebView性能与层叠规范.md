@@ -1,7 +1,7 @@
 # H5 壳 · WKWebView 性能与层叠规范
 
 > 跨包通用 · 首案 Rolioo `Bright & Roll` 20260714  
-> 关联 pitfalls：`global-brain/2_领域/cursor-ios-batch-流水线/h5-wkwebview-perf-tab-modal-pitfalls-20260714.md`
+> 产包 Agent：**只读本文件与封闭语料内关联文档**；加工侧 pitfalls 笔记不在产包工作区。
 
 真机 WKWebView 与桌面模拟器体感差异大：**发热、Tab 点不动、子页返回卡死、弹层挡点击、系统音频控件露馅** 均须在本规范覆盖。
 
@@ -158,4 +158,4 @@ for w in collect_h5_perf_warnings(Path('output/{AppName}-Swift/{AppName}')):
 |------|------|
 | 《H5去风味规范.md》 | §6 组件禁原生样式 · 音频扩展 |
 | 《H5壳Swift实现规范.md》 | CDN 加载 / shellReady |
-| checklist 编组 E / G | 加工检测入口 |
+| 《H5壳H5实现检查清单.md》 | Implementer 勾选 |

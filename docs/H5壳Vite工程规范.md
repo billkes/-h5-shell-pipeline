@@ -66,7 +66,7 @@ h5/
 2. **规范真相源**：
    - 栈：`stack-vue.md` · `stack-html-tailwind.md`
    - 每页：`design-system/{app}/pages/*.md`
-   - Legal / Plaza / Overlay：`docs/H5壳*.md`
+   - Legal / Plaza / Overlay：《H5壳Legal弹层规范.md》· 《H5壳广场页规范.md》· 《H5壳Overlay路由规范.md》
 3. **合规靠 gate**：Welcome / Legal / Plaza / layout contract 等运行时约束。
 
 ## Browser Bridge mock（Vite DEV · 必做）
@@ -98,5 +98,5 @@ h5/
 
 ## 导航
 
-- 上级：[[docs/rules/H5壳包开发规则]]
-- 相关：[[docs/H5壳Legal弹层规范]] · [[docs/H5壳广场页规范]] · [[docs/H5壳Overlay路由规范]]
+- 相关（产包工作区内）：《H5壳Legal弹层规范.md》· 《H5壳广场页规范.md》· 《H5壳Overlay路由规范.md》· 《H5壳Pack约束.md》
+- 流水线仓规则（`docs/rules/`）**勿**作为产包 Agent 必读路径。

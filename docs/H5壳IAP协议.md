@@ -36,7 +36,7 @@
 5. 用户取消：关 Loading，**不弹** Purchase failed。
 6. 真失败：关 Loading，英文 Alert + 可重试。
 
-幂等、 `completePurchase` 全分支、`LinkedHashSet` 去重等 — **完全复用**《工具包Flutter产品要求.md》§5.1 / §5.6，在 Flutter Bridge 模块实现，H5 不直接碰 StoreKit。
+幂等、 `completePurchase` 全分支、交易去重等 — 在 Flutter / Swift Bridge 模块按《H5壳IAP协议.md》本文 + 《H5-Bridge协议.md》`purchase` 实现；H5 不直接碰 StoreKit。
 
 ### Swift 执行（StoreKit 2）
 

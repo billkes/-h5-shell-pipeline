@@ -54,7 +54,7 @@ Agent **Part 1（Plan）** 须一次性产出下列文件。细则以本文为�
 - `{主名字} Privacy Agreement.md`
 - `{主名字} User Agreement.md`
 
-与 `功能文档.md` 同一步（`agent.plan.spec`）产出。规范：`docs/法律协议规范.md`。plan.gate 调用 `verify_h5_legal_md()`。
+与 `功能文档.md` 同一步（`agent.plan.spec`）产出。规范：《法律协议规范.md》。plan.gate 调用 `verify_h5_legal_md()`。
 
 **产包后（有在线链接时）**：产品概述 / 登记须写入可访问 HTTPS；H5 点击走 **系统浏览器**（见《H5壳Legal弹层规范.md》外开模式）。MD 仍为文档产物与 gate 正文源。
 ## Deliverable 2) 视觉规范（**不再**产出 `视觉蓝图.md`）

@@ -11,8 +11,8 @@
 | UI 校验 | `scripts/batch/h5_legal_ui.py` · `verify_h5_legal_ui()`（行为门禁，无视觉 kit） |
 | 默认 seed | `scripts/batch/h5_default_seed.py` · 加工编组 I |
 | 包级铁律 | `scripts/batch/cursor_rules.py` → `h5-vault-compliance.mdc` |
-| 弹层规范 | `docs/H5壳Legal弹层规范.md` |
-| 去风味规范 | `docs/H5去风味规范.md` |
+| 弹层规范 | 《H5壳Legal弹层规范.md》 |
+| 去风味规范 | 《H5去风味规范.md》 |
 
 **禁止**只改单个 output 包（如 Pawioo）而不更新 gate / `cursor_rules.py`。
 
@@ -31,4 +31,4 @@
 | 品牌 / Launch / 氛围图落 Native Assets | 启动图仍 PLACEHOLDER 提审 |
 
 验收：Xcode 工程树能展开看到 seed 文件；冷启动主 Tab 图文齐全。  
-加工：脑库编组 I · Pack 约束「产包后共性」#3。
+产包后加工对照：《H5壳Pack约束.md》「产包后共性」#3（Seed / 品牌图在 iOS 工程内）。

@@ -1,7 +1,8 @@
 # H5 壳交互拓扑与 Plan Gate 策略
 
-> **版本**：2026-07-13 · **状态**：Phase 2 已落地；批前主题策略见 **《H5壳批前准备总计划-自拟主题版.md》v2**  
-> 配套：《H5壳功能文档深度标准.md》· `interaction_topology.py` · `spec_business_depth.py`
+> **版本**：2026-07-13 · **状态**：Phase 2 已落地  
+> 配套：《H5壳功能文档深度标准.md》· `interaction_topology.py` · `spec_business_depth.py`  
+> 批前主题策略（自拟 brief）由**流水线仓人工**维护，不在产包 Agent 必读封闭语料内。
 
 ---
 
@@ -138,6 +139,7 @@ STRICT_PLAN_GATE=1 ./run.sh --name Buildioo
 
 ## 导航
 
-- [[H5壳功能文档深度标准.md]]
-- [[H5壳Flutter产品要求.md]]
-- [[rules/H5壳包开发规则.md]]
+- 《H5壳功能文档深度标准.md》
+- 《H5壳Flutter产品要求.md》
+- 《H5壳Pack约束.md》
+- 流水线仓 `docs/rules/` **勿**作为产包 Agent 必读路径。

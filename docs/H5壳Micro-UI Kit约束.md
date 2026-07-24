@@ -41,7 +41,7 @@
 
 ## Overlay stack
 
-Legal/filter hash overlay：见《H5壳Overlay路由规范.md》· `data/static/h5_overlay_router_kit/`。
+Legal/filter hash overlay：见《H5壳Overlay路由规范.md》（无单独 overlay kit 目录；Agent 按规范自实现）。
 
 ## 登记
 
@@ -49,8 +49,8 @@ Legal/filter hash overlay：见《H5壳Overlay路由规范.md》· `data/static/
 
 ## PM 交叉引用
 
-- `视觉蓝图.md` §Component Selection · §Package Token Overrides
-- `data/static/component_kit/` 语义约束
+- 视觉规范以 `design-system/*/MASTER.md` · `pages/*.md` · `skill-adapt/` 为准（**不**再写 `视觉蓝图.md`）
+- `data/static/component_kit/` 语义约束（已拷入工作区时）
 - `功能文档.md` §H5 Architecture
 
 Gate 对 methodology、atom、namespace、state/router/screen 做软警告及跨包 Jaccard。
