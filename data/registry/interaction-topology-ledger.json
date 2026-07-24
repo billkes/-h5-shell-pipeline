@@ -94,6 +94,41 @@
       "topologyId": "T4_wizard",
       "label": "Wizard pipeline",
       "batchId": "TEST-0717"
+    },
+    "Spinoo": {
+      "topologyId": "T8_reminder_ring",
+      "label": "Reminder ring",
+      "batchId": "TEST-0717"
+    },
+    "Mileoo": {
+      "topologyId": "T5_workspace",
+      "label": "Single workspace",
+      "batchId": "TEST-0717"
+    },
+    "Bookoo": {
+      "topologyId": "T2_capture_first",
+      "label": "Capture-first",
+      "batchId": "TEST-0717"
+    },
+    "Magioo": {
+      "topologyId": "T2_capture_first",
+      "label": "Capture-first",
+      "batchId": "TEST-0717"
+    },
+    "Pettoo": {
+      "topologyId": "T2_capture_first",
+      "label": "Capture-first",
+      "batchId": "TEST-0717"
+    },
+    "Tintoo": {
+      "topologyId": "T8_reminder_ring",
+      "label": "Reminder ring",
+      "batchId": "TEST-0717"
+    },
+    "Lensoo": {
+      "topologyId": "T5_workspace",
+      "label": "Single workspace",
+      "batchId": "TEST-0717"
     }
   },
   "batchUsage": {

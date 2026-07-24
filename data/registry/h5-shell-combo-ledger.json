@@ -284,6 +284,111 @@
         "bridgeErrorCode": "string enum (PERMISSION_DENIED)",
         "bridgeInjectTiming": "bundled bridge.js in main bundle preload"
       }
+    },
+    "Spinoo": {
+      "batchId": "TEST-0717",
+      "hash": "2c6400ee579d09fd",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "postMessage + CustomEvent bridgeReady",
+        "bridgeCallbackStyle": "injected JS dispatchEvent(NativeReply)",
+        "bridgeEnvelope": "RPC {jsonrpc,method,params,id}",
+        "mediaServe": "WKURLSchemeHandler local vault",
+        "bridgeErrorCode": "short prefix+number (E101)",
+        "bridgeInjectTiming": "bundled bridge.js in main bundle preload"
+      }
+    },
+    "Mileoo": {
+      "batchId": "TEST-0717",
+      "hash": "dfe45e7e9f7c8082",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "WKUserContentController named handler + JSON body",
+        "bridgeCallbackStyle": "injected JS dispatchEvent(NativeReply)",
+        "bridgeEnvelope": "RPC {jsonrpc,method,params,id}",
+        "mediaServe": "custom scheme handler (app-asset://)",
+        "bridgeErrorCode": "HTTP-like (400/403/500)",
+        "bridgeInjectTiming": "WKUserScript atDocumentEnd"
+      }
+    },
+    "Bookoo": {
+      "batchId": "TEST-0717",
+      "hash": "80d69f42e5fc7a3a",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "WKScriptMessageHandler.postMessage(JSON)",
+        "bridgeCallbackStyle": "callAsyncJavaScript Promise resolve (iOS 14+)",
+        "bridgeEnvelope": "method+args split fields",
+        "mediaServe": "NSURL fileURLWithPath vault relative",
+        "bridgeErrorCode": "HTTP-like (400/403/500)",
+        "bridgeInjectTiming": "configuration.userContentController before first load"
+      }
+    },
+    "Magioo": {
+      "batchId": "TEST-0717",
+      "hash": "c1767c71f6ef9208",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "window.webkit.messageHandlers.{prefix}.postMessage(JSON)",
+        "bridgeCallbackStyle": "injected JS dispatchEvent(NativeReply)",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "NSURL fileURLWithPath vault relative",
+        "bridgeErrorCode": "HTTP-like (400/403/500)",
+        "bridgeInjectTiming": "configuration.userContentController before first load"
+      }
+    },
+    "Pettoo": {
+      "batchId": "TEST-0717",
+      "hash": "a44a76c0b4cce141",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "window.webkit.messageHandlers.{prefix}.postMessage(JSON)",
+        "bridgeCallbackStyle": "callbackId Map + evaluateJavaScript",
+        "bridgeEnvelope": "{action,data} minimal",
+        "mediaServe": "NSURL fileURLWithPath vault relative",
+        "bridgeErrorCode": "gRPC-style (INVALID_ARGUMENT)",
+        "bridgeInjectTiming": "configuration.userContentController before first load"
+      }
+    },
+    "Tintoo": {
+      "batchId": "TEST-0717",
+      "hash": "59f004150973da23",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "window.webkit.messageHandlers.{prefix}.postMessage(JSON)",
+        "bridgeCallbackStyle": "WKWebView.evaluateJavaScript completionHandler",
+        "bridgeEnvelope": "method+args split fields",
+        "mediaServe": "readFile Bridge base64 inline",
+        "bridgeErrorCode": "gRPC-style (INVALID_ARGUMENT)",
+        "bridgeInjectTiming": "configuration.userContentController before first load"
+      }
+    },
+    "Lensoo": {
+      "batchId": "TEST-0717",
+      "hash": "0fde44a71a401e81",
+      "shellRuntime": "swift",
+      "packType": "h5_swift_shell",
+      "bridge": {
+        "webviewEngine": "wkwebview_swift",
+        "bridgeCallStyle": "postMessage + CustomEvent bridgeReady",
+        "bridgeCallbackStyle": "callbackId Map + evaluateJavaScript",
+        "bridgeEnvelope": "method+args split fields",
+        "mediaServe": "loadFileURL bundle resource",
+        "bridgeErrorCode": "numeric codes (0/-1/-2)",
+        "bridgeInjectTiming": "didFinish navigation inject polyfill"
+      }
     }
   },
   "hashes": {
@@ -292,6 +397,13 @@
     "085de1eb072ffed0": "Somaoo",
     "8c77fe0b2d76db21": "Nureoo",
     "026ab118c4c06abd": "Taluoo",
-    "6f849309bf4104a7": "Meloyy"
+    "6f849309bf4104a7": "Meloyy",
+    "2c6400ee579d09fd": "Spinoo",
+    "dfe45e7e9f7c8082": "Mileoo",
+    "80d69f42e5fc7a3a": "Bookoo",
+    "c1767c71f6ef9208": "Magioo",
+    "a44a76c0b4cce141": "Pettoo",
+    "59f004150973da23": "Tintoo",
+    "0fde44a71a401e81": "Lensoo"
   }
 }

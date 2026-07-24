@@ -3258,6 +3258,174 @@
           "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Meloyy-Swift/Meloyy"
         }
       ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-22_21-28-11-68468",
+      "startedAt": "2026-07-22 21:28:11",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Spinoo",
+        "Mileoo",
+        "Bookoo",
+        "Magioo",
+        "Pettoo",
+        "Tintoo",
+        "Lensoo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Spinoo",
+          "packType": "h5_swift_shell",
+          "container": "Spinoo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Spinoo-Swift/Spinoo"
+        },
+        {
+          "name": "Mileoo",
+          "packType": "h5_swift_shell",
+          "container": "Mileoo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Mileoo-Swift/Mileoo"
+        },
+        {
+          "name": "Bookoo",
+          "packType": "h5_swift_shell",
+          "container": "Bookoo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Bookoo-Swift/Bookoo"
+        },
+        {
+          "name": "Magioo",
+          "packType": "h5_swift_shell",
+          "container": "Magioo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Magioo-Swift/Magioo"
+        },
+        {
+          "name": "Pettoo",
+          "packType": "h5_swift_shell",
+          "container": "Pettoo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Pettoo-Swift/Pettoo"
+        },
+        {
+          "name": "Tintoo",
+          "packType": "h5_swift_shell",
+          "container": "Tintoo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Tintoo-Swift/Tintoo"
+        },
+        {
+          "name": "Lensoo",
+          "packType": "h5_swift_shell",
+          "container": "Lensoo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Lensoo-Swift/Lensoo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-23_09-27-26-96781",
+      "startedAt": "2026-07-23 09:27:26",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Magioo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Magioo",
+          "packType": "h5_swift_shell",
+          "container": "Magioo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Magioo-Swift/Magioo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-23_09-28-29-97907",
+      "startedAt": "2026-07-23 09:28:29",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Pettoo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Pettoo",
+          "packType": "h5_swift_shell",
+          "container": "Pettoo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Pettoo-Swift/Pettoo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-23_09-28-44-98328",
+      "startedAt": "2026-07-23 09:28:44",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Tintoo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Tintoo",
+          "packType": "h5_swift_shell",
+          "container": "Tintoo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Tintoo-Swift/Tintoo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-24_18-04-31-7173",
+      "startedAt": "2026-07-24 18:04:31",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Lensoo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Lensoo",
+          "packType": "h5_swift_shell",
+          "container": "Lensoo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Lensoo-Swift/Lensoo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-24_18-34-08-16560",
+      "startedAt": "2026-07-24 18:34:08",
+      "hostname": "ios-devdeMac-mini.local",
+      "taskCsv": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/task.csv",
+      "outputDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output",
+      "reportsDir": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/_reports",
+      "apps": [
+        "Tintoo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Tintoo",
+          "packType": "h5_swift_shell",
+          "container": "Tintoo-Swift",
+          "workspace": "/Users/ios-dev/.cursor/rules/h5-shell-pipeline/output/Tintoo-Swift/Tintoo"
+        }
+      ]
     }
   ]
 }
