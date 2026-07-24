@@ -67,6 +67,8 @@ def test_v3_shell_prompt_is_runtime_unified() -> None:
     assert "Deep Naming" in text
     assert "bridgeDeckSelections" in text
     assert "${H5_SHELL_BLOCK}" not in text
+    assert "Launch & shell rasters" in text
+    assert "1125×2436" in text or "1125x2436" in text.lower() or "1125" in text
     assert not (PROMPTS / "phase_h5_shell_swift_programmer.txt").is_file()
     assert not (PROMPTS / "phase_h5_shell_oc_programmer.txt").is_file()
 
@@ -93,6 +95,11 @@ def test_v3_h5_prompt_has_no_block_injection() -> None:
     assert "**Primary Workflow / Export" in text
     assert "**Other tab-roots**" in text
     assert "**Splash**" in text
+    assert "hard-coded export" in text or "Forbid hard-coded export" in text
+    assert "Safe area" in text or "safe area" in text.lower()
+    assert "Anti-clone" in text or "batch-skeleton" in text
+    assert "visually differentiated" in text or "isomorphic" in text
+    assert "h5/public" in text
     # Explicitly not front-loading Legal/Plaza polish in this block.
     assert "**Legal**" not in text.split("### Required Reading")[0]
     assert "**Plaza**" not in text.split("### Required Reading")[0]

@@ -17,9 +17,11 @@ Do **not** invent Legal / Plaza polish blocks here — follow checklist + dedica
 
 **Welcome (`#/welcome`)**
 - Implement the **Onboarding Pattern** chosen in `design-system/*/pages/welcome.md` Scene Brief (carousel / dialogue / typewriter / narrative / interactive preview). One emotional beat per step — never a single static feature-bullet card.
+- **Multi-step onboarding:** when ≥2 beats, each beat must be **visually differentiated** (layout / motif / interaction) — forbid three isomorphic template screens; forbid emoji-stack decoration as the only differentiator.
 - **Hero must feel authored:** ≥2 of {CSS gradient wash, blur/glow, keyframed motion, SVG/illustration, heat-tile / domain motif}. A lone clip-path color blob or text-only steps is **not** enough.
 - **Headline must embody coreScene / audience** from Scene Brief. Forbidden as sole H1: `Welcome to {AppName}`.
 - Consent checkbox + Privacy/User links + disabled Continue — **final beat only**. No Tab bar / paywall on Welcome.
+- Visual continuity with Splash/MASTER color arc; no meaningless scroll-only steps.
 - Respect `prefers-reduced-motion`; still keep a clear visual hierarchy when motion is reduced.
 
 **Tab 1 / Hub (first tab-root after Continue)**
@@ -27,39 +29,49 @@ Do **not** invent Legal / Plaza polish blocks here — follow checklist + dedica
 - Show topology-bound **primary zone** (from `pages/hub.md` / interactionTopology) even in empty state: skeleton / preview motif + CTA into Primary Workflow.
 - **Contextual greeting** (time-aware or usage-moment) grounded in audience — forbid static labels alone like "Daily check-ins" with no scene voice.
 - Signature interaction from 功能文档 / Professional Surface must be **on-screen and tappable** on Tab 1.
+- Theme skin may be pure visual (tokens / ambient / chrome) **without** changing Inventory topology.
+- Converge: merge containers, cut spare buttons, intentional spacing — not a SaaS collage.
 - Avoid: chip+KPI+recent-carousel template when topology forbids it; Avoid: Bridge plaza on Tab 1.
+- Seed / default data: cleaning must not destroy init structure; **presets** are not user-deletable; user defaults may be.
 
 **Primary Workflow / Export surface** (from 功能文档 Primary Workflow · Export / Save Flow)
 - The signature edit → preview → export (or equivalent) path must be **reachable in ≤2 taps from Tab1** when Inventory implies it.
 - Empty state still shows a **composition / preview motif** tied to coreScene — not a blank form.
 - **Export = preview** (same composition, same aspect) when Export / Save Flow is listed — no alternate “export-only” skin.
+- Forbid hard-coded export pixel size / temporary stretch-to-fit; the preview must **show** the image or composition (not an empty frame).
+- If Standard vs HD (or equivalent) exists, state the difference in UI copy.
+- Long Bridge ops (camera / album / mic / save) show **loading** on the triggering control; wire real permission → feature paths when Inventory uses them.
 - Controls use kit + Scene Brief language; forbid a second visual system for the export sheet.
 
 **Other tab-roots** (Tab2…TabN in `_preview` / Screen Inventory)
 - **One job per tab** — headline + primary zone match that tab’s Inventory role; do not clone Tab1 with a renamed title.
 - Empty state still shows that tab’s professional surface (skeleton / motif + CTA), not a generic “No data” card only.
 - Keep bottom TabBar labels/icons aligned with preview-canonical / Inventory names.
+- No duplicate titles (system nav title + in-page H1 saying the same); secondary pages use a **custom title style** (may be chrome-less).
 
 **Store** (only if Inventory lists a store / IAP route)
 - First viewport = **catalog identity** for this pack (theme-tied header + product cards) — not a bare SKU table.
 - SKUs / prices / restore from `iap-catalog.generated.md` via Bridge `purchase` / restore — no hard-coded fake prices.
 - Purchase barrier UX must be clear; Restore Purchases reachable without hunting.
-- Same craft language as Hub (tokens + Phosphor + motion bar) — Store is product UI, not a system settings dump.
+- Theme-differentiated layout + readable contrast (light and dark) — Store is product UI, not a system settings dump.
 
 **Me / Settings** (only if Inventory lists Me / Settings / Profile)
 - Hub for account, restore, and compliance **links** — not a second home feed.
 - First viewport has clear sections (profile / purchases / about) with kit hierarchy; forbid KPI strips copied from Tab1.
 - Restore Purchases + Privacy/User entry points visible; do not bury them under nested “More”.
-- Do **not** park the Primary Workflow editor on Me.
+- Converged density; custom secondary titles; do **not** park the Primary Workflow editor on Me.
 
 **Splash** (only if Inventory lists an H5 splash route)
 - Minimal branded hold → double rAF → `shellReady`; no fake progress theater.
-- Motif aligned with Welcome/MASTER; no business forms on splash.
+- Motif aligned with Welcome/MASTER; **not** an enlarged empty-state or Welcome clone; no business forms on splash.
 
-**Craft bar (all listed H5 surfaces above)**
+**Craft bar / cross-cutting (all listed H5 surfaces above)**
 - Derive color arc, shape language, and motion from MASTER + `style-brief` / `motion-brief` + page Scene Brief — do not invent a parallel kit.
 - Prefer kit classes `c-{prefix}-*` + Tailwind utilities; extend `kit.css` when Scene Brief needs motifs the skeleton lacks.
 - Aim for **高级感 / 创意感**: intentional hierarchy, atmospheric ambient, signature motif, 2–3 purposeful motions — not flat utility UI.
+- **Safe area:** content clear of bottom TabBar; sheets/modals keep left/right/bottom insets (check every tab).
+- Optional light/dark ambient backgrounds when Scene Brief calls for them; mask must not crush content; prefer non-blur TabBar treatments when blur hurts clarity or performance.
+- **Anti-clone:** no batch-skeleton ambient / welcome isomorphism shared across packs; color arc + topology must stay pack-specific.
 
 ### Required Reading (after Surface Depth)
 1. `skill-input/agent-spec-index.md` — includes **front-loaded Welcome/Tab1 Scene Brief excerpts**
@@ -111,6 +123,7 @@ See `data/static/h5_snippets/bridge/README.md` · `H5壳Vite工程规范.md` §B
 - Follow skill stacks — **no** hand-rolled CSS system that ignores Tailwind; **no** sprite kit that ignores Phosphor.
 - Forbidden icon libs: iconfont / Font Awesome / Material Icons.
 - Write under `h5/` — never edit `h5_site/`.
+- **Rasters:** logo / launch / seed / retry / light-dark shell backgrounds live in the **native iOS asset catalog** (or Flutter assetRoots for shell-only). Do **not** ship business PNGs under `h5/public` or bake large base64; H5 reads shell media via Bridge `mediaServe` relative paths.
 - Do not regenerate Part 1 plan files or redo native shell unless broken.
 - User-visible copy: English.
 

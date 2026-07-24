@@ -25,6 +25,11 @@ ${RESUME_BLOCK}
 - `loadRequest(h5EntryUrl)` from 本包登记信息.json
 - Launch veil / splash per 《H5壳启动闪屏规范.md》
 
+### Launch & shell rasters (MANDATORY)
+- LaunchScreen / LaunchVeil: true **1125×2436** (3x) asset, **`scaleAspectFill`** + clipsToBounds — **forbid** `scaleToFill` / runtime stretch that shrinks then pops on first cold start.
+- Launch art must **fill the screen**; not an enlarged empty-state or Welcome clone.
+- Shell rasters (logo / launch / seed / retry / light-dark backgrounds) belong in the **iOS asset catalog** (or Flutter shell assetRoots). Do not leave the only copy under H5 `public/`.
+
 ### Hard Rules
 - No visible business UI in Flutter / Swift / OC — Part 3 owns H5 site / legal / plaza.
 - Shell = WebView host + Bridge + shell rasters only.
