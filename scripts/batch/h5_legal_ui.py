@@ -48,6 +48,18 @@ LEGAL_ROUTE_MODAL_MARKERS_RE = re.compile(
     r"legal-veil|veil-dialog|role\s*=\s*['\"]dialog['\"]",
     re.IGNORECASE,
 )
+# Stub / placeholder legal URLs must never ship in H5 source (runtime branch uses '' → overlay).
+FAKE_LEGAL_URL_RE = re.compile(
+    r"""(?ix)
+    (?:privacy|terms|legal|user.?agreement|tos)
+    [^"'`\n]{0,80}
+    https?://[^"'`\s]*(?:example\.(?:com|org)|localhost|127\.0\.0\.1|placeholder|changeme|your[-_]?link)
+    |
+    (?:privacyUrl|termsUrl|PRIVACY_URL|TERMS_URL)\s*[:=]\s*['"]https?://[^'"]*(?:example\.(?:com|org)|localhost|TODO|placeholder)
+    |
+    ['"]https?://(?:www\.)?example\.(?:com|org)[^'"]*['"]
+    """,
+)
 
 
 def _read_register(project: Path) -> dict:
@@ -199,6 +211,25 @@ def uses_legal_modal(project: Path) -> bool:
     return bool(LEGAL_MODAL_MARKERS_RE.search(surface))
 
 
+def verify_h5_legal_no_fake_urls(project: Path) -> list[str]:
+    """Reject placeholder / example legal HTTPS stubs in H5 source."""
+    project = project.expanduser().resolve()
+    issues: list[str] = []
+    if not project_needs_legal_ui(project):
+        return issues
+    if not is_h5_vite_project(project):
+        return issues
+    text = vite_vue_and_ts_text(project)
+    if not text:
+        return issues
+    if FAKE_LEGAL_URL_RE.search(text):
+        issues.append(
+            "LEGAL_URL: forbidden placeholder/example legal HTTPS — "
+            "keep privacyUrl/termsUrl empty for bundled overlay, or set a real https URL"
+        )
+    return issues
+
+
 def verify_h5_legal_view_mode(project: Path) -> list[str]:
     """Legal must be modal-without-route OR full-page route-without-modal — never both."""
     project = project.expanduser().resolve()
@@ -254,6 +285,8 @@ def verify_h5_legal_ui(project: Path) -> list[str]:
 
     if not project_needs_legal_ui(project):
         return issues
+
+    issues.extend(verify_h5_legal_no_fake_urls(project))
 
     if router_file_has_legal_route(project) and not uses_legal_modal(project):
         return issues

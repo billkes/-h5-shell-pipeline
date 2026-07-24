@@ -124,6 +124,7 @@ See `data/static/h5_snippets/bridge/README.md` · `H5壳Vite工程规范.md` §B
 - Forbidden icon libs: iconfont / Font Awesome / Material Icons.
 - Write under `h5/` — never edit `h5_site/`.
 - **Rasters:** logo / launch / seed / retry / light-dark shell backgrounds live in the **native iOS asset catalog** (or Flutter assetRoots for shell-only). Do **not** ship business PNGs under `h5/public` or bake large base64; H5 reads shell media via Bridge `mediaServe` relative paths.
+- **Legal (one entry, runtime branch):** ship `h5/src/legal/legalLinks.ts` from `data/static/h5_snippets/legal/` with `privacyUrl`/`termsUrl` = `''`. `openLegal(kind)` → if `isExternalLegalUrl(url)` then Bridge `openExternalUrl`, else bundled `LegalOverlay`. Pipeline does **not** provide online URLs. **Forbidden:** placeholder / `example.com` / `TODO` / fake https stubs in source. See 《H5壳Legal弹层规范.md》.
 - Do not regenerate Part 1 plan files or redo native shell unless broken.
 - User-visible copy: English.
 

@@ -63,6 +63,8 @@ _H5_NORM_DOCS: tuple[str, ...] = (
     "H5壳Vault合规维护规范.md",
     "data/static/h5_snippets/bridge/README.md",
     "data/static/h5_snippets/bridge/browserMock.ts",
+    "data/static/h5_snippets/legal/README.md",
+    "data/static/h5_snippets/legal/legalLinks.ts",
 )
 
 _PREVIEW_NORM_DOCS: tuple[str, ...] = (

@@ -45,6 +45,7 @@ H5_SHELL_WORKSPACE_DOCS: tuple[str, ...] = (
 )
 
 H5_SNIPPETS_BRIDGE_REL = Path("data/static/h5_snippets/bridge")
+H5_SNIPPETS_LEGAL_REL = Path("data/static/h5_snippets/legal")
 
 
 def _ensure_symlink(link: Path, target: Path) -> None:
@@ -193,6 +194,18 @@ def copy_h5_bridge_snippets_to_workspace(cfg: BatchConfig, workspace: Path) -> N
     if not src.is_dir():
         return
     dest = workspace / H5_SNIPPETS_BRIDGE_REL
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(src, dest)
+
+
+def copy_h5_legal_snippets_to_workspace(cfg: BatchConfig, workspace: Path) -> None:
+    """Copy legalLinks runtime-branch snippet into the package (closed corpus)."""
+    src = cfg.project_dir / H5_SNIPPETS_LEGAL_REL
+    if not src.is_dir():
+        return
+    dest = workspace / H5_SNIPPETS_LEGAL_REL
     if dest.exists():
         shutil.rmtree(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -360,6 +373,7 @@ def copy_workspace_docs(
     copy_component_kit_to_workspace(cfg, workspace)
     if is_h5_shell(pack_type):
         copy_h5_bridge_snippets_to_workspace(cfg, workspace)
+        copy_h5_legal_snippets_to_workspace(cfg, workspace)
     ensure_workspace_skills(cfg, workspace)
     if getattr(cfg, "iap_bundle_prefix", ""):
         print(

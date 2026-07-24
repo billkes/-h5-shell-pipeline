@@ -26,7 +26,8 @@ _PROGRAMMER_BRAIN_FOCUS = """   - `H5壳Pack约束.md`
    - `H5壳Vite工程规范.md`
    - `H5壳Legal弹层规范.md` · `H5壳广场页规范.md` · `H5去风味规范.md`
    - `命名混淆规则.md` · `编程人设风格.md`
-   - `data/static/h5_snippets/bridge/` (browser mock)"""
+   - `data/static/h5_snippets/bridge/` (browser mock)
+   - `data/static/h5_snippets/legal/legalLinks.ts` (openLegal runtime branch)"""
 
 _PM_UI_PLAN_BRAIN_FOCUS = """   - `H5壳Plan交付规范.md`
    - `H5壳功能文档深度标准.md`

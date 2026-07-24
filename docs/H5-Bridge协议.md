@@ -142,14 +142,14 @@ Swift / OC 壳由模板锁定该命名（`{{APP_NAME_LOWER}}Bridge`）；**H5（
 ```
 
 
-**h5_shell 协议展示（双模式）**
+**h5_shell 协议展示（同一入口 · 运行时二选一）**
 
-| 模式 | 主路径 | 说明 |
-|------|--------|------|
-| **A 弹层**（默认 / 无在线链） | H5 `LegalOverlay` + bundled 英文正文 | 见《H5壳Legal弹层规范》模式 A |
-| **B 外开**（**产包后有 HTTPS 时现行**） | Bridge **`openExternalUrl`** → 系统浏览器 | **禁止**主 WKWebView 裸跳第三方域 |
+| 分支 | 条件 | 主路径 |
+|------|------|--------|
+| **A 弹层**（产包默认） | 无有效 HTTPS（空串 / 未配置） | H5 `LegalOverlay` + bundled 英文正文 |
+| **B 外开**（产包后填链） | `privacyUrl` / `termsUrl` 为真实 `https://` | Bridge **`openExternalUrl`** → 系统浏览器 |
 
-两种模式勿混用同一入口。B07 为外开能力；有在线链的加工包须启用并真机验证。
+**禁止**主 WKWebView 裸跳第三方域；**禁止**逻辑内写 example/TODO 等假链。流水线不产出在线 URL。细则见《H5壳Legal弹层规范》。B07 为外开能力；有在线链时真机验证。
 
 **录音闭环**：启用 B03（`startRecord`/`stopRecord`）则须同时具备可听的 B04（`playAudio`）或 H5 `AudioPlayer` 读沙盒回放；录完不能播 = 未完成。
 

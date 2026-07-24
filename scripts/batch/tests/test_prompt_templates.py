@@ -100,9 +100,12 @@ def test_v3_h5_prompt_has_no_block_injection() -> None:
     assert "Anti-clone" in text or "batch-skeleton" in text
     assert "visually differentiated" in text or "isomorphic" in text
     assert "h5/public" in text
-    # Explicitly not front-loading Legal/Plaza polish in this block.
-    assert "**Legal**" not in text.split("### Required Reading")[0]
-    assert "**Plaza**" not in text.split("### Required Reading")[0]
+    assert "legalLinks" in text or "isExternalLegalUrl" in text
+    assert "openExternalUrl" in text
+    # Explicitly not front-loading Legal/Plaza polish in Surface Depth block.
+    front = text.split("### Required Reading")[0]
+    assert "**Legal**" not in front
+    assert "**Plaza**" not in front
 
 
 def test_global_brain_block_removed() -> None:

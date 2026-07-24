@@ -29,6 +29,7 @@ def test_copy_workspace_docs_closes_h5_corpus(tmp_path: Path) -> None:
     assert (tmp_path / "H5壳启动闪屏规范.md").is_file()
     assert (tmp_path / "H5壳Swift实现规范.md").is_file()
     assert (tmp_path / "data" / "static" / "h5_snippets" / "bridge" / "browserMock.ts").is_file()
+    assert (tmp_path / "data" / "static" / "h5_snippets" / "legal" / "legalLinks.ts").is_file()
     assert not (tmp_path / "docs" / "rules").exists()
 
 
