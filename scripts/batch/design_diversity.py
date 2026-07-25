@@ -25,17 +25,40 @@ _TRACK_SCENE_HINTS: dict[str, str] = {
     "教育培训": "university education classroom academic presentation learning",
     "教育": "education learning academic student",
     "教育娱乐": "edutainment word puzzle learning game playful",
-    "工具": "utility productivity tool focused",
-    "健康": "wellness health habit tracker calm",
+    # Avoid "productivity tool" — BM25 often lands SaaS / Productivity Tool.
+    "工具": "utility focused mobile helper simple calm",
+    "美妆个护": "beauty spa wellness skincare self-care",
+    "健康个护": "healthcare wellness calm organic",
+    "健康": "healthcare wellness calm organic",
     "金融": "finance budget money planning professional",
     "个人成长": "personal growth self improvement habit reflection",
-    "效率工具": "productivity utility efficiency planner reminders",
-    "校园效率": "campus student academic productivity lecture prep",
+    "效率工具": "utility planner reminders focused mobile",
+    "校园效率": "campus student academic lecture prep organizer",
     "休闲益智": "casual puzzle brain game pixel art challenge",
     "轻社交": "party social game board dice multiplayer fun",
     "休闲生活": "lifestyle collection hobby album gallery cozy",
     "休闲游戏": "casual game pet companion playful offline",
 }
+
+# Style / category strings that must not win for consumer H5 packs (thin gate).
+_BANNED_SAAS_NEEDLES: tuple[str, ...] = (
+    "saas",
+    "enterprise saas",
+    "micro saas",
+)
+
+
+def is_banned_saas_design(candidate: dict[str, Any] | None = None, *, style_name: str = "", category: str = "") -> bool:
+    """True when style or product category is explicitly SaaS-branded."""
+    style = style_name
+    cat = category
+    if isinstance(candidate, dict):
+        style_obj = candidate.get("style") or {}
+        if isinstance(style_obj, dict):
+            style = style or str(style_obj.get("name") or "")
+        cat = cat or str(candidate.get("category") or "")
+    blob = f"{style} {cat}".lower()
+    return any(n in blob for n in _BANNED_SAAS_NEEDLES)
 
 _SCENE_KEYWORD_HINTS: tuple[tuple[str, str], ...] = (
     ("开学", "back-to-school supply checklist shopping budget reminder"),

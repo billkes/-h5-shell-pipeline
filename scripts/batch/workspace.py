@@ -34,6 +34,7 @@ H5_SHELL_WORKSPACE_DOCS: tuple[str, ...] = (
     "H5壳IAP协议.md",
     "H5壳Legal弹层规范.md",
     "H5壳Vite工程规范.md",
+    "H5壳ui-ux-pro-max使用规范.md",
     "H5壳Overlay路由规范.md",
     "H5壳广场页规范.md",
     "H5壳启动闪屏规范.md",

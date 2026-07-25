@@ -25,6 +25,7 @@ _PROGRAMMER_BRAIN_FOCUS = """   - `H5壳Pack约束.md`
    - `H5壳WKWebView性能与层叠规范.md`
    - `H5壳H5实现检查清单.md`
    - `H5壳Vite工程规范.md`
+   - `H5壳ui-ux-pro-max使用规范.md`
    - `H5壳Legal弹层规范.md` · `H5壳广场页规范.md` · `H5去风味规范.md`
    - `命名混淆规则.md` · `编程人设风格.md`
    - `data/static/h5_snippets/bridge/` (browser mock)
@@ -36,6 +37,7 @@ _PM_UI_PLAN_BRAIN_FOCUS = """   - `H5壳Plan交付规范.md`
    - `H5壳功能文档深度标准.md`
    - `H5壳交互拓扑与PlanGate策略.md`
    - `H5壳产品文档格式.md`
+   - `H5壳ui-ux-pro-max使用规范.md`
    - `法律协议规范.md`
    - `H5壳Flutter产品要求.md`
    - `H5壳Pack约束.md` · `H5壳Micro-UI Kit约束.md`

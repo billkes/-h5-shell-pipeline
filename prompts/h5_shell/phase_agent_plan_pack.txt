@@ -9,23 +9,26 @@ ${RESUME_BLOCK}
 
 ### Prerequisite
 - `功能文档.md` MUST already exist. Screen Inventory is authoritative.
-- Visual/UI spec is **already** produced by pipeline skill steps — do **not** duplicate:
-  - `design-system/*/MASTER.md` · `pages/*.md`
-  - `skill-adapt/design-brief.md` · `design-tokens.css` · `ambient-canvas-brief.md`
+- Pipeline `skill.*` wrote a **draft** design system. You own **audit + repair** before locking visuals:
+  - Read `H5壳ui-ux-pro-max使用规范.md` first.
+  - If MASTER style/category is SaaS / generic Productivity (consumer pack) or not Mobile-friendly for this theme: re-run ui-ux-pro-max per that norm, update `design-system/*/MASTER.md` (and briefs if needed), **then** write ledgers.
+  - Do **not** invent a parallel design system in prose; do **not** copy other apps' MASTER / `h5/`.
 
 ### Required Reading (read FIRST)
 1. `skill-input/agent-spec-index.md`
-2. `H5壳Plan交付规范.md` — pack JSON sections only
-3. `功能文档.md` · `本包代码组合.json` · indexed design-system / skill-adapt paths
-4. Required reading and tools may only use paths under this workspace root. Paths outside the app root are out of scope.
+2. `H5壳ui-ux-pro-max使用规范.md` — skill usage / anti-SaaS / Mobile H5 query rules
+3. `H5壳Plan交付规范.md` — pack JSON sections only
+4. `功能文档.md` · `本包代码组合.json` · indexed design-system / skill-adapt paths
+5. Required reading and tools may only use paths under this workspace root. Paths outside the app root are out of scope.
 
 ### Deliverables (write both JSON files)
 1. `本包登记信息.json` — shellRuntime, h5EntryUrl*, bridgeDeckSelections, kit draws, vault fields
-2. `本包视觉锁.json` — designerDeckSelections, colorTokens, componentSelection, ambientCanvas
+2. `本包视觉锁.json` — designerDeckSelections, colorTokens, componentSelection, ambientCanvas (must match audited MASTER)
 
 ### Hard Rules
 - Do **not** write `视觉蓝图.md` (retired — conflicts with skill outputs).
 - Do **not** rewrite `功能文档.md` or product/legal MDs from prior plan steps.
+- Do **not** lock SaaS / Enterprise SaaS / SaaS Mobile styles into `本包视觉锁.json` for consumer tracks.
 - No Dart/Swift/OC/H5 code.
 
 ## Output

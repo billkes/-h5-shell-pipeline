@@ -238,13 +238,16 @@ def _differentiate_query(base_query: str, registry_entries: list[dict], attempt:
         reg_keywords.update(_tokens(entry.get("style", {}).get("keywords", "")))
         reg_keywords.update(_tokens(entry.get("category", "")))
 
-    # Anti-keywords to push away from common registry themes
+    # Anti-keywords to push away from common registry themes.
+    # Never inject saas/b2b/productivity — those pull Enterprise SaaS Mobile.
     anti_keywords = {
-        "tracker": "minimalism clean flat professional saas",
-        "journal": "dashboard productivity tool b2b",
-        "mood": "data visualization analytics workflow",
+        "tracker": "organic biophilic wellness calm tactile editorial",
+        "journal": "soft ui paper diary warm personal reflection",
+        "mood": "pastel wellness calm organic lifestyle",
         "dark": "light mode bright clean modern",
-        "neon": "corporate enterprise trustworthy simple",
+        "neon": "warm natural earthy soft rounded",
+        "saas": "organic biophilic claymorphism wellness mobile-first",
+        "productivity": "lifestyle hobby cozy personal mobile",
     }
 
     result = base_query

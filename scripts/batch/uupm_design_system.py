@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 from batch.design_diversity import (
     design_ledger_path,
     diversify_candidates,
+    is_banned_saas_design,
     register_design_selection,
     theme_search_query_from_row,
 )
@@ -176,6 +177,28 @@ def _dial_variants(base: dict[str, int]) -> list[tuple[str, dict[str, int]]]:
         ("c2", {"variance": max(1, min(10, v + 2)), "motion": m, "density": d}),
         ("c3", {"variance": max(1, min(10, v - 2)), "motion": max(1, min(10, m + 1)), "density": max(1, min(10, d + 1))}),
     ]
+
+
+def _prefer_non_saas_candidate(
+    selected: dict[str, Any] | None,
+    candidates: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Thin gate: prefer a non-SaaS-branded candidate when available."""
+    pool = list(candidates or [])
+    if selected is not None:
+        pool = [selected] + [c for c in pool if c is not selected]
+    if not pool:
+        raise RuntimeError("skill.design: no candidates to persist")
+    for cand in pool:
+        if isinstance(cand, dict) and not is_banned_saas_design(cand):
+            if cand is not selected and selected is not None and is_banned_saas_design(selected):
+                print(
+                    f"[DESIGN] Avoiding SaaS-branded pick "
+                    f"{(selected.get('style') or {}).get('name')!r} → "
+                    f"{(cand.get('style') or {}).get('name')!r}"
+                )
+            return cand
+    return pool[0]
 
 
 def design_query_from_context(
@@ -554,14 +577,25 @@ def run_skill_design(
         encoding="utf-8",
     )
 
-    primary = selected_candidate or candidates_out[0]
+    primary = _prefer_non_saas_candidate(selected_candidate, candidates_out)
+    if is_banned_saas_design(primary):
+        print(
+            "[DESIGN] WARNING: selected candidate still looks SaaS-branded; "
+            "persisting anyway — Agent must repair per H5壳ui-ux-pro-max使用规范.md"
+        )
     persist_design_system(primary, None, str(workspace), query)
 
-    stack_result = search_stack(query, stack, 8)
+    # Prefer mobile-oriented stack guidelines for H5 (still html-tailwind / vue).
+    stack_query = (
+        f"{query} touch 44px mobile-first safe-area"
+        if stack == "html-tailwind"
+        else query
+    )
+    stack_result = search_stack(stack_query, stack, 8)
     stack_results = stack_result.get("results") or []
     stack_path = stack_guidelines_path(workspace, row.name, stack)
     stack_path.parent.mkdir(parents=True, exist_ok=True)
-    stack_path.write_text(_format_stack_md(stack, query, stack_results), encoding="utf-8")
+    stack_path.write_text(_format_stack_md(stack, stack_query, stack_results), encoding="utf-8")
 
     native_stack = native_stack_for_pack_type(pack_type)
     if native_stack and native_stack != stack:

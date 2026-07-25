@@ -299,7 +299,7 @@ def _format_web_agent_resume_md(
         f"- Runtime: `{runtime_display}`",
         f"- Prefix（代码前缀，≠ Bridge 名）: `{prefix_display}`",
         f"- Generated: `{generated_at}`",
-        "- 流水线 1–8 已完成（`prepare.context` → `sync.distilled`）",
+        "- 流水线 1–8 已完成（`prepare.context` → `sync.distilled`）——skill 设计产物为**草稿**",
         "- 从下方步骤 1 起串行执行四个 Agent；总表见 `skill-input/agent-runbook.md`",
         "",
         "## 工作区",
@@ -308,6 +308,7 @@ def _format_web_agent_resume_md(
         "- 只读/写本根下文件；禁止出包",
         "- Preferred index: `skill-input/agent-spec-index.md` · "
         "`skill-input/agent-workspace-focus.md`",
+        "- 技能用法：`H5壳ui-ux-pro-max使用规范.md`（Plan Pack / H5 必读；禁 SaaS、偏 Mobile）",
         "",
         "## 执行顺序（严格串行）",
         "",
@@ -328,7 +329,9 @@ def _format_web_agent_resume_md(
         f"- Bridge 锁定（按 App 名，**禁止**用 prefix 派生）: "
         f"`{bridge}` / `{bridge_cb}`",
         "- Shell 无业务 UI；业务只在 `h5/`",
-        "- 不改 `design-system/`、`skill-adapt/` 等 1–8 skill 产物（除非当前 prompt 要求）",
+        "- `design-system/` / `skill-adapt/`：默认不改；**Plan Pack / H5 按 "
+        "`H5壳ui-ux-pro-max使用规范.md` 审核后可修复**（禁消费向 SaaS 落锁）",
+        "- 禁止对照其他包 `output/` / `h5/` / MASTER 当模板",
         "- 不编辑 `h5_site/`（部署产物由流水线 `dev.h5.build` 生成）",
         "- 若缺少 `产包计划.md`：跳过该文件，以 `功能文档.md` + 登记 JSON 为准",
         "- H5 用户可见文案：English；浏览器 DEV 须接 `browserMock`",

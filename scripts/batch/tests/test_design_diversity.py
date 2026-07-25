@@ -10,6 +10,7 @@ from batch.design_diversity import (
     diversify_candidates,
     fingerprint_batch_collision,
     fingerprint_overlap,
+    is_banned_saas_design,
     theme_search_query_from_row,
     visual_fingerprint,
 )
@@ -45,6 +46,45 @@ def test_theme_search_query_includes_english_scene_hints() -> None:
     assert "back-to-school" in q1 or "checklist" in q1
     assert "teleprompter" in q2 or "presentation" in q2
     assert q1 != q2
+
+
+def test_beauty_health_tracks_avoid_productivity_saas_query() -> None:
+    beauty = theme_search_query_from_row(
+        _Row(
+            name="Tintoo",
+            track="美妆个护",
+            audience="染发人群",
+            core_scene="护色周期追踪",
+            local_feature="水质匹配护色方案",
+        )
+    )
+    health = theme_search_query_from_row(
+        _Row(
+            name="Lensoo",
+            track="健康个护",
+            audience="隐形眼镜用户",
+            core_scene="镜片佩戴适配",
+            local_feature="场景化镜片适配",
+        )
+    )
+    for q in (beauty, health):
+        low = q.lower()
+        assert "saas" not in low
+        assert "productivity" not in low
+        assert "b2b" not in low
+    assert "beauty" in beauty.lower() or "wellness" in beauty.lower() or "spa" in beauty.lower()
+    assert "wellness" in health.lower() or "healthcare" in health.lower() or "organic" in health.lower()
+
+
+def test_is_banned_saas_design_detects_style_and_category() -> None:
+    assert is_banned_saas_design(
+        {"style": {"name": "SaaS Mobile (High-Tech Boutique)"}, "category": "Productivity Tool"}
+    )
+    assert is_banned_saas_design(style_name="Enterprise SaaS (Mobile)")
+    assert is_banned_saas_design(category="Micro SaaS")
+    assert not is_banned_saas_design(
+        {"style": {"name": "Organic Biophilic"}, "category": "Biohacking / Longevity App"}
+    )
 
 
 def test_theme_search_query_is_english_only() -> None:
@@ -105,6 +145,34 @@ def test_visual_fingerprint_overlap_detects_saas_clone() -> None:
     )
     assert fingerprint_overlap(a, b) >= 0.55
     assert fingerprint_overlap(a, c) < 0.3
+
+
+def test_pick_candidate_rejects_saas_when_alternative_exists() -> None:
+    # Theme text biased toward SaaS so score prefers c1; hard reject must switch.
+    saas = {
+        "id": "c1",
+        "style": {"name": "SaaS Mobile (High-Tech Boutique)", "keywords": "saas productivity b2b"},
+        "colors": {"primary": "#0d9488", "accent": "#ea580c", "notes": "saas"},
+        "typography": {"heading": "Inter", "body": "Inter", "mood": "saas productivity"},
+        "pattern": {"name": "App Store Style Landing"},
+        "category": "Productivity Tool",
+    }
+    organic = {
+        "id": "c2",
+        "style": {"name": "Organic Biophilic", "keywords": "nature"},
+        "colors": {"primary": "#d97706", "accent": "#059669", "notes": ""},
+        "typography": {"heading": "Lora", "body": "Raleway", "mood": "calm"},
+        "pattern": {"name": "Minimal Single Column"},
+        "category": "General",
+    }
+    picked, rationale = pick_candidate(
+        [saas, organic],
+        {},
+        product_text="saas productivity b2b dashboard tool",
+        audience="",
+    )
+    assert picked["id"] == "c2"
+    assert "saas" in rationale.lower() or "SaaS" in rationale
 
 
 def test_pick_candidate_rejects_sibling_visual_clone() -> None:

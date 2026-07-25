@@ -170,9 +170,25 @@ def pick_candidate(
     best_score, best = scored[0]
     rejected: list[str] = []
 
+    from batch.design_diversity import is_banned_saas_design
+
+    # Hard reject: explicit SaaS style/category when a non-SaaS candidate exists.
+    if is_banned_saas_design(best):
+        for score, cand in scored[1:]:
+            if not is_banned_saas_design(cand):
+                rejected.append(
+                    f"rejected SaaS-branded {best.get('id', '?')} "
+                    f"({(best.get('style') or {}).get('name')}) — "
+                    f"switched to {cand.get('id', '?')}"
+                )
+                best_score, best = score, cand
+                break
+
     # Hard reject: too close to a sibling visual fingerprint (generic SaaS convergence).
     if sibling_fps and fingerprint_batch_collision(best, sibling_fps) >= 0.55:
         for score, cand in scored[1:]:
+            if is_banned_saas_design(cand):
+                continue
             if fingerprint_batch_collision(cand, sibling_fps) < 0.55:
                 rejected.append(
                     f"c1 visual overlap {fingerprint_batch_collision(best, sibling_fps):.2f} — "

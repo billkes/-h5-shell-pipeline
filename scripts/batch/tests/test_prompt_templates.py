@@ -62,6 +62,8 @@ def test_v3_plan_pack_prompt_no_visual_blueprint() -> None:
     assert "本包视觉锁.json" in text
     assert "Do **not** write `视觉蓝图.md`" in text
     assert "Deliverables (write both JSON" in text
+    assert "H5壳ui-ux-pro-max使用规范.md" in text
+    assert "audit" in text.lower() or "SaaS" in text
 
 
 def test_v3_shell_prompt_is_runtime_unified() -> None:
@@ -86,6 +88,7 @@ def test_v3_h5_prompt_has_no_block_injection() -> None:
     assert "stack-html-tailwind.md" in text
     assert "@phosphor-icons/vue" in text
     assert "tailwindcss" in text
+    assert "H5壳ui-ux-pro-max使用规范.md" in text
     # Surface depth hard rules must appear BEFORE Required Reading (front-loaded).
     assert "### Surface Depth — must-have surfaces" in text
     assert text.index("### Surface Depth — must-have surfaces") < text.index(

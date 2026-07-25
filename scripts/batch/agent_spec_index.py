@@ -38,6 +38,7 @@ _PLAN_NORM_DOCS: tuple[str, ...] = (
     "H5壳交互拓扑与PlanGate策略.md",
     "H5壳产品文档格式.md",
     "H5壳Micro-UI Kit约束.md",
+    "H5壳ui-ux-pro-max使用规范.md",
     "法律协议规范.md",
     "data/static/component_kit/README.md",
     "data/static/component_kit/baseline.md",
@@ -61,6 +62,7 @@ _SHELL_NORM_DOCS: tuple[str, ...] = (
 _H5_NORM_DOCS: tuple[str, ...] = (
     "H5壳H5实现检查清单.md",
     "H5壳Vite工程规范.md",
+    "H5壳ui-ux-pro-max使用规范.md",
     "H5壳Legal弹层规范.md",
     "H5壳广场页规范.md",
     "H5壳Overlay路由规范.md",
