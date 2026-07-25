@@ -9,6 +9,7 @@ SCRIPTS = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(SCRIPTS))
 
 from batch.pipeline_steps import (  # noqa: E402
+    AGENT_ASSETS,
     AGENT_DESIGN,
     AGENT_H5,
     AGENT_PLAN_DOCS,
@@ -33,6 +34,7 @@ def test_granular_agent_steps_for_h5_shell() -> None:
     assert AGENT_PLAN_SPEC in steps
     assert AGENT_PLAN_DOCS not in steps
     assert AGENT_PLAN_PACK in steps
+    assert AGENT_ASSETS in steps
     assert AGENT_SHELL in steps
     assert AGENT_H5 in steps
     assert SYNC_DISTILLED in steps
@@ -46,7 +48,8 @@ def test_granular_agent_steps_for_h5_shell() -> None:
     assert steps.index(SYNC_DISTILLED) < steps.index(AGENT_DESIGN)
     assert steps.index(AGENT_DESIGN) < steps.index(AGENT_PLAN_SPEC)
     assert steps.index(AGENT_PLAN_SPEC) < steps.index(AGENT_PLAN_PACK)
-    assert steps.index(AGENT_PLAN_PACK) < steps.index(AGENT_SHELL)
+    assert steps.index(AGENT_PLAN_PACK) < steps.index(AGENT_ASSETS)
+    assert steps.index(AGENT_ASSETS) < steps.index(AGENT_SHELL)
     assert steps.index(AGENT_SHELL) < steps.index(AGENT_H5)
     assert BUILD_AGENT not in steps
     assert agent_steps_for_run(pack_type="h5_swift_shell") == (
@@ -55,7 +58,12 @@ def test_granular_agent_steps_for_h5_shell() -> None:
         AGENT_H5,
     )
     assert AGENT_STEPS == (*PLAN_AGENT_STEPS, AGENT_SHELL, AGENT_H5)
-    assert PLAN_AGENT_STEPS == (AGENT_DESIGN, AGENT_PLAN_SPEC, AGENT_PLAN_PACK)
+    assert PLAN_AGENT_STEPS == (
+        AGENT_DESIGN,
+        AGENT_PLAN_SPEC,
+        AGENT_PLAN_PACK,
+        AGENT_ASSETS,
+    )
     # 1 prepare · 2 lock · 3 sync · 4 agent.design
     assert steps[0] == PREPARE_CONTEXT
     assert steps[1] == LOCK_DIMENSIONS
@@ -80,6 +88,7 @@ def test_legacy_build_agent_maps_to_agent_design() -> None:
         assert parse_step_range(legacy, steps) == [AGENT_PLAN_SPEC], legacy
     assert parse_step_range("agent.plan.docs", steps) == [AGENT_PLAN_SPEC]
     assert parse_step_range("agent.plan.pack", steps) == [AGENT_PLAN_PACK]
+    assert parse_step_range("agent.assets", steps) == [AGENT_ASSETS]
 
 
 def test_rerun_accepts_range_like_bare_input() -> None:

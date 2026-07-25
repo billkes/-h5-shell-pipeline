@@ -334,33 +334,39 @@ def _merge_h5_retry_slots_if_missing(
     *,
     theme_hint: str = "",
 ) -> list[dict[str, Any]]:
-    """Backfill h5_shell retry_illustration slot when lock predates PR-A."""
+    """Backfill h5_shell shell-raster slots (logo/launch/bg/retry) when incomplete."""
     ps = lock.get("programmingStyle") or {}
     if not isinstance(ps, dict) or not ps.get("h5VaultPattern"):
         return list(slots) if slots else []
     existing = [s for s in slots if isinstance(s, dict)]
-    has_retry = any(
-        str(s.get("role") or "").startswith("retry")
-        or str(s.get("slot") or "").startswith("retry")
+    have = {
+        str(s.get("slot") or "").strip()
         for s in existing
-    )
-    if has_retry:
+        if str(s.get("slot") or "").strip()
+    }
+    required = {
+        "logo",
+        "launch_light",
+        "launch_dark",
+        "global_bg_light",
+        "global_bg_dark",
+        "retry_illustration",
+    }
+    if required.issubset(have):
         return existing
     prefix = str((lock.get("namingObfuscationRule") or {}).get("dartCodePrefix") or "")
     rule_key, meta = _naming_from_lock_helper(lock)
     if not rule_key or not prefix:
         return existing
-    from batch.asset_naming import build_h5_shell_retry_slots
+    from batch.asset_naming import build_h5_shell_raster_slots
 
-    retry_slots = build_h5_shell_retry_slots(
+    return build_h5_shell_raster_slots(
         str(ps.get("assetLayout") or ""),
         rule_key=rule_key,
         meta=meta,
         prefix=prefix,
         theme_hint=theme_hint,
     )
-    return existing + retry_slots
-
 
 def layout_from_lock(lock: dict[str, Any] | None) -> dict[str, Any]:
     if not lock:

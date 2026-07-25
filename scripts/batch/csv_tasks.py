@@ -52,9 +52,11 @@ from batch.task_schema import (
     COL_H5_STATE_MODEL,
     COL_H5_ROUTER_PATTERN,
     COL_H5_SCREEN_PATTERN,
+    COL_REAL_ASSETS,
     STANDARD_COLUMNS,
     TaskCsvMeta,
     format_task_csv_header,
+    parse_real_assets_flag,
     parse_task_csv_meta,
 )
 from batch.theme_fields import format_theme_angle, parse_legacy_theme_angle, theme_task_description
@@ -187,6 +189,7 @@ class CsvTaskRow:
     h5_state_model: str = ""
     h5_router_pattern: str = ""
     h5_screen_pattern: str = ""
+    real_assets: bool = False
 
     @property
     def theme_angle(self) -> str:
@@ -440,6 +443,7 @@ def _row_from_raw(raw: dict[str, str], name: str) -> CsvTaskRow:
         h5_state_model=_cell(raw, COL_H5_STATE_MODEL),
         h5_router_pattern=_cell(raw, COL_H5_ROUTER_PATTERN),
         h5_screen_pattern=_cell(raw, COL_H5_SCREEN_PATTERN),
+        real_assets=parse_real_assets_flag(_cell(raw, COL_REAL_ASSETS)),
     )
 
 
@@ -528,6 +532,9 @@ def _validate_row_fields(
 
     if not normalize_programming_style(row.programming_style):
         raise ValueError(f"{line_hint} 编程风格无效")
+
+    # 真图列：空/0/1 等已在 _row_from_raw 解析；此处兜底再验 raw 不存在于 dataclass
+    # （非法值在 parse_real_assets_flag 已抛）
 
     if not allow_pending_manual_fields:
         if parse_privacy_style_number(row.privacy_style) is None:
@@ -632,7 +639,10 @@ def load_csv_tasks(
         name = _cell(raw, COL_NAME)
         if not name:
             continue
-        row = _row_from_raw(raw, name)
+        try:
+            row = _row_from_raw(raw, name)
+        except ValueError as exc:
+            raise ValueError(f"第 {line_no} 行「{name}」{exc}") from exc
         _validate_row_fields(
             row,
             line_hint=f"第 {line_no} 行「{name}」",

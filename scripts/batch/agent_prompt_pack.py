@@ -15,6 +15,7 @@ from typing import Any, Callable
 
 from batch.agent_spec_index import prepare_agent_prompt_files
 from batch.pipeline_steps import (
+    AGENT_ASSETS,
     AGENT_DESIGN,
     AGENT_H5,
     AGENT_PLAN_PACK,
@@ -92,20 +93,37 @@ MAIN_AGENT_SLOTS: tuple[AgentPromptSlot, ...] = (
     ),
     AgentPromptSlot(
         seq=4,
+        step_id=AGENT_ASSETS,
+        phase="assets",
+        role_slug="build-agent-assets",
+        role_focus=_PROGRAMMER_BRAIN_FOCUS,
+        builder_name="build_agent_assets_phase",
+        prerequisites=(
+            f"{AGENT_PLAN_PACK} done",
+            "本包视觉锁.json",
+            "image_prompts.json",
+        ),
+        deliverables=(
+            "shell rasters: logo · launch_light/dark · global_bg_light/dark · retry",
+            "image_prompts.json (replaced)",
+        ),
+    ),
+    AgentPromptSlot(
+        seq=5,
         step_id=AGENT_SHELL,
         phase="shell",
         role_slug="build-agent-shell",
         role_focus=_PROGRAMMER_BRAIN_FOCUS,
         builder_name="build_agent_shell_phase",
         prerequisites=(
-            f"{AGENT_PLAN_PACK} done",
+            f"{AGENT_ASSETS} done",
             "本包登记信息.json",
             "本包视觉锁.json",
         ),
         deliverables=("native / Flutter shell + Bridge",),
     ),
     AgentPromptSlot(
-        seq=5,
+        seq=6,
         step_id=AGENT_H5,
         phase="h5",
         role_slug="build-agent-h5",
@@ -352,11 +370,15 @@ def _format_web_agent_resume_md(
         f"- Bridge 锁定（按 App 名，**禁止**用 prefix 派生）: "
         f"`{bridge}` / `{bridge_cb}`",
         "- Shell 无业务 UI；业务只在 `h5/`",
-        "- **`agent.design`**：用包内 skill **主产** MASTER / briefs / tokens；写出 "
-        "`skill-adapt/design-audit.md`（禁消费向 SaaS）",
+        "- **`agent.design`**：用包内 skill **主产** MASTER / briefs / tokens / "
+        "`pages/welcome.md`·`hub.md` Scene Brief；写出 `skill-adapt/design-audit.md`"
+        "（含 welcomePattern · hubPrimaryZone）",
         "- 后续步骤默认信任 design-audit；Pack 只锁视觉，H5 做两阶段实现",
-        "- H5 两阶段：先 `_preview/pages` HTML（FREEZE）→ 再移植 `h5/`；gate 只验 `h5/`",
-        "- 禁止对照其他包 `output/` / `h5/` / `_preview/` / MASTER 当模板",
+        "- **`agent.assets`**：仅当 task.csv「真图」=1 时生成/替换 6 槽真图"
+        "（logo · launch 浅/深 · 全局背景 浅/深 · retry）；「真图」=0/空则流水线自动跳过",
+        "- H5 两阶段：按 Scene Brief 写 `_preview/pages`（FREEZE 含完成证明）→ 再移植 `h5/`；"
+        "工程交付验 `h5/`，视觉契约由 Agent 按规范 §8 完成标准交付",
+        "- 只认本包 design-system / `_preview` / `h5`（对照范围限于本包根）",
         "- 不编辑 `h5_site/`（部署产物由流水线 `dev.h5.build` 生成）",
         "- 若缺少 `产包计划.md`：跳过该文件，以 `功能文档.md` + 登记 JSON 为准",
         "- H5 用户可见文案：English；浏览器 DEV 须接 `browserMock`",
@@ -373,7 +395,8 @@ def _format_web_agent_resume_md(
         "```text",
         f"请打开并严格遵循 @{WEB_AGENT_RESUME_MD_REL}。",
         f"从「执行顺序」步骤 1 串行做到步骤 {len(MAIN_AGENT_SLOTS)}；每步验收后再继续。",
-        "先做 agent.design（设计审核），再 plan/shell/h5。",
+        "先做 agent.design：交出 welcome/hub Scene Brief + design-audit；"
+        "agent.h5 按 Brief 逐段写 `_preview/pages` 再 FREEZE 移植。",
         "工作区仅限本包根目录；Bridge 名勿用代码前缀派生。",
         "```",
         "",

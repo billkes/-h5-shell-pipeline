@@ -37,28 +37,48 @@ python .cursor/skills/ui-ux-pro-max/scripts/search.py "composition script setup 
    - UX / icon / typography / h5-interface briefs under `design-system/<slug>/` (domain + stack searches)
    - `skill-adapt/design-brief.md` · color narration aligned with MASTER
    - `skill-adapt/design-tokens.css` (and json if you maintain both)
-   - Optional but preferred: `design-system/<slug>/pages/*.md` for welcome/hub and key routes
+   - **Required Scene Briefs** (product-bound; Inventory may arrive later — write from Description + context.json):
+     - `design-system/<slug>/pages/welcome.md`
+     - `design-system/<slug>/pages/hub.md`
+     - Each file includes a `### Scene Brief` section with the fields below
 4. **Reject and re-run** when any of:
    - Style/category is SaaS / Enterprise SaaS / SaaS Mobile / Micro SaaS
    - Consumer pack landed on generic Productivity Tool with no scene fit
    - Clearly desktop-dashboard / B2B SaaS look for beauty/health/family/lifestyle themes
 5. Do **not** invent a parallel design system in prose; do **not** copy other apps' MASTER / `h5/` / `_preview/`.
 
+### Scene Brief fields (required in welcome.md / hub.md)
+
+**`pages/welcome.md` → `### Scene Brief`**
+- `Pattern:` named onboarding pattern (carousel / dialogue / typewriter / narrative / interactive preview)
+- `Beats:` beat1 / beat2 / … — one short line each describing **layout + motif** for that beat (≥2 beats; final beat includes consent row)
+- `Hero craft:` which ≥2 of {gradient wash, blur/glow, motion, SVG/illustration, domain motif} appear
+- `Headline voice:` coreScene / audience phrasing (product-bound)
+- `Motif + color arc:` aligned with MASTER tokens
+
+**`pages/hub.md` → `### Scene Brief`**
+- `Primary zone:` the topology-bound main surface (canvas / editor / composition / …) and empty-state skeleton
+- `Greeting:` time-aware or usage-moment line grounded in audience
+- `Entry CTA:` control that opens Primary Workflow / Export
+- `Motif + color arc:` aligned with MASTER; layout hierarchy distinct from Welcome
+
 ### Deliverables
-1. Authoritative `design-system/*/MASTER.md` (+ stacks / briefs / pages as above)
+1. Authoritative `design-system/*/MASTER.md` (+ stacks / briefs / **pages/welcome.md · pages/hub.md**)
 2. `skill-adapt/` briefs + tokens aligned with MASTER
 3. `skill-adapt/design-audit.md` — short English+中文 note:
    - Verdict: `PASS` (first-shot OK) or `REPAIRED` (re-ran after reject)
    - Style name + category
    - Query used
    - One-line why it fits this pack (not SaaS)
+   - `welcomePattern=<name>` · `hubPrimaryZone=<short>` (must match the Scene Briefs)
 
 ### Hard Rules
 - Do **not** write `功能文档.md`, legal MDs, `本包登记信息.json`, `本包视觉锁.json`, or any `h5/` / native code.
 - Do **not** use `react-native` / `swiftui` / `nuxt` as H5 implementation stacks.
 - Do **not** inject `saas` / `b2b` / `productivity tool` into queries for consumer packs.
 - Do **not** rely on host paths like `UUPM_SKILL_DIR` or sibling repos — only `.cursor/skills/ui-ux-pro-max/`.
-- Later steps assume your design is final — be decisive.
+- Later steps assume your design is final — be decisive. H5 Phase A reads these Scene Briefs as the visual contract source.
 
 ## Output
-Write design files + `skill-adapt/design-audit.md`. Then one-line summary (`PASS` or `REPAIRED` + style name).
+Write design files + `skill-adapt/design-audit.md`. Then one-line summary:
+`PASS|REPAIRED · <style> · welcomePattern=<name> · hubPrimaryZone=<short>`

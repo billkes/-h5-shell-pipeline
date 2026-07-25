@@ -486,19 +486,16 @@ class FlutterPipeline:
         tool = ctx.pack_type == "tool_flutter"
         video = ctx.pack_type == "videostream"
         h5 = is_h5_shell(ctx.pack_type)
-        if self.cfg.skip_images:
-            get_run_log().detail("跳过占位图生成 (--skip-images)")
-        else:
-            get_run_log().detail("预下载内容配图 ...")
-            download_all_workspace_images(
-                self.cfg,
-                ws,
-                fp,
-                ctx.name,
-                tool_flutter=tool,
-                videostream=video,
-                h5_shell=h5,
-            )
+        get_run_log().detail("预下载内容配图 ...")
+        download_all_workspace_images(
+            self.cfg,
+            ws,
+            fp,
+            ctx.name,
+            tool_flutter=tool,
+            videostream=video,
+            h5_shell=h5,
+        )
         if (ws / "本包视觉锁.json").is_file() and not h5:
             fill_visual_lock_assets(ws, fp, ctx.name)
         return True

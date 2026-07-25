@@ -20,6 +20,7 @@ from batch.pack_type import h5_shell_runtime, is_flutter_runtime, is_h5_shell, i
 from batch.pipeline_gates import verify_pm_ui_plan_outputs, write_plan_gate_report
 from batch.pipeline_steps import (
     ANALYZE,
+    AGENT_ASSETS,
     AGENT_DESIGN,
     AGENT_H5,
     AGENT_PLAN_PACK,
@@ -317,6 +318,65 @@ class V3StepRunner:
             log_title="Agent · Plan Pack",
             resume=resume,
         )
+
+    def _step_agent_assets(self, ctx: AppContext, *, resume: bool = False) -> bool:
+        """Replace shell raster placeholders when task.csv 真图=1; else skip."""
+        from batch.flutter_ops import download_all_workspace_images, find_flutter_project
+        from batch.phase9_asset_gate import phase9_asset_gate_issues
+        from batch.prompts import _PROGRAMMER_BRAIN_FOCUS
+
+        row = self.p._csv_row_for(ctx)
+        use_real = bool(getattr(row, "real_assets", False)) if row else False
+        if not use_real:
+            get_run_log().detail(
+                "agent.assets 跳过：task.csv「真图」≠1（仅保留占位图）"
+            )
+            print(">>> agent.assets: skipped (真图=0/空)")
+            return True
+
+        ws = ctx.workspace
+        fp = find_flutter_project(ws) or ws
+        h5 = is_h5_shell(ctx.pack_type)
+        download_all_workspace_images(
+            self.p.cfg,
+            ws,
+            fp,
+            ctx.name,
+            tool_flutter=ctx.pack_type == "tool_flutter",
+            videostream=ctx.pack_type == "videostream",
+            h5_shell=h5,
+        )
+        assets_root = fp if (fp / "image_prompts.json").is_file() else ws
+        if not (assets_root / "image_prompts.json").is_file():
+            get_run_log().detail("agent.assets 失败：缺少 image_prompts.json")
+            print(">>> agent.assets: missing image_prompts.json")
+            return False
+
+        if self.p.cfg.dry_run:
+            get_run_log().detail("dry-run：跳过真图 Agent")
+            return True
+
+        ok = self._run_plan_agent_step(
+            ctx,
+            phase="assets",
+            role_slug="build-agent-assets",
+            role_focus=_PROGRAMMER_BRAIN_FOCUS,
+            prompt_builder="build_agent_assets_phase",
+            log_title="Agent · Assets (real rasters)",
+            resume=resume,
+        )
+        if not ok:
+            return False
+        issues = phase9_asset_gate_issues(assets_root)
+        if issues:
+            for issue in issues:
+                print(f"       [FAIL] {issue}")
+            get_run_log().detail(
+                "agent.assets gate 未通过: " + "; ".join(issues[:5])
+            )
+            return False
+        get_run_log().detail("agent.assets gate 通过（六槽真图）")
+        return True
 
     def _step_prepare_context(self, ctx: AppContext) -> bool:
         return self.p._run_prepare_context(ctx)
@@ -896,6 +956,7 @@ _STEP_HANDLERS = {
     AGENT_DESIGN: V3StepRunner._step_agent_design,
     AGENT_PLAN_SPEC: V3StepRunner._step_agent_plan_spec,
     AGENT_PLAN_PACK: V3StepRunner._step_agent_plan_pack,
+    AGENT_ASSETS: V3StepRunner._step_agent_assets,
     AGENT_SHELL: V3StepRunner._step_agent_shell,
     AGENT_H5: V3StepRunner._step_agent_h5,
     PLAN_GATE: V3StepRunner._step_plan_gate,

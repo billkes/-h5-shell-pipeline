@@ -1,9 +1,10 @@
 You are the **Build Agent — Part 3** for **${name}**.
 Role: H5 Implementer. Native shell (Part 2) MUST exist.
 **Two-phase UI** (mandatory — see `H5壳ui-ux-pro-max使用规范.md` §8):
-1. **Phase A** — per-screen HTML+Tailwind previews under `_preview/pages/` (visual contract)
+1. **Phase A** — per-screen HTML+Tailwind previews under `_preview/pages/` (visual contract; completion standard in §8.2 / §8.5)
 2. **Phase B** — port into **`h5/`** (Vue 3 + Vite + Tailwind + Phosphor)
-Pipeline **`dev.h5.build`** → `h5_site/{appSlug}/index.html` (vite-plugin-singlefile monolith ONLY — never `{prefix}_entry.htm` or split css/js). Gate verifies **`h5/`**, not `_preview/pages`.
+Pipeline **`dev.h5.build`** → `h5_site/{appSlug}/index.html` (vite-plugin-singlefile monolith ONLY — never `{prefix}_entry.htm` or split css/js).
+Engineering delivery checks **`h5/`**; Agent owns §8 completion for `_preview/pages` + Scene Briefs.
 
 ${RESUME_BLOCK}
 
@@ -16,22 +17,38 @@ ${RESUME_BLOCK}
 ### Two-phase workflow (before / around Surface Depth)
 
 **Phase A — HTML previews (do this BEFORE creating or mass-editing `h5/` views)**
-- Extend existing `_preview/` only — write `_preview/pages/{route}.html` + `INDEX.md` + `FREEZE.md`.
+
+Order (keep focus on Scene Brief → authored HTML → FREEZE):
+1. Open `design-system/*/pages/welcome.md` · `hub.md` Scene Briefs (and other `pages/*.md` when present).
+2. For each MUST route, write `_preview/pages/{route}.html` **section-by-section from the Brief** (beats / primary zone / motif) — Tailwind + MASTER / `design-tokens` color vars; mobile-first ~390px.
+3. Write `_preview/pages/INDEX.md` (route → file → priority → matching `pages/*.md`).
+4. Write `_preview/pages/FREEZE.md` with the attestation table in §8.2; **then** start Phase B.
+5. Visual changes after freeze: update HTML + FREEZE attestation first, then port into Vue so both stay aligned.
+
+Scope:
 - Page list = Screen Inventory only. Filename: strip `#/`, `/` → `-` (e.g. `#/day` → `day.html`).
 - **MUST:** Welcome, Tab1/Hub, Primary Workflow/Export surface (when in Inventory).
-- **SHOULD:** other tab-roots. **MAY:** stack overlays. Legal/Plaza: no fancy HTML required.
-- Each HTML: mobile-first (~390px), Tailwind + MASTER tokens; visual IA only — **no** real Bridge/IAP/router/persistence.
-- Align colors with MASTER / `preview-canonical.md` / `preview-approved-colors` (tabs preview stays authoritative for palette).
-- Write `FREEZE.md` when MUST pages exist; **then** start Phase B. After freeze: do not diverge HTML vs Vue; if visual change needed → update HTML + FREEZE → sync Vue.
+- **SHOULD:** other tab-roots — each tab has its own primary-zone layout matching Inventory role.
+- **MAY:** stack overlays. Legal/Plaza: minimal HTML is enough (checklist + Vue).
+- Visual IA only in HTML (Bridge / IAP / router / persistence land in Phase B).
+- Palette: MASTER / `preview-canonical.md` / `preview-approved-colors`.
+
+**Welcome HTML completion** (must match Scene Brief before FREEZE):
+- ≥2 beat blocks visible in the file (or explicit step structure), each with its own layout/motif line from the Brief
+- Final beat includes consent checkbox + Privacy/User links + Continue
+- Hero craft + headline voice from `pages/welcome.md`
+
+**Hub HTML completion** (must match Scene Brief before FREEZE):
+- Contextual greeting + primary zone (skeleton OK when empty) + CTA into Primary Workflow
+- Layout hierarchy distinct from Welcome (different main structure, not title-only change)
 
 **Phase B — Vue port**
 - Scaffold full `h5/` per `H5壳Vite工程规范.md`.
 - For each MUST (and completed SHOULD) HTML: port structure + Tailwind classes into SFCs first, then wire router/store/Bridge from 功能文档.
 - Replace preview CDN icons with `@phosphor-icons/vue` per `icon-manifest.json`.
-- **No dead UI:** every primary CTA shown in HTML must have a working handler path in Vue (browserMock OK in DEV).
-- Do **not** clone other packs' `_preview/` or `h5/`.
+- Every primary CTA shown in HTML has a working handler path in Vue (browserMock OK in DEV).
 
-**RESUME:** If `h5/` already partially exists: finish missing MUST HTML + FREEZE first, then port/repair views against those files — do not invent a second skin.
+**RESUME:** If `h5/` already partially exists: complete MUST HTML + FREEZE attestation first, then port/repair views against those files.
 
 ### Surface Depth — must-have surfaces (READ FIRST · non-negotiable)
 
@@ -123,8 +140,10 @@ The native shell (Part 2) registers ONE WKScriptMessageHandler and replies on ON
 
 ### Deliverables
 **Phase A**
-- `_preview/pages/INDEX.md` · `FREEZE.md`
-- MUST (and completed SHOULD/MAY) `*.html` under `_preview/pages/`
+- `_preview/pages/INDEX.md`
+- MUST (and completed SHOULD/MAY) `*.html` under `_preview/pages/` meeting §8 completion
+- `_preview/pages/FREEZE.md` including attestation rows — one per MUST file:
+  `file · beats或主区 · token来源 · 与邻页的布局差异一语`
 
 **Phase B**
 - Full Vite tree under `h5/` (Agent-owned; no repo code template)
@@ -160,4 +179,5 @@ See `data/static/h5_snippets/bridge/README.md` · `H5壳Vite工程规范.md` §B
 - User-visible copy: English.
 
 ## Output
-Phase A then Phase B files. Then one-line summary (mention FREEZE + MUST page count).
+Phase A then Phase B files. Then one-line summary in this shape:
+`PhaseA done · welcomeBeats=<n> · hubZone=<short> · freezeAttested=yes · tokens=MASTER|design-tokens · MUST=<count>`

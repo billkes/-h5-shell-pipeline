@@ -1,4 +1,4 @@
-# AGENTS.md — h5-shell-pipeline 项目指令上下文
+﻿# AGENTS.md — h5-shell-pipeline 项目指令上下文
 
 ## 项目概述
 
@@ -18,7 +18,7 @@
 | Agent | Cursor CLI（默认）/ iFlow SDK |
 | H5 | Vite monolith 单文件 HTML |
 | Native | Swift（`ios_app_skeleton` + `swift_shell`；macOS 可选 xcodegen）/ Flutter / OC |
-| 台账 | 根目录 `task.csv`（36 列含 Kit 八维） |
+| 台账 | 根目录 `task.csv`（37 列含 Kit 八维 +「真图」） |
 | 配置 | `config/config.yaml` + `config/config.env` |
 
 ## 快速开始
@@ -38,13 +38,15 @@
 
 ```
 prepare.context → lock.dimensions → sync.distilled
-→ agent.design → agent.plan.spec → agent.plan.pack → agent.shell → agent.h5
+→ agent.design → agent.plan.spec → agent.plan.pack → agent.assets → agent.shell → agent.h5
 → plan.gate → dev.h5.build → git.plan → git.dev
 ```
 
+`agent.assets`：仅当 task.csv **「真图」=1** 时生成/替换六槽真图；`0`/空则跳过（保留占位）。
+
 Flutter 壳额外：`dev.pubget` → `dev.analyze`
 
-`prepare.context` 将 ui-ux-pro-max **克隆进包内** `.cursor/skills/ui-ux-pro-max/`；设计由 **`agent.design`** 主产（无脚本草稿链）。详见 `docs/H5壳ui-ux-pro-max使用规范.md`、`docs/rules/H5壳包开发规则.md`。
+`prepare.context` 将 ui-ux-pro-max **克隆进包内** `.cursor/skills/ui-ux-pro-max/`；设计由 **`agent.design`** 主产（含 welcome/hub Scene Brief；无脚本草稿链）。H5 按 Brief 写 `_preview/pages` 再移植。详见 `docs/H5壳ui-ux-pro-max使用规范.md`、`docs/rules/H5壳包开发规则.md`。
 
 ## 目录结构
 

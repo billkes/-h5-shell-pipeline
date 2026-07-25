@@ -67,7 +67,8 @@ h5_shell 包的 UI 规范由 skill 链写入 workspace，Agent **禁止**再写 
 | `skill.enrich` | `ux-checklist.md` · `h5-interface-brief.md` |
 | `skill.adapt` | `skill-adapt/design-brief.md` · `ambient-canvas-brief.md` · `design-tokens.css` |
 | `skill.pages` | `design-system/*/pages/*.md` |
-| `agent.plan.pack` | `本包视觉锁.json`（componentSelection · colorTokens · ambientCanvas） |
+| `agent.plan.pack` | `本包视觉锁.json`（componentSelection · colorTokens · ambientCanvas · assetBrief 六槽） |
+| `agent.assets` | 真图六槽（仅 task「真图」=1） |
 
 H5 实现读 `agent-spec-index` 索引路径；逐屏 override 以 `pages/*.md` 为准。
 

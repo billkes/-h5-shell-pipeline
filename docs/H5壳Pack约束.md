@@ -58,9 +58,9 @@ Screen Inventory：**4–5 个 H5 tab-root**（bottom TabBar）；wizard、`#/le
 
 | # | 共性 | 规范落点 | 加工编组 |
 |---|------|----------|----------|
-| 1 | 启动图首次冷启动无缩小弹回 | 《H5壳启动闪屏规范》· Swift/OC §启动 | **A** |
+| 1 | 启动图首次冷启动无缩小弹回 | 《H5壳启动闪屏规范》· Swift/OC §启动；真图优先由 task「真图」+ `agent.assets` 写入 | **A** |
 | 2 | 协议：有 HTTPS 则系统浏览器外开，否则 bundled 弹层 | 《H5壳Legal弹层规范》· 《H5-Bridge协议》B07 | **D** |
-| 3 | Seed / 品牌图在 **iOS 工程内**真图齐全 | 《H5壳Vault合规维护规范》 | **I**（联 **A/H**） |
+| 3 | Seed / 品牌图在 **iOS 工程内**真图齐全 | 《H5壳Vault合规维护规范》；壳六槽（logo/launch×2/bg×2/retry）由「真图」列控制 | **I**（联 **A/H**） |
 | 4 | 录音可回放；麦克风权限可走通 | 《H5-Bridge协议》B03/B04 · 《H5去风味规范》 | **E**+**F** |
 | 5 | 列表/Sheet 不贴 Dock；弹窗有安全区 | 《H5去风味规范》safe-area | **E** |
 | 6 | 主题 motif 一眼贴合；Tab1 有亮点 | 《H5壳Plan交付规范》视觉锁 | **L** |

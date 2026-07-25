@@ -5,10 +5,11 @@ V3 plan agent steps:
 * ``phase_agent_design.txt`` — agent.design（包内 skill 设计主产）
 * ``phase_agent_plan_spec.txt`` — agent.plan.spec（功能/产品文档 + Legal）
 * ``phase_agent_plan_pack.txt`` — agent.plan.pack (JSON ledgers only; no 视觉蓝图)
+* ``phase_agent_assets.txt`` — agent.assets (真图=1：六槽真图替换)
 * ``phase_h5_shell_programmer.txt`` — agent.shell
 * ``phase_h5_implementer.txt`` — agent.h5
 * ``phase_plan_gate_repair.txt`` — plan.gate repair
-* ``phase9_asset_generator.txt`` — optional ``batch generate-assets``
+* ``phase9_asset_generator.txt`` — alias / manual ``batch generate-assets``
 """
 
 from __future__ import annotations
@@ -206,6 +207,29 @@ class PromptBuilder:
             },
         )
 
+    def _build_agent_assets_body(
+        self,
+        *,
+        name: str,
+        desc: str,
+        resume: bool = False,
+        **_: object,
+    ) -> str:
+        resume_block = (
+            "**RESUME:** 上次真图替换未完成 — 继续按 image_prompts.json 覆盖占位 PNG，"
+            "勿重做 plan/shell/h5。"
+            if resume
+            else ""
+        )
+        return self._fmt(
+            self._load("phase_agent_assets.txt"),
+            {
+                "name": name,
+                "desc": desc,
+                "RESUME_BLOCK": resume_block,
+            },
+        )
+
     def build_agent_design_phase(self, *, resume: bool = False, **kwargs: object) -> str:
         return self._build_agent_design_body(resume=resume, **kwargs)  # type: ignore[arg-type]
 
@@ -223,6 +247,9 @@ class PromptBuilder:
         """Legacy alias → agent.plan.spec prompt."""
         return self.build_agent_plan_spec_phase(resume=resume, **kwargs)
 
+    def build_agent_assets_phase(self, *, resume: bool = False, **kwargs: object) -> str:
+        return self._build_agent_assets_body(resume=resume, **kwargs)  # type: ignore[arg-type]
+
     def build_agent_shell_phase(self, *, resume: bool = False, **kwargs: object) -> str:
         return self._build_agent_shell_body(resume=resume, **kwargs)  # type: ignore[arg-type]
 
@@ -230,5 +257,5 @@ class PromptBuilder:
         return self._build_agent_h5_body(resume=resume, **kwargs)  # type: ignore[arg-type]
 
     def asset_generator_phase(self, *, name: str, desc: str) -> str:
-        text = self._load("phase9_asset_generator.txt")
-        return self._fmt(text, {"name": name, "desc": desc})
+        """Manual ``batch generate-assets`` — same template as agent.assets."""
+        return self._build_agent_assets_body(name=name, desc=desc, resume=False)

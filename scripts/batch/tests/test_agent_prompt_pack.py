@@ -1,4 +1,4 @@
-"""Tests for post-lock.dimensions Agent prompt pack (5 filled prompts + runbook)."""
+"""Tests for post-lock.dimensions Agent prompt pack (6 filled prompts + runbook)."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from batch.agent_prompt_pack import (
 )
 from batch.config import BatchConfig
 from batch.pipeline_steps import (
+    AGENT_ASSETS,
     AGENT_DESIGN,
     AGENT_H5,
     AGENT_PLAN_PACK,
@@ -24,19 +25,20 @@ from batch.pipeline_steps import (
 from batch.prompts import PromptBuilder
 
 
-def test_main_agent_slots_are_exactly_five() -> None:
-    assert len(MAIN_AGENT_SLOTS) == 5
+def test_main_agent_slots_are_exactly_six() -> None:
+    assert len(MAIN_AGENT_SLOTS) == 6
     assert [s.step_id for s in MAIN_AGENT_SLOTS] == [
         AGENT_DESIGN,
         AGENT_PLAN_SPEC,
         AGENT_PLAN_PACK,
+        AGENT_ASSETS,
         AGENT_SHELL,
         AGENT_H5,
     ]
-    assert [s.seq for s in MAIN_AGENT_SLOTS] == [1, 2, 3, 4, 5]
+    assert [s.seq for s in MAIN_AGENT_SLOTS] == [1, 2, 3, 4, 5, 6]
 
 
-def test_write_agent_prompt_pack_fills_five_prompts(tmp_path: Path) -> None:
+def test_write_agent_prompt_pack_fills_six_prompts(tmp_path: Path) -> None:
     (tmp_path / "skill-input").mkdir()
     (tmp_path / "skill-input" / "context.json").write_text("{}", encoding="utf-8")
 
@@ -61,7 +63,7 @@ def test_write_agent_prompt_pack_fills_five_prompts(tmp_path: Path) -> None:
         pack_type="h5_swift_shell",
     )
 
-    assert len(runbook["execution_order"]) == 5
+    assert len(runbook["execution_order"]) == 6
     assert (tmp_path / RUNBOOK_MD_REL).is_file()
     assert (tmp_path / RUNBOOK_JSON_REL).is_file()
 
@@ -84,15 +86,17 @@ def test_write_agent_prompt_pack_fills_five_prompts(tmp_path: Path) -> None:
         assert "${dart_name}" not in text
 
     prompt_files = sorted((tmp_path / AGENT_PROMPTS_DIR).glob("*"))
-    assert len(prompt_files) == 5
+    assert len(prompt_files) == 6
     assert all(p.suffix == ".md" and p.name[0].isdigit() for p in prompt_files)
 
     md = (tmp_path / RUNBOOK_MD_REL).read_text(encoding="utf-8")
     assert "`agent.design`" in md
     assert "`agent.plan.spec`" in md
+    assert "`agent.assets`" in md
     assert "`agent.h5`" in md
     assert "01-agent.design.md" in md
     assert "02-agent.plan.spec.md" in md
+    assert "04-agent.assets.md" in md
     assert WEB_AGENT_RESUME_MD_REL in md
     assert "agent-spec-index" not in md
     assert "agent-brain-focus" not in md
@@ -134,8 +138,13 @@ def test_write_web_agent_resume_handbook_from_runbook(tmp_path: Path) -> None:
     assert "网页 Agent 续跑手册 — Lensoo" in text
     assert "sync.distilled" in text
     assert "01-agent.design.md" in text
-    assert "05-agent.h5.md" in text
+    assert "04-agent.assets.md" in text
+    assert "06-agent.h5.md" in text
     assert "agent.design" in text
+    assert "真图" in text
+    assert "Scene Brief" in text
+    assert "welcomePattern" in text or "pages/welcome.md" in text
+    assert "§8" in text or "完成标准" in text
     assert "lensooBridge" in text
     assert "lensooBridgeCallback" in text
     assert "teqxb" in text
@@ -154,4 +163,5 @@ def test_write_web_agent_resume_handbook_without_runbook(tmp_path: Path) -> None
     assert "buildiooBridge" in text
     assert "`agent.design`" in text
     assert "`agent.plan.spec`" in text
+    assert "`agent.assets`" in text
     assert "`agent.h5`" in text

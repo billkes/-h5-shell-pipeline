@@ -23,6 +23,7 @@ BUILD_AGENT = "build.agent"
 AGENT_DESIGN = "agent.design"
 AGENT_PLAN_SPEC = "agent.plan.spec"
 AGENT_PLAN_PACK = "agent.plan.pack"
+AGENT_ASSETS = "agent.assets"
 
 # Legacy granular agent step ids (migration / CLI aliases only — not in V3_STEPS)
 AGENT_PLAN_DOCS = "agent.plan.docs"  # merged into agent.plan.spec
@@ -35,6 +36,7 @@ PLAN_AGENT_STEPS: tuple[str, ...] = (
     AGENT_DESIGN,
     AGENT_PLAN_SPEC,
     AGENT_PLAN_PACK,
+    AGENT_ASSETS,
 )
 
 # Legacy aliases
@@ -82,6 +84,7 @@ V3_STEPS: tuple[str, ...] = (
     AGENT_DESIGN,
     AGENT_PLAN_SPEC,
     AGENT_PLAN_PACK,
+    AGENT_ASSETS,
     AGENT_SHELL,
     AGENT_H5,
     PLAN_GATE,
@@ -112,6 +115,7 @@ STEP_LABELS: dict[str, str] = {
     AGENT_DESIGN: "Agent · ui-ux-pro-max 设计主产（包内 skill）",
     AGENT_PLAN_SPEC: "Agent · 功能/产品文档 + Legal",
     AGENT_PLAN_PACK: "Agent · 登记信息 + 视觉锁",
+    AGENT_ASSETS: "Agent · 真图生成/替换（task「真图」=1）",
     AGENT_PLAN: "Agent · 蓝图与计划文档（legacy）",
     AGENT_PLAN_DOCS: "Agent · 功能/产品文档 + Legal（legacy → agent.plan.spec）",
     AGENT_IMPL: "Agent · Flutter 实现（legacy）",
@@ -139,6 +143,7 @@ STEP_TO_PHASE: dict[str, str] = {
     AGENT_DESIGN: PM_UI_PLAN_PHASE,
     AGENT_PLAN_SPEC: PM_UI_PLAN_PHASE,
     AGENT_PLAN_PACK: PM_UI_PLAN_PHASE,
+    AGENT_ASSETS: PM_UI_PLAN_PHASE,
     AGENT_PLAN: PM_UI_PLAN_PHASE,
     AGENT_SHELL: PM_UI_PLAN_PHASE,
     AGENT_H5: PM_UI_PLAN_PHASE,
@@ -158,6 +163,7 @@ PHASE_STEPS: dict[str, tuple[str, ...]] = {
         AGENT_DESIGN,
         AGENT_PLAN_SPEC,
         AGENT_PLAN_PACK,
+        AGENT_ASSETS,
         AGENT_SHELL,
         AGENT_H5,
         PLAN_GATE,
@@ -249,6 +255,7 @@ def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
         "agent.plan.spec": AGENT_PLAN_SPEC,
         "agent.plan.docs": AGENT_PLAN_SPEC,
         "agent.plan.pack": AGENT_PLAN_PACK,
+        "agent.assets": AGENT_ASSETS,
         "agent.impl": BUILD_AGENT,
         "agent.shell": AGENT_SHELL,
         "agent.h5": AGENT_H5,

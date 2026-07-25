@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import subprocess
 import sys
 from pathlib import Path
 
@@ -54,12 +53,6 @@ def _build_parser(prog: str) -> argparse.ArgumentParser:
         help="只跑 CSV 第 N 行（1 开始）",
     )
     p.add_argument(
-        "--skip-images",
-        dest="skip_images",
-        action="store_true",
-        help="维护者：跳过 lock.dimensions 占位图生成",
-    )
-    p.add_argument(
         "--legacy-pipeline",
         dest="legacy_pipeline",
         action="store_true",
@@ -70,12 +63,6 @@ def _build_parser(prog: str) -> argparse.ArgumentParser:
         dest="force_rerun",
         action="store_true",
         help="重置 .build-state.json，从头跑",
-    )
-    p.add_argument(
-        "--no-render-images",
-        dest="no_render_images",
-        action="store_true",
-        help="维护者：批次结束后不执行本地 render_image_prompts_local.py",
     )
     p.add_argument(
         "--dry-run",
@@ -169,9 +156,8 @@ def _interactive_batch_run(*, show_banner: bool = True) -> int:
 
     tasks = _select_run_scope(tasks)
 
-    # 交互产包固定 V3：产包中生成占位图，批次结束后本地渲染（见 _execute_batch_run）
+    # 交互产包固定 V3；真图开关仅看 task.csv「真图」列
     cfg = BatchConfig.from_env(
-        skip_images=False,
         dry_run=False,
         legacy_pipeline=False,
         force_rerun=False,
@@ -262,9 +248,6 @@ def _execute_batch_run(
         print(f"错误: {exc}")
         return 1
 
-    if not cfg.dry_run and not cfg.no_render_images:
-        _render_images_for_output(cfg.project_dir, output)
-
     return 0
 
 
@@ -328,35 +311,72 @@ def _generate_assets_main(argv: list[str]) -> int:
     import argparse
     from batch.config import BatchConfig
     from batch.cursor_runner import run_agent
-    from batch.flutter_ops import find_flutter_project
+    from batch.flutter_ops import download_all_workspace_images, find_flutter_project
+    from batch.pack_type import is_h5_shell
     from batch.phase9_asset_gate import phase9_asset_gate_passes
     from batch.prompts import PromptBuilder
-    from batch.image_prompts_sync import verify_manifest_assets
     from batch.visual_lock_assets import fill_visual_lock_assets
 
     parser = argparse.ArgumentParser(prog="batch generate-assets")
-    parser.add_argument("flutter_dirs", nargs="+", metavar="FLUTTER_DIR")
+    parser.add_argument(
+        "workspaces",
+        nargs="+",
+        metavar="WORKSPACE_OR_FLUTTER_DIR",
+        help="包工作区根，或 Flutter 工程根（含 pubspec.yaml）",
+    )
     parser.add_argument("--name", dest="app_name", default=None)
     parser.add_argument("--desc", dest="app_desc", default="")
     args = parser.parse_args(argv)
     cfg = BatchConfig.from_env()
     prompts = PromptBuilder(cfg)
     ok_count = 0
-    for raw in args.flutter_dirs:
-        flutter_dir = Path(raw).expanduser().resolve()
-        if not (flutter_dir / "pubspec.yaml").is_file():
+    targets = [Path(raw).expanduser().resolve() for raw in args.workspaces]
+    for root in targets:
+        if (root / "pubspec.yaml").is_file():
+            flutter_dir = root
+            ws = root.parent if (root.parent / "本包登记信息.json").is_file() else root
+        elif (root / "本包登记信息.json").is_file() or (root / "本包维度锁.json").is_file():
+            ws = root
+            flutter_dir = find_flutter_project(ws) or ws
+        else:
+            print(f"跳过 {root}: 不是包工作区或 Flutter 根")
             continue
-        ws = flutter_dir.parent
-        app_name = args.app_name or flutter_dir.name
-        if (ws / "本包视觉锁.json").is_file():
-            fill_visual_lock_assets(ws, flutter_dir, app_name)
-        agent_ok = run_agent(
-            cfg, flutter_dir, prompts.asset_generator_phase(name=app_name, desc=args.app_desc)
+        app_name = args.app_name or ws.name.split("-")[0] or ws.name
+        pack_type = ""
+        reg = ws / "本包登记信息.json"
+        if reg.is_file():
+            try:
+                import json
+
+                pack_type = str(
+                    json.loads(reg.read_text(encoding="utf-8")).get("packType") or ""
+                )
+            except json.JSONDecodeError:
+                pack_type = ""
+        h5 = is_h5_shell(pack_type) or bool(
+            (ws / "本包维度锁.json").is_file()
         )
-        if agent_ok and phase9_asset_gate_passes(flutter_dir):
+        download_all_workspace_images(
+            cfg,
+            ws,
+            flutter_dir,
+            app_name,
+            h5_shell=h5,
+        )
+        if (ws / "本包视觉锁.json").is_file() and not h5:
+            fill_visual_lock_assets(ws, flutter_dir, app_name)
+        assets_root = (
+            flutter_dir if (flutter_dir / "image_prompts.json").is_file() else ws
+        )
+        agent_ok = run_agent(
+            cfg,
+            ws,
+            prompts.asset_generator_phase(name=app_name, desc=args.app_desc),
+        )
+        if agent_ok and phase9_asset_gate_passes(assets_root):
             ok_count += 1
-    print(f"\n合计通过: {ok_count}/{len(args.flutter_dirs)}")
-    return 0 if ok_count == len(args.flutter_dirs) else 1
+    print(f"\n合计通过: {ok_count}/{len(targets)}")
+    return 0 if ok_count == len(targets) else 1
 
 
 def _fetch_assets_main(argv: list[str]) -> int:
@@ -432,11 +452,9 @@ def main(argv: list[str] | None = None) -> int:
     args = _build_parser(prog).parse_args(argv)
 
     cfg = BatchConfig.from_env(
-        skip_images=args.skip_images,
         dry_run=args.dry_run,
         legacy_pipeline=args.legacy_pipeline,
         force_rerun=args.force_rerun,
-        no_render_images=args.no_render_images,
         agent_provider=args.agent_provider or os.environ.get("AGENT_PROVIDER", "cursor"),
     )
     default_pack_type = cfg.batch_pack_type or "h5_swift_shell"
@@ -472,30 +490,6 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     return _execute_batch_run(cfg, tasks, csv_path, csv_rows, meta)
-
-
-def _render_images_for_output(project_dir: Path, output_base: Path) -> None:
-    render_script = project_dir / "scripts" / "render_image_prompts_local.py"
-    if not render_script.is_file():
-        return
-    manifests = sorted(output_base.rglob("image_prompts.json"))
-    if not manifests:
-        print("未发现 image_prompts.json，跳过")
-        return
-    print(f"\n本地图片生成 · {len(manifests)} 个项目")
-    for manifest in manifests:
-        flutter_dir = manifest.parent
-        print(f"\n>>> {flutter_dir.name}")
-        result = subprocess.run(
-            [sys.executable, str(render_script), str(flutter_dir)],
-            cwd=str(project_dir),
-            capture_output=True,
-            text=True,
-        )
-        if result.stdout:
-            print(result.stdout)
-        if result.stderr:
-            print(result.stderr, file=sys.stderr)
 
 
 if __name__ == "__main__":

@@ -75,7 +75,6 @@ _YAML_ENV_MAP: dict[tuple[str, ...], str] = {
     ("defaults", "free_publish"): "FREE_PUBLISH_DEFAULT",
     ("defaults", "tool_lang"): "TOOL_LANG",
     ("runtime", "phase1_cache"): "PHASE1_CACHE",
-    ("runtime", "skip_images"): "SKIP_IMAGES",
     ("screenshots", "enable"): "ENABLE_SCREENSHOT",
     ("screenshots", "device"): "SIMULATOR_DEVICE",
     ("screenshots", "enable_ui_review"): "ENABLE_UI_REVIEW",
@@ -218,8 +217,6 @@ class BatchConfig:
     flutter_test_concurrency: int = 4
     flutter_test_paths: str = "test/flows"
     phase1_cache: bool = True
-    skip_images: bool = False
-    no_render_images: bool = False
     force_rerun: bool = False
     dry_run: bool = False
     batch_pack_type: str = "h5_shell"
@@ -420,7 +417,6 @@ class BatchConfig:
             ),
             flutter_test_paths=os.environ.get("FLUTTER_TEST_PATHS", "test/flows"),
             phase1_cache=os.environ.get("PHASE1_CACHE", "1") == "1",
-            skip_images=os.environ.get("SKIP_IMAGES", "0") == "1",
             batch_pack_type=pack_type,
             task_csv_path=_optional_path(os.environ.get("BATCH_TASK_CSV", "")),
             unsplash_access_key=os.environ.get("UNSPLASH_ACCESS_KEY", ""),

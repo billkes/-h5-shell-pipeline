@@ -133,6 +133,90 @@ def _glyph_root(asset_layout: str, roots: list[str]) -> str | None:
     return None
 
 
+def build_h5_shell_raster_slots(
+    asset_layout: str,
+    *,
+    rule_key: str,
+    meta: NamingMeta,
+    prefix: str,
+    theme_hint: str = "",
+) -> list[dict[str, str]]:
+    """Fixed shell raster slots for h5_shell (logo / launch×2 / bg×2 / retry)."""
+    roots = obfuscated_asset_roots(asset_layout, rule_key=rule_key, meta=meta)
+    primary = _primary_raster_root(asset_layout, roots)
+    p = (prefix or "app").strip().lower()
+    theme = (theme_hint or "brand motif soft").strip()
+    base = primary.rstrip("/")
+
+    def _slot(
+        slot: str,
+        role: str,
+        fname: str,
+        keyword: str,
+        description: str,
+        size: str,
+    ) -> dict[str, str]:
+        return {
+            "slot": slot,
+            "role": role,
+            "path": f"{base}/{fname}",
+            "keyword": keyword[:80],
+            "description": description,
+            "recommendedSize": size,
+        }
+
+    return [
+        _slot(
+            "logo",
+            "logo",
+            f"{p}_brand_logo.png",
+            f"{theme} app logo mark minimal",
+            "Brand logo mark for shell chrome / Welcome",
+            "1024×1024",
+        ),
+        _slot(
+            "launch_light",
+            "splash_background",
+            f"{p}_launch_light.png",
+            f"{theme} light launch splash full-bleed",
+            "iOS LaunchScreen / LaunchVeil light appearance (1125×2436)",
+            "1125×2436",
+        ),
+        _slot(
+            "launch_dark",
+            "splash_background",
+            f"{p}_launch_dark.png",
+            f"{theme} dark launch splash full-bleed",
+            "iOS LaunchScreen / LaunchVeil dark appearance (1125×2436)",
+            "1125×2436",
+        ),
+        _slot(
+            "global_bg_light",
+            "global_background",
+            f"{p}_global_bg_light.png",
+            f"{theme} light ambient global background",
+            "Light-theme full-bleed global background for H5 ambient",
+            "1242×2688",
+        ),
+        _slot(
+            "global_bg_dark",
+            "global_background",
+            f"{p}_global_bg_dark.png",
+            f"{theme} dark ambient global background",
+            "Dark-theme full-bleed global background for H5 ambient",
+            "1242×2688",
+        ),
+        _slot(
+            "retry_illustration",
+            "retry_error",
+            f"{p}_panel_retry_offline.png",
+            f"{theme} offline retry illustration soft",
+            "WebView load error fallback illustration",
+            "320×240",
+        ),
+    ]
+
+
 def build_h5_shell_retry_slots(
     asset_layout: str,
     *,
@@ -141,22 +225,14 @@ def build_h5_shell_retry_slots(
     prefix: str,
     theme_hint: str = "",
 ) -> list[dict[str, str]]:
-    """Single Flutter-side retry illustration slot for h5_shell WebView fallback."""
-    roots = obfuscated_asset_roots(asset_layout, rule_key=rule_key, meta=meta)
-    primary = _primary_raster_root(asset_layout, roots)
-    p = (prefix or "app").strip().lower()
-    rel = f"{primary.rstrip('/')}/{p}_panel_retry_offline.png"
-    theme = (theme_hint or "offline connection minimal").strip()
-    return [
-        {
-            "slot": "retry_illustration",
-            "role": "retry_error",
-            "path": rel,
-            "keyword": f"{theme} offline retry illustration soft".strip()[:80],
-            "description": "WebView load error fallback illustration",
-            "recommendedSize": "320×240",
-        }
-    ]
+    """Alias — H5 shell now ships the full raster slot set (includes retry)."""
+    return build_h5_shell_raster_slots(
+        asset_layout,
+        rule_key=rule_key,
+        meta=meta,
+        prefix=prefix,
+        theme_hint=theme_hint,
+    )
 
 
 def build_tool_asset_slots(

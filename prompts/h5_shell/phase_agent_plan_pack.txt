@@ -24,6 +24,9 @@ ${RESUME_BLOCK}
 ### Deliverables (write both JSON files)
 1. `本包登记信息.json` — shellRuntime, h5EntryUrl*, bridgeDeckSelections, kit draws, vault fields
 2. `本包视觉锁.json` — designerDeckSelections, colorTokens, componentSelection, ambientCanvas (must match audited MASTER)
+   - Also include `assetBrief` array covering the six shell rasters (paths may be filled later by layout; roles MUST be present):
+     `logo`, `launch_light`, `launch_dark`, `global_bg_light`, `global_bg_dark`, `retry_illustration`
+     Each entry: `{ "role", "path?", "imagePrompt", "recommendedSize" }` aligned with 本包维度锁 assetSlots when known.
 
 ### Hard Rules
 - Do **not** write `视觉蓝图.md` (retired — conflicts with skill outputs).

@@ -237,6 +237,7 @@ def build_context_payload(
                 topo_card.label if topo_card and is_h5_shell(pack_type) else ""
             ),
             "batchId": batch_id,
+            "realAssets": bool(getattr(row, "real_assets", False)),
         },
     }
 

@@ -27,11 +27,19 @@ from PIL import Image, ImageDraw, ImageFont
 
 DEFAULT_SIZE: tuple[int, int] = (1024, 1024)
 SIZE_HINTS: dict[str, tuple[int, int]] = {
-    "splash": (1242, 2688),
-    "splash_background": (1242, 2688),
+    "logo": (1024, 1024),
+    "splash": (1125, 2436),
+    "splash_background": (1125, 2436),
+    "launch": (1125, 2436),
+    "launch_light": (1125, 2436),
+    "launch_dark": (1125, 2436),
     "global_background": (1242, 2688),
+    "global_bg_light": (1242, 2688),
+    "global_bg_dark": (1242, 2688),
     "marketing_bg": (1242, 2688),
     "welcome": (1242, 2688),
+    "retry": (640, 480),
+    "retry_error": (640, 480),
     "hero_default": (1600, 1200),
     "profile_hero": (1200, 900),
     "template_thumb": (800, 800),

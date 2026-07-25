@@ -59,7 +59,8 @@ def test_pipeline_steps_h5_swift() -> None:
     assert steps.index("sync.distilled") < steps.index("agent.design")
     assert steps.index("agent.design") < steps.index("agent.plan.spec")
     assert steps.index("agent.plan.spec") < steps.index("agent.plan.pack")
-    assert steps.index("agent.plan.pack") < steps.index("agent.shell")
+    assert steps.index("agent.plan.pack") < steps.index("agent.assets")
+    assert steps.index("agent.assets") < steps.index("agent.shell")
     assert steps.index("agent.shell") < steps.index("agent.h5")
     assert "skill.design" not in steps
     assert "skill.pages" not in steps

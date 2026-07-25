@@ -65,6 +65,9 @@ COL_H5_STATE_MODEL = "h5StateModel"
 COL_H5_ROUTER_PATTERN = "h5RouterPattern"
 COL_H5_SCREEN_PATTERN = "h5ScreenPattern"
 
+# ── Per-row runtime flags (not deck-drawn) ────────────────────────────────
+COL_REAL_ASSETS = "真图"
+
 H5_KIT_DIM_TO_CSV: dict[str, str] = {
     "kitAtomSet": COL_KIT_ATOM_SET,
     "kitCssMethodology": COL_KIT_CSS_METHODOLOGY,
@@ -113,7 +116,12 @@ EXTENDED_COLUMNS: tuple[str, ...] = (
 
 H5_SHELL_EXTENDED_SUFFIX: tuple[str, ...] = H5_SHELL_BRIDGE_COLUMNS + H5_KIT_COLUMNS
 
-STANDARD_COLUMNS: tuple[str, ...] = LEGACY_COLUMNS + EXTENDED_COLUMNS + H5_SHELL_EXTENDED_SUFFIX
+# Row-level flags appended after Kit / topology columns
+RUNTIME_FLAG_COLUMNS: tuple[str, ...] = (COL_REAL_ASSETS,)
+
+STANDARD_COLUMNS: tuple[str, ...] = (
+    LEGACY_COLUMNS + EXTENDED_COLUMNS + H5_SHELL_EXTENDED_SUFFIX + RUNTIME_FLAG_COLUMNS
+)
 
 BATCH_ID_COMMENT_RE = re.compile(r"^\s*#\s*batchId\s*:\s*(\S+)\s*$", re.IGNORECASE)
 
@@ -159,7 +167,20 @@ def format_task_csv_header(*, batch_id: str, extra_comments: tuple[str, ...] = (
     lines = [
         "# h5-shell-pipeline task ledger — single source of truth for the current run",
         f"# batchId: {batch_id}",
+        "# 真图: 1=跑 agent.assets 换真图；0/空=仅占位（默认）",
     ]
     lines.extend(extra_comments)
     lines.append(",".join(STANDARD_COLUMNS))
     return "\n".join(lines) + "\n"
+
+
+def parse_real_assets_flag(raw: str | None) -> bool:
+    """Parse task.csv「真图」cell. Empty / 0 → False; 1/true/yes → True."""
+    text = (raw or "").strip().lower()
+    if not text:
+        return False
+    if text in ("1", "true", "yes", "y", "on"):
+        return True
+    if text in ("0", "false", "no", "n", "off"):
+        return False
+    raise ValueError(f"真图列取值无效: {raw!r}（允许 0/1、true/false、yes/no，空=0）")

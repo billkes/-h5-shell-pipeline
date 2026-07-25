@@ -28,7 +28,7 @@ ${RESUME_BLOCK}
 ### Launch & shell rasters (MANDATORY)
 - LaunchScreen / LaunchVeil: true **1125×2436** (3x) asset, **`scaleAspectFill`** + clipsToBounds — **forbid** `scaleToFill` / runtime stretch that shrinks then pops on first cold start.
 - Launch art must **fill the screen**; not an enlarged empty-state or Welcome clone.
-- Shell rasters (logo / launch / seed / retry / light-dark backgrounds) belong in the **iOS asset catalog** (or Flutter shell assetRoots). Do not leave the only copy under H5 `public/`.
+- Shell rasters (logo / launch light+dark / global bg light+dark / retry) belong in the **iOS asset catalog** (or Flutter shell assetRoots). Prefer paths from `image_prompts.json` / assetSlots after `agent.assets` (when task「真图」=1). Do not leave the only copy under H5 `public/`.
 
 ### Hard Rules
 - No visible business UI in Flutter / Swift / OC — Part 3 owns H5 site / legal / plaza.

@@ -13,6 +13,7 @@ REQUIRED_H5_SHELL_PROMPTS = [
     "phase_agent_design.txt",
     "phase_agent_plan_spec.txt",
     "phase_agent_plan_pack.txt",
+    "phase_agent_assets.txt",
     "phase_plan_gate_repair.txt",
     "phase_h5_build_repair.txt",
 ]
@@ -66,6 +67,11 @@ def test_v3_design_prompt_owns_uiux_audit() -> None:
     assert ".cursor/skills/ui-ux-pro-max/scripts/search.py" in text
     assert "--design-system --persist" in text
     assert "design owner" in text.lower() or "Design owner" in text
+    assert "pages/welcome.md" in text
+    assert "pages/hub.md" in text
+    assert "### Scene Brief" in text
+    assert "welcomePattern=" in text
+    assert "hubPrimaryZone=" in text
 
 
 def test_v3_plan_pack_prompt_no_visual_blueprint() -> None:
@@ -105,6 +111,11 @@ def test_v3_h5_prompt_has_no_block_injection() -> None:
     assert "Two-phase" in text
     assert "_preview/pages" in text
     assert "FREEZE.md" in text
+    assert "section-by-section from the Brief" in text
+    assert "welcomeBeats=" in text
+    assert "freezeAttested=yes" in text
+    assert "Welcome HTML completion" in text
+    assert "Hub HTML completion" in text
     # Two-phase workflow + Surface depth before Required Reading.
     assert "### Two-phase workflow" in text
     assert "### Surface Depth — must-have surfaces" in text
