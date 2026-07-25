@@ -127,6 +127,52 @@ def test_ensure_native_shell_scaffold_idempotent_when_layout_ok() -> None:
         assert second == []
 
 
+def test_ensure_native_shell_scaffold_swift_uses_skeleton_without_xcodegen() -> None:
+    skeleton = ROOT / "data" / "static" / "templates" / "ios_app_skeleton" / "{{APP_NAME}}"
+    shell = ROOT / "data" / "static" / "templates" / "swift_shell" / "{{APP_NAME}}"
+    if not skeleton.is_dir() or not shell.is_dir():
+        return
+
+    with tempfile.TemporaryDirectory() as tmp:
+        ws = Path(tmp) / "Mockoo"
+        ws.mkdir()
+        (ws / "本包代码组合.json").write_text(
+            json.dumps({"dartCodePrefix": "mocko"}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        (ws / "本包登记信息.json").write_text(
+            json.dumps(
+                {
+                    "appName": "Mockoo",
+                    "shellRuntime": "swift",
+                    "launchPlaceholderAsset": LAUNCH_PLACEHOLDER_ASSET_URI,
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        (ws / "h5").mkdir()
+
+        merged = ensure_native_shell_scaffold(
+            project_dir=ROOT,
+            workspace=ws,
+            row=sample_csv_row("Mockoo", pack_type="h5_swift_shell"),
+            bundle_id="test.duckegg.ios",
+            force=True,
+        )
+        assert merged
+        assert any("ios_app_skeleton" in item for item in merged)
+        assert has_root_xcode_project(ws)
+        assert native_shell_layout_ok(ws, "Mockoo")
+        pbx = ws / "Mockoo.xcodeproj" / "project.pbxproj"
+        assert pbx.is_file()
+        text = pbx.read_text(encoding="utf-8")
+        assert "path = ios/Mockoo;" in text
+        assert "ContentView.swift" not in text
+        assert (ws / "ios" / "Mockoo").is_dir()
+        assert (ws / "project.yml").is_file()
+
+
 def test_has_launch_screen_swift_accepts_ui_launch_screen() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         ws = Path(tmp)

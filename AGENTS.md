@@ -17,7 +17,7 @@
 | 流水线引擎 | Python 3.10+，`scripts/batch/` |
 | Agent | Cursor CLI（默认）/ iFlow SDK |
 | H5 | Vite monolith 单文件 HTML |
-| Native | Swift（xcodegen）/ Flutter / OC |
+| Native | Swift（`ios_app_skeleton` + `swift_shell`；macOS 可选 xcodegen）/ Flutter / OC |
 | 台账 | 根目录 `task.csv`（36 列含 Kit 八维） |
 | 配置 | `config/config.yaml` + `config/config.env` |
 

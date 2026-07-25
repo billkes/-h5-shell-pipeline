@@ -39,12 +39,12 @@ def native_shell_layout_ok(workspace: Path, app_name: str) -> bool:
     ws = workspace.resolve()
     if not has_root_xcode_project(ws):
         return False
-    runtime = _runtime_from_workspace(ws)
-    app_dir = ws / "ios" / app_name if runtime == "swift" else ws / app_name
-    if not app_dir.is_dir():
-        return False
-    suffix = ".swift" if runtime == "swift" else ".m"
-    return any(app_dir.rglob(f"*{suffix}"))
+    # Swift: ios/{app}; OC: {app}/ — detect by tree (登记信息 may not exist yet).
+    swift_dir = ws / "ios" / app_name
+    if swift_dir.is_dir() and any(swift_dir.rglob("*.swift")):
+        return True
+    oc_dir = ws / app_name
+    return oc_dir.is_dir() and any(oc_dir.rglob("*.m"))
 
 
 def has_launch_screen(workspace: Path, runtime: str) -> bool:
@@ -130,10 +130,10 @@ def merge_native_shell_staging(staging: Path, workspace: Path, app_name: str, *,
 
 
 def _runtime_from_workspace(workspace: Path) -> str:
+    import json
+
     reg = workspace / "本包登记信息.json"
     if reg.is_file():
-        import json
-
         try:
             data = json.loads(reg.read_text(encoding="utf-8"))
             runtime = str(data.get("shellRuntime") or "").strip().lower()
@@ -141,6 +141,21 @@ def _runtime_from_workspace(workspace: Path) -> str:
                 return runtime
         except json.JSONDecodeError:
             pass
+    state = workspace / ".build-state.json"
+    if state.is_file():
+        try:
+            data = json.loads(state.read_text(encoding="utf-8"))
+            pack_type = str(data.get("pack_type") or "").strip().lower()
+            if "swift" in pack_type:
+                return "swift"
+            if "oc" in pack_type:
+                return "oc"
+            if "flutter" in pack_type:
+                return "flutter"
+        except json.JSONDecodeError:
+            pass
+    if (workspace / "ios").is_dir():
+        return "swift"
     return "oc"
 
 
@@ -191,10 +206,14 @@ def _run_apply_script(
 
 
 def _maybe_xcodegen(staging: Path, app_name: str) -> None:
+    """Best-effort xcodegen on macOS. Never required when skeleton already provided .xcodeproj."""
     import platform
 
     project_yml = staging / "project.yml"
     if not project_yml.is_file():
+        return
+    if (staging / f"{app_name}.xcodeproj" / "project.pbxproj").is_file():
+        print("  >>> xcodegen: 已有 .xcodeproj，跳过")
         return
     if platform.system() != "Darwin":
         print(f"  >>> xcodegen: 仅 macOS 支持，跳过（{platform.system()}）")
@@ -206,16 +225,117 @@ def _maybe_xcodegen(staging: Path, app_name: str) -> None:
             capture_output=True,
             text=True,
         )
-    except FileNotFoundError as exc:
-        raise RuntimeError(
-            "未找到 xcodegen：Swift 壳需在 lock.dimensions 前安装（brew install xcodegen）"
-        ) from exc
+    except FileNotFoundError:
+        print("  >>> xcodegen: 未安装，跳过（依赖 ios_app_skeleton 的 .xcodeproj）")
+        return
+    if result.returncode != 0:
+        print(
+            f"  >>> xcodegen 失败，保留已有骨架 .xcodeproj:\n"
+            f"{result.stderr or result.stdout}"
+        )
+        return
+    if not any(staging.glob("*.xcodeproj")):
+        print(f"  >>> xcodegen 未生成 {app_name}.xcodeproj，依赖骨架回退")
+
+
+def _run_ios_app_skeleton_apply(
+    *,
+    project_dir: Path,
+    staging: Path,
+    app_name: str,
+    bundle_id: str,
+    team_id: str,
+) -> None:
+    apply_script = project_dir / "data" / "static" / "templates" / "ios_app_skeleton" / "apply.py"
+    template_dir = (
+        project_dir / "data" / "static" / "templates" / "ios_app_skeleton" / "{{APP_NAME}}"
+    )
+    if not apply_script.is_file() or not template_dir.is_dir():
+        raise FileNotFoundError(
+            f"ios_app_skeleton 缺失: {template_dir}（Swift 壳在 Windows 上需要官方骨架提供 .xcodeproj）"
+        )
+    cmd = [
+        sys.executable,
+        str(apply_script),
+        "--src",
+        str(template_dir),
+        "--dst",
+        str(staging),
+        "--app-name",
+        app_name,
+        "--bundle-id",
+        bundle_id,
+        "--team-id",
+        team_id or "",
+    ]
+    result = subprocess.run(cmd, check=False, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(
-            f"xcodegen 失败 (exit {result.returncode}):\n{result.stderr or result.stdout}"
+            f"ios_app_skeleton apply 失败 (exit {result.returncode}):\n"
+            f"{result.stderr or result.stdout}"
         )
-    if not any(staging.glob("*.xcodeproj")):
-        raise RuntimeError(f"xcodegen 未生成 {app_name}.xcodeproj")
+    pbx = staging / f"{app_name}.xcodeproj" / "project.pbxproj"
+    if not pbx.is_file():
+        raise RuntimeError(f"ios_app_skeleton 未产出 project.pbxproj: {pbx}")
+
+
+def _strip_pbxproj_file(text: str, filename: str) -> str:
+    """Remove lines that reference a missing source file (e.g. ContentView.swift)."""
+    return "".join(
+        line for line in text.splitlines(keepends=True) if filename not in line
+    )
+
+
+def _retarget_skeleton_pbxproj_to_ios(pbxproj: Path, app_name: str, ios_app_dir: Path) -> None:
+    """Point Apple skeleton sources group at ios/{app}; drop missing ContentView."""
+    text = pbxproj.read_text(encoding="utf-8")
+    # Source group path = AppName → ios/AppName (avoid renaming AppName.app product).
+    text = text.replace(
+        f"\t\t\tpath = {app_name};\n\t\t\tsourceTree = \"<group>\";",
+        f"\t\t\tpath = ios/{app_name};\n\t\t\tsourceTree = \"<group>\";",
+    )
+    if not (ios_app_dir / "ContentView.swift").is_file():
+        text = _strip_pbxproj_file(text, "ContentView.swift")
+    pbxproj.write_text(text, encoding="utf-8")
+
+
+def _compose_swift_staging(
+    *,
+    skeleton_staging: Path,
+    shell_staging: Path,
+    out_staging: Path,
+    app_name: str,
+) -> list[str]:
+    """Merge official skeleton .xcodeproj + swift_shell ios/ into one staging root."""
+    log: list[str] = []
+    out_staging.mkdir(parents=True, exist_ok=True)
+
+    for rel in ("ios", "project.yml", f"{app_name}.entitlements", "register.json"):
+        src = shell_staging / rel
+        if src.exists():
+            _replace_path(src, out_staging / rel)
+            log.append(f"shell:{rel}")
+
+    shell_proj = shell_staging / f"{app_name}.xcodeproj"
+    skel_proj = skeleton_staging / f"{app_name}.xcodeproj"
+    out_proj = out_staging / f"{app_name}.xcodeproj"
+
+    if shell_proj.is_dir() and (shell_proj / "project.pbxproj").is_file():
+        _replace_path(shell_proj, out_proj)
+        log.append(f"shell:{app_name}.xcodeproj")
+    elif skel_proj.is_dir() and (skel_proj / "project.pbxproj").is_file():
+        _replace_path(skel_proj, out_proj)
+        ios_app = out_staging / "ios" / app_name
+        _retarget_skeleton_pbxproj_to_ios(out_proj / "project.pbxproj", app_name, ios_app)
+        log.append(f"skeleton:{app_name}.xcodeproj (retarget → ios/{app_name})")
+    else:
+        raise RuntimeError(
+            "Swift 壳缺少 .xcodeproj：需要 macOS xcodegen 或 data/static/templates/ios_app_skeleton"
+        )
+
+    if not (out_staging / "ios" / app_name).is_dir():
+        raise RuntimeError(f"swift_shell 未产出 ios/{app_name}/")
+    return log
 
 
 def ensure_native_shell_scaffold(
@@ -269,21 +389,58 @@ def ensure_native_shell_scaffold(
     with tempfile.TemporaryDirectory(prefix="native-shell-") as tmp:
         staging = Path(tmp) / "staging"
         staging.mkdir()
-        _run_apply_script(
-            apply_script=apply_script,
-            template_dir=template_dir,
-            staging=staging,
-            app_name=app_name,
-            prefix=prefix,
-            app_slug=app_slug,
-            bundle_id=bundle_id,
-            h5_host=h5_host,
-            team_id=team_id,
-            asset_scheme=asset_scheme,
-            provisioning_profile=provisioning_profile,
-        )
+
         if runtime == "swift":
-            _maybe_xcodegen(staging, app_name)
+            skel_staging = Path(tmp) / "skeleton"
+            shell_staging = Path(tmp) / "shell"
+            skel_staging.mkdir()
+            shell_staging.mkdir()
+            _run_ios_app_skeleton_apply(
+                project_dir=project_dir,
+                staging=skel_staging,
+                app_name=app_name,
+                bundle_id=bundle_id,
+                team_id=team_id,
+            )
+            log.append("applied: ios_app_skeleton")
+            _run_apply_script(
+                apply_script=apply_script,
+                template_dir=template_dir,
+                staging=shell_staging,
+                app_name=app_name,
+                prefix=prefix,
+                app_slug=app_slug,
+                bundle_id=bundle_id,
+                h5_host=h5_host,
+                team_id=team_id,
+                asset_scheme=asset_scheme,
+                provisioning_profile=provisioning_profile,
+            )
+            log.append("applied: swift_shell")
+            # macOS: optional full project from project.yml; Windows: skeleton .xcodeproj.
+            _maybe_xcodegen(shell_staging, app_name)
+            compose_log = _compose_swift_staging(
+                skeleton_staging=skel_staging,
+                shell_staging=shell_staging,
+                out_staging=staging,
+                app_name=app_name,
+            )
+            log.extend(compose_log)
+        else:
+            _run_apply_script(
+                apply_script=apply_script,
+                template_dir=template_dir,
+                staging=staging,
+                app_name=app_name,
+                prefix=prefix,
+                app_slug=app_slug,
+                bundle_id=bundle_id,
+                h5_host=h5_host,
+                team_id=team_id,
+                asset_scheme=asset_scheme,
+                provisioning_profile=provisioning_profile,
+            )
+
         merged = merge_native_shell_staging(staging, workspace, app_name, runtime=runtime)
         log.extend(merged)
         if runtime in ("swift", "oc"):
@@ -295,6 +452,7 @@ def ensure_native_shell_scaffold(
 
             cfg = BatchConfig.from_env()
             if runtime == "swift":
+                # macOS: full regen from project.yml; Windows: keep skeleton pbxproj.
                 regenerate_xcodegen_project(workspace, app_name)
             apply_workspace_ios_signing(cfg, workspace)
         if runtime == "swift":

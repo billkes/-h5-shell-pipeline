@@ -19,9 +19,12 @@
 
 ## 与 `swift_shell` 的关系
 
-1. 拷贝本目录 `{{APP_NAME}}/` → 目标工作区，跑 `apply.py` 填占位符（得到真实 `.xcodeproj`）  
-2. 再 apply / 覆盖 `swift_shell` 壳资产（Bridge / WKWebView 等）  
-3. 再走 Agent / H5 等正常步骤  
+流水线 `lock.dimensions`（`ensure_native_shell_scaffold`）已接线：
+
+1. 先 apply 本骨架 → 得到根目录 `.xcodeproj`（Windows 不依赖 xcodegen）  
+2. 再 apply `swift_shell` → `ios/{APP}/` + `project.yml`  
+3. 将骨架 `path` 重定向为 `ios/{APP}`；macOS 若有 xcodegen 则优先用 `project.yml` 全量 regenerate  
+4. rename 目标已存在时跳过/清理，不再 `FileExistsError`  
 
 不要把本骨架合并进 `swift_shell/`，以免与厂包夹板职责混淆。
 

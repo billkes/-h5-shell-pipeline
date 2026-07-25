@@ -294,11 +294,20 @@ class FlutterPipeline:
                     bundle_id=self.cfg.xcode_bundle_id,
                     force=self.cfg.force_rerun,
                 )
-            except (OSError, RuntimeError) as exc:
+            except (OSError, RuntimeError, FileNotFoundError) as exc:
                 get_run_log().detail(f"native shell scaffold 失败: {exc}")
                 return False
             for rel in native_paths:
                 get_run_log().detail(f"native shell scaffold → {rel}")
+            from batch.native_shell_apply import native_shell_layout_ok
+
+            if not native_shell_layout_ok(ctx.workspace, ctx.name):
+                get_run_log().detail(
+                    "native shell scaffold 失败: 布局不完整"
+                    "（缺根目录 .xcodeproj 或 ios/{app} 源码；"
+                    "Swift 需 ios_app_skeleton 或 macOS xcodegen）"
+                )
+                return False
             prefix = dart_prefix(ctx.workspace)
             for rel in apply_shell_placeholders(ctx.workspace, prefix=prefix, force=True):
                 get_run_log().detail(f"shell placeholder → {rel}")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -312,13 +313,17 @@ def apply_native_architecture_folder_rename(
             src_folder = app_dir / f"{prefix}_{folder_suffix}"
             if src_folder.is_dir() and src_folder != dest_folder:
                 if dest_folder.exists():
-                    raise FileExistsError(
-                        f"无法重命名 `{src_folder.name}/`：目标已存在 `{dest_folder.name}/`"
+                    # Half-applied packs: keep lock names, drop stale template dir.
+                    shutil.rmtree(src_folder, ignore_errors=True)
+                    changed.append(
+                        f"skip-rename (dest exists): {src_folder.name}/ "
+                        f"→ keep {dest_folder.relative_to(ws)}"
                     )
-                src_folder.rename(dest_folder)
-                changed.append(
-                    f"dir: {src_folder.relative_to(ws)} → {dest_folder.relative_to(ws)}"
-                )
+                else:
+                    src_folder.rename(dest_folder)
+                    changed.append(
+                        f"dir: {src_folder.relative_to(ws)} → {dest_folder.relative_to(ws)}"
+                    )
             claimed_templates.add(tpl)
         elif stub_only and not dest_folder.is_dir():
             dest_folder.mkdir(parents=True, exist_ok=True)
@@ -339,13 +344,16 @@ def apply_native_architecture_folder_rename(
             src_leaf = role_root / f"{prefix}_{leaf_suffix}"
             if src_leaf.is_dir() and src_leaf != dest_leaf:
                 if dest_leaf.exists():
-                    raise FileExistsError(
-                        f"无法重命名 `{src_leaf.name}/`：目标已存在 `{dest_leaf.name}/`"
+                    shutil.rmtree(src_leaf, ignore_errors=True)
+                    changed.append(
+                        f"skip-rename (dest exists): {src_leaf.name}/ "
+                        f"→ keep {dest_leaf.relative_to(ws)}"
                     )
-                src_leaf.rename(dest_leaf)
-                changed.append(
-                    f"dir: {src_leaf.relative_to(ws)} → {dest_leaf.relative_to(ws)}"
-                )
+                else:
+                    src_leaf.rename(dest_leaf)
+                    changed.append(
+                        f"dir: {src_leaf.relative_to(ws)} → {dest_leaf.relative_to(ws)}"
+                    )
         elif stub_only:
             dest_leaf.mkdir(parents=True, exist_ok=True)
             if not any(dest_leaf.glob("*.swift")):
@@ -588,7 +596,9 @@ def apply_native_bridge_folder_rename(
     target = app_dir / expected
     if bridge.is_dir() and bridge != target:
         if target.exists():
-            raise FileExistsError(f"无法重命名 Bridge/：目标已存在 {target}")
+            shutil.rmtree(bridge, ignore_errors=True)
+            rel = target.relative_to(ws).as_posix()
+            return [f"skip-rename Bridge/ (dest exists) → keep {rel}"]
         bridge.rename(target)
         rel = target.relative_to(ws).as_posix()
         return [f"重命名 Bridge/ → {rel}"]
