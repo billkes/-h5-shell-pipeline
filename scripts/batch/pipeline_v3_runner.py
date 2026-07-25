@@ -356,10 +356,18 @@ class V3StepRunner:
         return True
 
     def _step_sync_distilled(self, ctx: AppContext) -> bool:
-        """Project global-brain agent-distilled → skill-input/distilled/."""
+        """Project global-brain agent-distilled → skill-input/distilled/.
+
+        Also writes ``网页Agent续跑手册.md`` for web Agents to resume after 1–8.
+        """
         from batch.agent_distilled import DISTILLED_REL, copy_agent_distilled
+        from batch.agent_prompt_pack import (
+            WEB_AGENT_RESUME_MD_REL,
+            write_web_agent_resume_handbook,
+        )
         from batch.agent_spec_index import write_agent_workspace_focus
         from batch.prompts import _PM_UI_PLAN_BRAIN_FOCUS
+        from batch.workspace import dart_prefix
 
         if not is_h5_shell(ctx.pack_type):
             return True
@@ -380,6 +388,26 @@ class V3StepRunner:
                 role_slug="build-agent-plan-spec",
                 role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
             )
+
+        try:
+            handbook = write_web_agent_resume_handbook(
+                ctx.workspace,
+                app_name=ctx.name,
+                pack_type=ctx.pack_type,
+                prefix=dart_prefix(ctx.workspace),
+                shell_runtime=h5_shell_runtime(ctx.pack_type),
+            )
+            get_run_log().detail(
+                f"web agent resume → {WEB_AGENT_RESUME_MD_REL}"
+            )
+            print(
+                f">>> sync.distilled: wrote {handbook.name} "
+                f"(web Agent resume after 1–8)"
+            )
+        except (OSError, ValueError) as exc:
+            get_run_log().detail(f"web agent resume handbook 失败: {exc}")
+            print(f">>> sync.distilled: web agent resume skipped: {exc}")
+            return False
         return True
 
     def _step_design_system(self, ctx: AppContext) -> bool:

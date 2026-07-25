@@ -30,6 +30,7 @@ from batch.prompts import (
 AGENT_PROMPTS_DIR = "skill-input/agent-prompts"
 RUNBOOK_MD_REL = "skill-input/agent-runbook.md"
 RUNBOOK_JSON_REL = "skill-input/agent-runbook.json"
+WEB_AGENT_RESUME_MD_REL = "网页Agent续跑手册.md"
 
 
 @dataclass(frozen=True)
@@ -227,7 +228,159 @@ def _format_runbook_md(runbook: dict[str, Any]) -> str:
             "",
             f"- `{RUNBOOK_JSON_REL}` — machine-readable order",
             f"- `{AGENT_PROMPTS_DIR}/0N-<step>.md` — filled prompts (exactly 4)",
+            f"- `{WEB_AGENT_RESUME_MD_REL}` — web Agent resume (written at sync.distilled)",
             "",
         ]
     )
     return "\n".join(lines)
+
+
+def _bridge_names(app_name: str) -> tuple[str, str]:
+    """App-name Bridge channel + callback (never derive from code prefix)."""
+    app_lower = "".join(ch for ch in app_name.strip() if ch.isalnum()).lower()
+    if not app_lower:
+        app_lower = "app"
+    return f"{app_lower}Bridge", f"{app_lower}BridgeCallback"
+
+
+def _load_runbook(workspace: Path) -> dict[str, Any] | None:
+    path = workspace / RUNBOOK_JSON_REL
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _format_web_agent_resume_md(
+    *,
+    app_name: str,
+    pack_type: str,
+    prefix: str,
+    shell_runtime: str,
+    generated_at: str,
+    execution_order: list[dict[str, Any]],
+) -> str:
+    bridge, bridge_cb = _bridge_names(app_name)
+    prefix_display = prefix or "(见 本包代码组合.json / dartCodePrefix)"
+    runtime_display = shell_runtime or "native"
+
+    step_rows: list[str] = []
+    for entry in execution_order:
+        seq = entry.get("seq", "?")
+        step = entry.get("step_id", "")
+        prompt = entry.get("prompt", "")
+        outs = "; ".join(entry.get("deliverables") or []) or "—"
+        step_rows.append(
+            f"| {seq} | `{step}` | `{prompt}` | {outs} |"
+        )
+    if not step_rows:
+        for slot in MAIN_AGENT_SLOTS:
+            prompt = f"{AGENT_PROMPTS_DIR}/{_prompt_filename(slot)}"
+            outs = "; ".join(
+                d.replace("{name}", app_name) for d in slot.deliverables
+            )
+            step_rows.append(
+                f"| {slot.seq} | `{slot.step_id}` | `{prompt}` | {outs} |"
+            )
+
+    lines = [
+        f"# 网页 Agent 续跑手册 — {app_name}",
+        "",
+        "> 由流水线 `sync.distilled`（第 8 步）写入。供网页版 Agent 手工续跑剩余 Agent 步骤；"
+        "**不改变**流水线步骤定义与 `run.sh` 用法。",
+        "",
+        "## 背景",
+        "",
+        f"- App: **{app_name}**",
+        f"- Pack: `{pack_type}`",
+        f"- Runtime: `{runtime_display}`",
+        f"- Prefix（代码前缀，≠ Bridge 名）: `{prefix_display}`",
+        f"- Generated: `{generated_at}`",
+        "- 流水线 1–8 已完成（`prepare.context` → `sync.distilled`）",
+        "- 从下方步骤 1 起串行执行四个 Agent；总表见 `skill-input/agent-runbook.md`",
+        "",
+        "## 工作区",
+        "",
+        "- 根目录 = 本包根（本文件所在目录）",
+        "- 只读/写本根下文件；禁止出包",
+        "- Preferred index: `skill-input/agent-spec-index.md` · "
+        "`skill-input/agent-workspace-focus.md`",
+        "",
+        "## 执行顺序（严格串行）",
+        "",
+        "| # | step | prompt | deliverables |",
+        "|---|------|--------|--------------|",
+        *step_rows,
+        "",
+        "## 每步协议",
+        "",
+        "1. 完整阅读对应 `skill-input/agent-prompts/0N-*.md`",
+        "2. 再读该 prompt 内 Required Reading（规范与 distilled 路径）",
+        "3. **只写**该步 Deliverables；不要提前做下一步",
+        "4. 自检通过后再进入下一步",
+        "5. 一步结束只输出一行 summary",
+        "",
+        "## 硬约束（摘要）",
+        "",
+        f"- Bridge 锁定（按 App 名，**禁止**用 prefix 派生）: "
+        f"`{bridge}` / `{bridge_cb}`",
+        "- Shell 无业务 UI；业务只在 `h5/`",
+        "- 不改 `design-system/`、`skill-adapt/` 等 1–8 skill 产物（除非当前 prompt 要求）",
+        "- 不编辑 `h5_site/`（部署产物由流水线 `dev.h5.build` 生成）",
+        "- 若缺少 `产包计划.md`：跳过该文件，以 `功能文档.md` + 登记 JSON 为准",
+        "- H5 用户可见文案：English；浏览器 DEV 须接 `browserMock`",
+        "",
+        "## 四步之后",
+        "",
+        "- **默认**：四个 Agent 做完即停，交回原流水线续跑 "
+        "`plan.gate` → `dev.h5.build` → `git.plan` / `git.dev`",
+        "- 仅当用户明确说「继续到可 build」时：在 `h5/` 内修到可 "
+        "`npm run build:deploy`；仍不改流水线代码与步骤",
+        "",
+        "## 启动话术（粘贴给网页 Agent）",
+        "",
+        "```text",
+        f"请打开并严格遵循 @{WEB_AGENT_RESUME_MD_REL}。",
+        "从「执行顺序」步骤 1 串行做到步骤 4；每步验收后再继续。",
+        "工作区仅限本包根目录；Bridge 名勿用代码前缀派生。",
+        "```",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def write_web_agent_resume_handbook(
+    workspace: Path,
+    *,
+    app_name: str,
+    pack_type: str,
+    prefix: str = "",
+    shell_runtime: str = "",
+) -> Path:
+    """Write package-root handbook for web Agents after sync.distilled.
+
+    Does not change V3 step order. Relies on agent-runbook.json from
+    lock.dimensions when present; falls back to MAIN_AGENT_SLOTS.
+    """
+    workspace = workspace.expanduser().resolve()
+    runbook = _load_runbook(workspace)
+    stamped = (
+        str(runbook.get("generated_at") or "")
+        if runbook
+        else ""
+    ) or datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+    execution_order = list((runbook or {}).get("execution_order") or [])
+    text = _format_web_agent_resume_md(
+        app_name=app_name,
+        pack_type=pack_type,
+        prefix=prefix,
+        shell_runtime=shell_runtime,
+        generated_at=stamped,
+        execution_order=execution_order,
+    )
+    out = workspace / WEB_AGENT_RESUME_MD_REL
+    out.write_text(text, encoding="utf-8")
+    return out

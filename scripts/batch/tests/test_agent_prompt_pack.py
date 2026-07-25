@@ -9,7 +9,9 @@ from batch.agent_prompt_pack import (
     MAIN_AGENT_SLOTS,
     RUNBOOK_JSON_REL,
     RUNBOOK_MD_REL,
+    WEB_AGENT_RESUME_MD_REL,
     write_agent_prompt_pack,
+    write_web_agent_resume_handbook,
 )
 from batch.config import BatchConfig
 from batch.pipeline_steps import (
@@ -87,5 +89,63 @@ def test_write_agent_prompt_pack_fills_four_prompts(tmp_path: Path) -> None:
     assert "`agent.plan.spec`" in md
     assert "`agent.h5`" in md
     assert "01-agent.plan.spec.md" in md
+    assert WEB_AGENT_RESUME_MD_REL in md
     assert "agent-spec-index" not in md
     assert "agent-brain-focus" not in md
+
+
+def test_write_web_agent_resume_handbook_from_runbook(tmp_path: Path) -> None:
+    (tmp_path / "skill-input").mkdir()
+    (tmp_path / "skill-input" / "context.json").write_text("{}", encoding="utf-8")
+
+    cfg = BatchConfig.from_env()
+    prompts = PromptBuilder(cfg)
+    pack_context = {
+        "name": "Lensoo",
+        "desc": "Theme: contact lens diary",
+        "dart_name": "lensoo",
+        "prefix": "teqxb",
+        "product_req_doc": "H5壳Flutter产品要求.md",
+        "p2_product_doc": "H5壳Flutter产品要求.md",
+        "shell_runtime": "swift",
+        "csv_full_name": "Lensoo",
+    }
+    write_agent_prompt_pack(
+        tmp_path,
+        prompts=prompts,
+        pack_context=pack_context,
+        app_name="Lensoo",
+        pack_type="h5_swift_shell",
+    )
+
+    out = write_web_agent_resume_handbook(
+        tmp_path,
+        app_name="Lensoo",
+        pack_type="h5_swift_shell",
+        prefix="teqxb",
+        shell_runtime="swift",
+    )
+    assert out == tmp_path / WEB_AGENT_RESUME_MD_REL
+    text = out.read_text(encoding="utf-8")
+    assert "网页 Agent 续跑手册 — Lensoo" in text
+    assert "sync.distilled" in text
+    assert "01-agent.plan.spec.md" in text
+    assert "04-agent.h5.md" in text
+    assert "lensooBridge" in text
+    assert "lensooBridgeCallback" in text
+    assert "teqxb" in text
+    assert f"@{WEB_AGENT_RESUME_MD_REL}" in text
+
+
+def test_write_web_agent_resume_handbook_without_runbook(tmp_path: Path) -> None:
+    out = write_web_agent_resume_handbook(
+        tmp_path,
+        app_name="Buildioo",
+        pack_type="h5_swift_shell",
+        prefix="bldio",
+        shell_runtime="swift",
+    )
+    text = out.read_text(encoding="utf-8")
+    assert "buildiooBridge" in text
+    assert "`agent.plan.spec`" in text
+    assert "`agent.h5`" in text
