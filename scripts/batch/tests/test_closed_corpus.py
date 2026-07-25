@@ -5,8 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from batch.agent_spec_index import (
+    WORKSPACE_FOCUS_REL,
+    WORKSPACE_SCOPE_LINE,
     prepare_agent_prompt_files,
-    write_agent_brain_focus,
+    write_agent_workspace_focus,
 )
 from batch.config import BatchConfig
 from batch.prompts import PromptBuilder, _PM_UI_PLAN_BRAIN_FOCUS, _PROGRAMMER_BRAIN_FOCUS
@@ -46,23 +48,16 @@ def test_closed_corpus_docs_do_not_steer_agents_outside() -> None:
         for pat in _FORBIDDEN_AGENT_STEERS:
             if pat in text:
                 issues.append(f"{name}: forbidden steer `{pat}`")
-        # Repo-prefix paths confuse Agents (workspace copies omit docs/).
         for needle in ("`docs/H5壳", "`docs/法律", "docs/H5壳", "docs/法律协议"):
-            if needle in text and "勿" not in text[max(0, text.find(needle) - 40) : text.find(needle) + 80]:
-                # Allow explicit forbid lines that mention docs/rules only.
-                if "docs/rules" in needle:
-                    continue
-                if needle.startswith("`docs/") or needle.startswith("docs/H5") or needle.startswith("docs/法律"):
-                    # skip if the hit is only inside a 勿 sentence nearby — already checked
-                    idx = 0
-                    while True:
-                        i = text.find(needle, idx)
-                        if i < 0:
-                            break
-                        window = text[max(0, i - 60) : i + len(needle) + 60]
-                        if "勿" not in window:
-                            issues.append(f"{name}: repo-prefix path `{needle}`")
-                        idx = i + len(needle)
+            idx = 0
+            while True:
+                i = text.find(needle, idx)
+                if i < 0:
+                    break
+                window = text[max(0, i - 60) : i + len(needle) + 60]
+                if "勿" not in window:
+                    issues.append(f"{name}: repo-prefix path `{needle}`")
+                idx = i + len(needle)
     assert not issues, "Closed-corpus Agent steers:\n  " + "\n  ".join(issues)
 
 
@@ -79,26 +74,32 @@ def test_copy_workspace_docs_closes_h5_corpus(tmp_path: Path) -> None:
     assert not (tmp_path / "docs" / "rules").exists()
 
 
-def test_brain_focus_is_workspace_closed() -> None:
+def test_workspace_focus_lists_are_in_package_only() -> None:
     assert "01_tech_common" not in _PM_UI_PLAN_BRAIN_FOCUS
     assert "02_audit_risk" not in _PM_UI_PLAN_BRAIN_FOCUS
     assert "docs/rules" not in _PM_UI_PLAN_BRAIN_FOCUS
+    assert "global-brain" not in _PM_UI_PLAN_BRAIN_FOCUS
     assert "法律协议规范.md" in _PM_UI_PLAN_BRAIN_FOCUS
     assert "01_tech_common" not in _PROGRAMMER_BRAIN_FOCUS
     assert "H5-Bridge协议.md" in _PROGRAMMER_BRAIN_FOCUS
+    assert "global-brain" not in _PROGRAMMER_BRAIN_FOCUS
 
 
-def test_write_agent_brain_focus_rejects_repo_rules(tmp_path: Path) -> None:
-    path = write_agent_brain_focus(
+def test_write_agent_workspace_focus_is_workspace_scoped(tmp_path: Path) -> None:
+    path = write_agent_workspace_focus(
         tmp_path,
         role_slug="build-agent-plan-spec",
         role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
     )
+    assert path == tmp_path / WORKSPACE_FOCUS_REL
     text = path.read_text(encoding="utf-8")
-    assert "docs/rules" in text  # explicit forbid
-    assert "Stay inside" in text or "this package workspace" in text
+    assert "Workspace reading scope" in text
+    assert WORKSPACE_SCOPE_LINE in text
     assert "global-brain" not in text
+    assert "Agent brain focus" not in text
     assert "whitelisted" not in text
+    legacy = (tmp_path / "skill-input" / "agent-brain-focus.md").read_text(encoding="utf-8")
+    assert "agent-workspace-focus.md" in legacy
 
 
 def test_filled_plan_spec_prompt_has_no_open_corpus_paths() -> None:
@@ -114,13 +115,18 @@ def test_filled_plan_spec_prompt_has_no_open_corpus_paths() -> None:
     assert "docs/法律协议规范.md" not in text
     assert "`.cursor/rules/*.mdc` · `docs/rules/`" not in text
     assert "法律协议规范.md" in text
-    assert "do **not** open repo `docs/rules/`" in text
+    assert "agent-workspace-focus.md" in text
+    assert "global-brain" not in text
+    assert WORKSPACE_SCOPE_LINE in text or (
+        "paths under this workspace root" in text
+        and "outside the app root are out of scope" in text
+    )
 
 
 def test_prepare_agent_prompt_files_indexes_workspace_norms(tmp_path: Path) -> None:
     cfg = BatchConfig.from_env()
     copy_workspace_docs(cfg, tmp_path, "Lensoo", "h5_swift_shell")
-    index, brain = prepare_agent_prompt_files(
+    index, focus = prepare_agent_prompt_files(
         tmp_path,
         phase="plan_spec",
         app_name="Lensoo",
@@ -129,9 +135,9 @@ def test_prepare_agent_prompt_files_indexes_workspace_norms(tmp_path: Path) -> N
         role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
     )
     body = index.read_text(encoding="utf-8")
-    brain_text = brain.read_text(encoding="utf-8")
+    focus_text = focus.read_text(encoding="utf-8")
     assert "法律协议规范.md" in body
     assert "docs/法律协议规范.md" not in body
-    assert "Stay inside" in brain_text
-    assert "do **not** open repo" in brain_text.lower() or "Do **not** open repo" in brain_text
-    assert "global-brain" not in brain_text
+    assert WORKSPACE_SCOPE_LINE in focus_text
+    assert "global-brain" not in focus_text
+    assert focus.name == "agent-workspace-focus.md"

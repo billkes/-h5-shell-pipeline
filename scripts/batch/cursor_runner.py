@@ -260,8 +260,13 @@ def _format_tool_completed(tool_call: dict[str, object]) -> str:
 def _build_agent_cmd(cfg: BatchConfig, workspace: Path, prompt: str) -> list[str]:
     cli = find_cursor_cli(cfg.cursor_cli)
     cmd = [cli, "-p", "--workspace", str(workspace.resolve()), "--trust", "--yolo"]
-    if cfg.cursor_agent_sandbox:
-        cmd.extend(["--sandbox", "enabled"])
+    # Packaging agents always sandbox — paths outside the workspace are out of scope.
+    cmd.extend(["--sandbox", "enabled"])
+    if not cfg.cursor_agent_sandbox:
+        print(
+            "  >>> note: CURSOR_AGENT_SANDBOX=0 ignored for packaging; "
+            "sandbox stays enabled"
+        )
     fmt = (cfg.cursor_agent_output_format or "stream-json").strip()
     if fmt:
         cmd.extend(["--output-format", fmt])
@@ -511,14 +516,16 @@ def _run_agent_direct(
     prompt: str,
 ) -> bool:
     """Run Cursor agent directly inside the given workspace."""
+    from batch.git_ops import ensure_agent_path_isolation
+
     ws = workspace.resolve()
+    ensure_agent_path_isolation(ws)
     pretty_log, jsonl_log, prompt_path = _agent_output_paths(ws)
     output_format = (cfg.cursor_agent_output_format or "stream-json").strip()
     max_attempts = cfg.cursor_agent_max_retries
     base_delay = cfg.cursor_agent_retry_delay_sec
 
     prompt_path.write_text(prompt, encoding="utf-8")
-
     for attempt in range(1, max_attempts + 1):
         cmd = _build_agent_cmd(cfg, ws, prompt)
         _print_agent_start_banner(

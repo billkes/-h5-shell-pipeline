@@ -12,13 +12,13 @@ ${RESUME_BLOCK}
 
 ### Required Reading (read FIRST)
 1. `skill-input/agent-spec-index.md`
-2. `skill-input/agent-brain-focus.md`
+2. `skill-input/agent-workspace-focus.md`
 3. `H5壳Pack约束.md` · 《H5-Bridge协议.md》 · 《H5壳启动闪屏规范.md`
 4. Runtime-specific: Flutter → this prompt + Pack约束; Swift → `H5壳Swift实现规范.md`; OC → `H5壳OC实现规范.md`
 5. 功能文档.md · 产包计划.md · 本包登记信息.json · 本包代码组合.json
 6. 《${P2_PRODUCT_DOC}》
 7. Native only: `编程人设风格.md` (persona dims 2–5) · `命名混淆规则.md` (deep naming)
-8. Stay inside this package workspace — do **not** open repo `docs/rules/` or paths outside the app root.
+8. Required reading and tools may only use paths under this workspace root. Paths outside the app root are out of scope.
 
 ### Deliverables
 - Native container + Bridge matching CSV / 本包登记信息.json draws

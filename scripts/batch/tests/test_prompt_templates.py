@@ -32,10 +32,13 @@ def test_v3_plan_spec_prompt_lists_merged_deliverables() -> None:
     assert "产品概述" in text
     assert "Do **not** write `{CSV_FULL_NAME}.md`" in text
     assert "skill-input/agent-spec-index.md" in text
+    assert "skill-input/agent-workspace-focus.md" in text
     assert "法律协议规范.md" in text
     assert "docs/法律协议规范.md" not in text
     assert "`.cursor/rules/*.mdc` · `docs/rules/`" not in text
-    assert "do **not** open repo `docs/rules/`" in text
+    assert "global-brain" not in text
+    assert "paths under this workspace root" in text
+    assert "outside the app root are out of scope" in text
 
 
 def test_product_doc_format_excludes_removed_sections() -> None:

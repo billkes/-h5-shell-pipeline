@@ -16,7 +16,7 @@ from pathlib import Path
 
 from batch.config import BatchConfig
 
-# Written to skill-input/agent-brain-focus.md (workspace-local closed corpus).
+# Written to skill-input/agent-workspace-focus.md (in-package reading list).
 _PROGRAMMER_BRAIN_FOCUS = """   - `H5壳Pack约束.md`
    - `H5-Bridge协议.md`
    - `H5壳启动闪屏规范.md`

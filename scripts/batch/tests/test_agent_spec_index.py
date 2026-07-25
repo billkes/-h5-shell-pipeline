@@ -6,6 +6,8 @@ from pathlib import Path
 
 from batch.agent_spec_index import (
     SPEC_INDEX_REL,
+    WORKSPACE_FOCUS_REL,
+    WORKSPACE_SCOPE_LINE,
     prepare_agent_prompt_files,
     write_plan_gate_repair_brief,
 )
@@ -14,7 +16,7 @@ from batch.agent_spec_index import (
 def test_prepare_agent_prompt_files_writes_index(tmp_path: Path) -> None:
     (tmp_path / "skill-input").mkdir()
     (tmp_path / "skill-input" / "context.json").write_text("{}", encoding="utf-8")
-    index, brain = prepare_agent_prompt_files(
+    index, focus = prepare_agent_prompt_files(
         tmp_path,
         phase="plan",
         app_name="Demo",
@@ -23,11 +25,13 @@ def test_prepare_agent_prompt_files_writes_index(tmp_path: Path) -> None:
         role_focus="- example/path.md",
     )
     assert index.is_file()
-    assert brain.is_file()
+    assert focus.is_file()
     body = index.read_text(encoding="utf-8")
     assert "Agent spec index" in body
     assert "Phase: **plan**" in body
     assert (tmp_path / SPEC_INDEX_REL).is_file()
+    assert (tmp_path / WORKSPACE_FOCUS_REL).is_file()
+    assert WORKSPACE_SCOPE_LINE in focus.read_text(encoding="utf-8")
 
 
 def test_repair_brief_paths_only(tmp_path: Path) -> None:

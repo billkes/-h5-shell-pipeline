@@ -17,7 +17,7 @@ ${RESUME_BLOCK}
 1. `skill-input/agent-spec-index.md`
 2. `H5壳Plan交付规范.md` — pack JSON sections only
 3. `功能文档.md` · `本包代码组合.json` · indexed design-system / skill-adapt paths
-4. Stay inside this package workspace — do **not** open repo `docs/rules/` or paths outside the app root.
+4. Required reading and tools may only use paths under this workspace root. Paths outside the app root are out of scope.
 
 ### Deliverables (write both JSON files)
 1. `本包登记信息.json` — shellRuntime, h5EntryUrl*, bridgeDeckSelections, kit draws, vault fields

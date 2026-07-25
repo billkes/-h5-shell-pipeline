@@ -10,12 +10,12 @@ ${RESUME_BLOCK}
 
 ### Required Reading (read FIRST)
 1. `skill-input/agent-spec-index.md`
-2. `skill-input/agent-brain-focus.md`
+2. `skill-input/agent-workspace-focus.md`
 3. `H5壳Plan交付规范.md` — Deliverable 1) `功能文档.md`（含中文产品概述）
 4. `H5壳功能文档深度标准.md` · `H5壳交互拓扑与PlanGate策略.md` · `H5壳产品文档格式.md`
 5. `法律协议规范.md`
 6. 《${PRODUCT_REQ_DOC}》
-7. Stay inside this package workspace — do **not** open repo `docs/rules/` or paths outside the app root.
+7. Required reading and tools may only use paths under this workspace root. Paths outside the app root are out of scope.
 
 ### Deliverable 1) `功能文档.md` — **single merged spec** (English + 中文产品概述)
 

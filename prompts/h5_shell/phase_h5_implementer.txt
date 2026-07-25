@@ -75,7 +75,7 @@ Do **not** invent Legal / Plaza polish blocks here — follow checklist + dedica
 
 ### Required Reading (after Surface Depth)
 1. `skill-input/agent-spec-index.md` — includes **front-loaded Welcome/Tab1 Scene Brief excerpts**
-2. `skill-input/agent-brain-focus.md`
+2. `skill-input/agent-workspace-focus.md`
 3. `H5壳H5实现检查清单.md` · `H5壳Vite工程规范.md` · 《H5-Bridge协议.md》(§5 通道命名 LOCKED)
 4. Skill UI sources (do **not** invent a parallel kit):
    - `design-system/*/stack-vue.md`
@@ -86,7 +86,7 @@ Do **not** invent Legal / Plaza polish blocks here — follow checklist + dedica
 5. 功能文档.md · 本包视觉锁.json · 本包登记信息.json
 6. 《${P2_PRODUCT_DOC}》
 7. Package `.cursor/rules/*.mdc` when needed (already in this workspace)
-8. Stay inside this package workspace — do **not** open repo `docs/rules/` or paths outside the app root.
+8. Required reading and tools may only use paths under this workspace root. Paths outside the app root are out of scope.
 
 ### Native Bridge Contract — LOCKED (match the shell EXACTLY)
 The native shell (Part 2) registers ONE WKScriptMessageHandler and replies on ONE global callback. The H5 bridge MUST reuse these EXACT names — never derive them from the code prefix:

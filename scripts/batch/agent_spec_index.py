@@ -19,9 +19,17 @@ AgentPhase = Literal[
 ]
 
 SPEC_INDEX_REL = "skill-input/agent-spec-index.md"
+# Role reading list inside the package workspace (not an external brain).
+WORKSPACE_FOCUS_REL = "skill-input/agent-workspace-focus.md"
+# Legacy filename kept as a one-line pointer for older prompts / resumes.
 BRAIN_FOCUS_REL = "skill-input/agent-brain-focus.md"
 REPAIR_BRIEF_REL = "skill-input/plan-gate-repair-brief.md"
 H5_BUILD_REPAIR_BRIEF_REL = "skill-input/h5-build-repair-brief.md"
+
+WORKSPACE_SCOPE_LINE = (
+    "Required reading and tools may only use paths under this workspace root. "
+    "Paths outside the app root are out of scope."
+)
 
 _PLAN_NORM_DOCS: tuple[str, ...] = (
     "H5壳Plan交付规范.md",
@@ -269,23 +277,23 @@ def _norm_docs_for_phase(phase: AgentPhase) -> list[str]:
     return list(mapping.get(phase, ()))
 
 
-def write_agent_brain_focus(
+def write_agent_workspace_focus(
     workspace: Path,
     *,
     role_slug: str,
     role_focus: str,
 ) -> Path:
+    """Write in-workspace role reading list (no external brain / recall roots)."""
     workspace = workspace.expanduser().resolve()
-    out_path = workspace / BRAIN_FOCUS_REL
+    out_path = workspace / WORKSPACE_FOCUS_REL
     out_path.parent.mkdir(parents=True, exist_ok=True)
     body = "\n".join(
         [
-            "# Agent brain focus",
+            "# Workspace reading scope",
             "",
             f"Role: `{role_slug}`",
             "",
-            "Stay inside **this package workspace**. Do **not** open repo",
-            "`docs/rules/` or any path outside the app root.",
+            WORKSPACE_SCOPE_LINE,
             "",
             "Prefer these workspace docs for this role:",
             role_focus.strip(),
@@ -295,7 +303,28 @@ def write_agent_brain_focus(
         ]
     )
     out_path.write_text(body, encoding="utf-8")
+    # Legacy pointer so old Required Reading lines still resolve.
+    legacy = workspace / BRAIN_FOCUS_REL
+    legacy.write_text(
+        "# Moved\n\n"
+        "See `skill-input/agent-workspace-focus.md`.\n",
+        encoding="utf-8",
+    )
     return out_path
+
+
+def write_agent_brain_focus(
+    workspace: Path,
+    *,
+    role_slug: str,
+    role_focus: str,
+) -> Path:
+    """Backward-compatible alias for :func:`write_agent_workspace_focus`."""
+    return write_agent_workspace_focus(
+        workspace,
+        role_slug=role_slug,
+        role_focus=role_focus,
+    )
 
 
 def prepare_agent_prompt_files(
@@ -307,14 +336,14 @@ def prepare_agent_prompt_files(
     role_slug: str,
     role_focus: str,
 ) -> tuple[Path, Path]:
-    """Write spec index + brain focus to workspace before Agent run."""
+    """Write spec index + workspace focus to workspace before Agent run."""
     index = write_agent_spec_index(
         workspace,
         phase=phase,
         app_name=app_name,
         pack_type=pack_type,
     )
-    brain = write_agent_brain_focus(
+    brain = write_agent_workspace_focus(
         workspace,
         role_slug=role_slug,
         role_focus=role_focus,

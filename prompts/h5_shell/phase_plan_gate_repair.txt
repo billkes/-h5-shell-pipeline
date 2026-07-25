@@ -15,6 +15,7 @@ ${desc}
 2. English for 功能文档.md body; patch 视觉蓝图.md only if that legacy file already exists (h5_shell 新包不产蓝图).
 3. No optional / may / 可选项 — listed = MUST implement.
 4. Minimal patch; do not delete valid content.
+5. Required reading and tools may only use paths under this workspace root. Paths outside the app root are out of scope.
 
 ## Output
 Patch target files only. Then one-line summary.
