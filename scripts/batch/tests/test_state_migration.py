@@ -12,25 +12,19 @@ sys.path.insert(0, str(SCRIPTS))
 
 from batch.pipeline_steps import (  # noqa: E402
     BUILD_AGENT,
-    PLAN_GATE,
     PREVIEW_TABS,
     SKILL_ENRICH,
     SKILL_PAGES,
     SKILL_TOKENS,
-    steps_for_run,
 )
-from batch.pipeline_v3_runner import V3StepRunner  # noqa: E402
 from batch.state import (  # noqa: E402
-    get_step,
     read_state,
     set_step,
     steps_map_from_data,
-    sync_phases_from_steps,
-    update_state_fields,
 )
 
 
-def test_build_agent_done_backfills_pending_skill_steps() -> None:
+def test_retired_skill_steps_are_dropped_from_state() -> None:
     raw = {
         "pack_type": "h5_oc_shell",
         "steps": {
@@ -46,9 +40,12 @@ def test_build_agent_done_backfills_pending_skill_steps() -> None:
         },
     }
     migrated = steps_map_from_data(raw)
-    assert migrated[SKILL_ENRICH] == "done"
-    assert migrated[SKILL_PAGES] == "done"
-    assert migrated[SKILL_TOKENS] == "done"
+    assert SKILL_ENRICH not in migrated
+    assert SKILL_PAGES not in migrated
+    assert SKILL_TOKENS not in migrated
+    assert "skill.design" not in migrated
+    assert migrated["prepare.context"] == "done"
+    assert migrated["lock.dimensions"] == "done"
 
 
 def test_build_agent_done_backfills_preview_tabs() -> None:
@@ -56,7 +53,6 @@ def test_build_agent_done_backfills_preview_tabs() -> None:
         "pack_type": "h5_oc_shell",
         "steps": {
             "prepare.context": "done",
-            "skill.design": "done",
             "lock.dimensions": "done",
             "preview.tabs": "pending",
             BUILD_AGENT: "done",
@@ -75,9 +71,6 @@ def test_set_step_build_agent_backfills_prep_chain() -> None:
             {
                 "pack_type": "h5_oc_shell",
                 "steps": {
-                    "skill.enrich": "pending",
-                    "skill.pages": "pending",
-                    "skill.tokens": "pending",
                     BUILD_AGENT: "running",
                 },
             }
@@ -86,43 +79,23 @@ def test_set_step_build_agent_backfills_prep_chain() -> None:
     )
     set_step(ws, BUILD_AGENT, "done")
     data = read_state(ws)
-    assert data["steps"][SKILL_ENRICH] == "done"
-    assert data["steps"][SKILL_PAGES] == "done"
-    assert data["steps"][SKILL_TOKENS] == "done"
+    assert data["steps"]["prepare.context"] == "done"
+    assert data["steps"]["lock.dimensions"] == "done"
     assert data["steps"][PREVIEW_TABS] == "done"
+    assert SKILL_ENRICH not in data["steps"]
 
 
-def test_prerequisites_ok_after_build_agent_done() -> None:
-    td = Path(tempfile.mkdtemp())
-    ws = td / "App"
-    ws.mkdir()
-    (ws / ".build-state.json").write_text(
-        json.dumps(
-            {
-                "pack_type": "h5_oc_shell",
-                "steps": {
-                    "prepare.context": "done",
-                    "skill.design": "done",
-                    "skill.enrich": "pending",
-                    "skill.adapt": "done",
-                    "skill.pages": "pending",
-                    "skill.tokens": "pending",
-                    "lock.dimensions": "done",
-                    BUILD_AGENT: "done",
-                },
-            }
-        ),
-        encoding="utf-8",
-    )
-
-    class _Pipeline:
-        cfg = None
-
-    runner = V3StepRunner(_Pipeline())
-
-    class _Ctx:
-        pack_type = "h5_oc_shell"
-        workspace = ws
-
-    assert get_step(ws, SKILL_ENRICH) == "done"
-    assert runner._prerequisites_ok(_Ctx(), PLAN_GATE) is True
+def test_build_agent_done_expands_to_granular_agents() -> None:
+    raw = {
+        "pack_type": "h5_oc_shell",
+        "steps": {
+            "prepare.context": "done",
+            "lock.dimensions": "done",
+            BUILD_AGENT: "done",
+        },
+    }
+    migrated = steps_map_from_data(raw)
+    assert migrated.get("agent.design") == "done"
+    assert migrated.get("agent.plan.spec") == "done"
+    assert migrated.get("agent.shell") == "done"
+    assert migrated.get("agent.h5") == "done"

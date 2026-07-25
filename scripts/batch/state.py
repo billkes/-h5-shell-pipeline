@@ -162,8 +162,6 @@ def _infer_steps_from_phases(data: dict[str, Any]) -> dict[str, str]:
         LOCK_DIMENSIONS,
         PREPARE_CONTEXT,
         PREVIEW_TABS,
-        SKILL_ADAPT,
-        SKILL_DESIGN,
         GIT_DEV,
         GIT_PLAN,
         PLAN_GATE,
@@ -173,8 +171,6 @@ def _infer_steps_from_phases(data: dict[str, Any]) -> dict[str, str]:
 
     _plan_prep = (
         PREPARE_CONTEXT,
-        SKILL_DESIGN,
-        SKILL_ADAPT,
         LOCK_DIMENSIONS,
         PREVIEW_TABS,
         BUILD_AGENT,
@@ -357,11 +353,6 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
         LOCK_DIMENSIONS,
         PREPARE_CONTEXT,
         PREVIEW_TABS,
-        SKILL_ADAPT,
-        SKILL_DESIGN,
-        SKILL_ENRICH,
-        SKILL_PAGES,
-        SKILL_TOKENS,
         GIT_DEV,
         GIT_PLAN,
         PUBGET,
@@ -369,31 +360,17 @@ def _migrate_legacy_step_keys(steps: dict[str, str]) -> dict[str, str]:
     )
 
     out = _aggregate_legacy_agent_steps(dict(steps))
-    _skill_chain = (
+    _prep_chain = (
         PREPARE_CONTEXT,
-        SKILL_DESIGN,
-        SKILL_ENRICH,
-        SKILL_ADAPT,
-        SKILL_PAGES,
-        SKILL_TOKENS,
         LOCK_DIMENSIONS,
     )
-    _backfill_prep_chain_when_build_done(out, _skill_chain)
+    _backfill_prep_chain_when_build_done(out, _prep_chain)
     _backfill_prep_chain_when_build_done(out, (PREVIEW_TABS,))
-    # Legacy step ids
+    # Legacy step ids (skill.* draft chain retired — popped via _REMOVED_STEP_IDS)
     if out.get("prepare") == "done" or out.get("prepare.context") == "done":
         _promote_to_done(out, PREPARE_CONTEXT)
     if out.get("design.system") == "done" or out.get("skill.design") == "done":
-        _promote_to_done(out, SKILL_DESIGN)
         _promote_to_done(out, PREPARE_CONTEXT)
-    if out.get("skill.adapt") == "done":
-        _promote_to_done(out, SKILL_ADAPT)
-    if out.get("skill.enrich") == "done":
-        _promote_to_done(out, SKILL_ENRICH)
-    if out.get("skill.pages") == "done":
-        _promote_to_done(out, SKILL_PAGES)
-    if out.get("skill.tokens") == "done":
-        _promote_to_done(out, SKILL_TOKENS)
     if out.get("lock.dimensions") == "done":
         _promote_to_done(out, LOCK_DIMENSIONS)
     if out.get("preview.tabs") == "done":
@@ -481,20 +458,10 @@ def set_step(
             LOCK_DIMENSIONS,
             PREPARE_CONTEXT,
             PREVIEW_TABS,
-            SKILL_ADAPT,
-            SKILL_DESIGN,
-            SKILL_ENRICH,
-            SKILL_PAGES,
-            SKILL_TOKENS,
         )
 
         for prep_step in (
             PREPARE_CONTEXT,
-            SKILL_DESIGN,
-            SKILL_ENRICH,
-            SKILL_ADAPT,
-            SKILL_PAGES,
-            SKILL_TOKENS,
             LOCK_DIMENSIONS,
             PREVIEW_TABS,
         ):

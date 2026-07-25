@@ -19,12 +19,14 @@ build:
 runtime:
   legacy_pipeline: false
 
-# ui-ux-pro-max 设计系统（skill.design / skill.adapt / skill.enrich）
-# 技能仓库须与流水线根目录「同级」，目录名固定为 ui-ux-pro-max-skill。
-# 默认自动探测顺序：uupm.skill_dir > 环境变量 UUPM_SKILL_DIR >
-#   <流水线根目录>/../ui-ux-pro-max-skill（当前布局即 .cursor/rules/ui-ux-pro-max-skill）。
-# 保持同级关系即可零配置命中；skill_dir 仅在放到非同级路径时才需显式指定。
+# ui-ux-pro-max：prepare.context 克隆/复制进每个产包工作区
+#   → .cursor/skills/ui-ux-pro-max/（真实文件，供 CLI / 桌面 / 网页 Agent）
+# 设计由 agent.design 主产（不再跑 skill.design～skill.tokens 草稿链）。
+# skill_git_url 默认官方仓；skill_git_ref 可钉 tag/branch/commit。
+# skill_dir / UUPM_SKILL_DIR 仅作离线 fallback 复制源（Agent 不依赖本机路径）。
 uupm:
+  skill_git_url: "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git"
+  skill_git_ref: ""
   skill_dir: ""
   integrations:
     enrich_domains: true

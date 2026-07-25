@@ -2,7 +2,7 @@
 
 V3 plan agent steps:
 
-* ``phase_agent_design.txt`` — agent.design（ui-ux-pro-max 审核/修复）
+* ``phase_agent_design.txt`` — agent.design（包内 skill 设计主产）
 * ``phase_agent_plan_spec.txt`` — agent.plan.spec（功能/产品文档 + Legal）
 * ``phase_agent_plan_pack.txt`` — agent.plan.pack (JSON ledgers only; no 视觉蓝图)
 * ``phase_h5_shell_programmer.txt`` — agent.shell
@@ -35,11 +35,11 @@ _PROGRAMMER_BRAIN_FOCUS = """   - `H5壳Pack约束.md`
    - `skill-input/distilled/shell/` · `skill-input/distilled/h5/`"""
 
 _DESIGN_AGENT_BRAIN_FOCUS = """   - `H5壳ui-ux-pro-max使用规范.md`
+   - `.cursor/skills/ui-ux-pro-max/SKILL.md` · `scripts/search.py`（包内克隆）
    - `design-system/*/MASTER.md` · `candidates.json`
-   - `skill-adapt/design-brief.md` · `design-tokens.css`
+   - `skill-adapt/design-brief.md` · `design-tokens.css` · `design-audit.md`
    - `skill-input/context.json`
-   - `skill-input/distilled/shared/`
-   - `.cursor/skills/ui-ux-pro-max/`（若已链接）"""
+   - `skill-input/distilled/shared/`"""
 
 _PM_UI_PLAN_BRAIN_FOCUS = """   - `H5壳Plan交付规范.md`
    - `H5壳功能文档深度标准.md`

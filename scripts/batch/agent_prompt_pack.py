@@ -55,10 +55,15 @@ MAIN_AGENT_SLOTS: tuple[AgentPromptSlot, ...] = (
         role_slug="build-agent-design",
         role_focus=_DESIGN_AGENT_BRAIN_FOCUS,
         builder_name="build_agent_design_phase",
-        prerequisites=("lock.dimensions done", "sync.distilled done"),
+        prerequisites=(
+            "prepare.context done",
+            ".cursor/skills/ui-ux-pro-max/scripts/search.py",
+            "lock.dimensions done",
+            "sync.distilled done",
+        ),
         deliverables=(
-            "design-system/*/MASTER.md (audited/repaired)",
-            "skill-adapt/design-audit.md",
+            "design-system/*/MASTER.md (+ stacks/briefs)",
+            "skill-adapt/* · design-audit.md",
         ),
     ),
     AgentPromptSlot(
@@ -315,7 +320,8 @@ def _format_web_agent_resume_md(
         f"- Runtime: `{runtime_display}`",
         f"- Prefix（代码前缀，≠ Bridge 名）: `{prefix_display}`",
         f"- Generated: `{generated_at}`",
-        "- 流水线 1–8 已完成（`prepare.context` → `sync.distilled`）——skill 设计产物为**草稿**",
+        "- 流水线脚本步已完成（`prepare.context` → `lock.dimensions` → `sync.distilled`）",
+        "- 技能已在包内：`.cursor/skills/ui-ux-pro-max/`（真实文件；**无**脚本设计草稿）",
         f"- 从下方步骤 1 起串行执行 **{len(MAIN_AGENT_SLOTS)} 个 Agent**；"
         "总表见 `skill-input/agent-runbook.md`",
         "",
@@ -325,7 +331,7 @@ def _format_web_agent_resume_md(
         "- 只读/写本根下文件；禁止出包",
         "- Preferred index: `skill-input/agent-spec-index.md` · "
         "`skill-input/agent-workspace-focus.md`",
-        "- 技能用法：`H5壳ui-ux-pro-max使用规范.md`（**步骤 1 `agent.design` 主责**）",
+        "- 技能用法：`H5壳ui-ux-pro-max使用规范.md`（**步骤 1 `agent.design` 主产设计**）",
         "",
         "## 执行顺序（严格串行）",
         "",
@@ -346,8 +352,8 @@ def _format_web_agent_resume_md(
         f"- Bridge 锁定（按 App 名，**禁止**用 prefix 派生）: "
         f"`{bridge}` / `{bridge_cb}`",
         "- Shell 无业务 UI；业务只在 `h5/`",
-        "- **`agent.design`**：审核/修复 MASTER（禁消费向 SaaS）；写出 "
-        "`skill-adapt/design-audit.md`",
+        "- **`agent.design`**：用包内 skill **主产** MASTER / briefs / tokens；写出 "
+        "`skill-adapt/design-audit.md`（禁消费向 SaaS）",
         "- 后续步骤默认信任 design-audit；Pack 只锁视觉，H5 做两阶段实现",
         "- H5 两阶段：先 `_preview/pages` HTML（FREEZE）→ 再移植 `h5/`；gate 只验 `h5/`",
         "- 禁止对照其他包 `output/` / `h5/` / `_preview/` / MASTER 当模板",

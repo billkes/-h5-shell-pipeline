@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from batch.config import BatchConfig
@@ -16,6 +18,15 @@ from batch.ui_compliance import IAP_SOURCE, copy_iap_spec_file
 
 CURSOR_UUPM_SKILL_REL = Path(".cursor/skills/ui-ux-pro-max")
 CURSOR_UUPM_SCRIPT_PREFIX = ".cursor/skills/ui-ux-pro-max/scripts/"
+DEFAULT_UUPM_SKILL_GIT_URL = (
+    "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git"
+)
+SIBLING_SKILL_NAMES: tuple[str, ...] = (
+    "brand",
+    "design-system",
+    "design",
+    "ui-styling",
+)
 
 # Closed corpus for H5 Agents — all copied into the package workspace root.
 # Do NOT include pipeline-only docs/rules/* (theme firewall, task-init, etc.).
@@ -49,132 +60,262 @@ H5_SNIPPETS_BRIDGE_REL = Path("data/static/h5_snippets/bridge")
 H5_SNIPPETS_LEGAL_REL = Path("data/static/h5_snippets/legal")
 
 
-def _ensure_symlink(link: Path, target: Path) -> None:
-    """Create or refresh ``link`` → ``target`` (idempotent).
+def _rm_path(path: Path) -> None:
+    if not path.exists() and not path.is_symlink():
+        return
+    if path.is_symlink() or path.is_file():
+        path.unlink(missing_ok=True)
+        return
+    shutil.rmtree(path)
 
-    Falls back to copying on Windows without symlink privileges so that
-    tests and local runs still produce usable skill files.
-    """
-    resolved = target.resolve()
-    if link.is_symlink():
+
+def _copytree_replace(src: Path, dest: Path) -> None:
+    """Copy ``src`` → ``dest`` as real files (never leave a symlink)."""
+    _rm_path(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(src, dest)
+
+
+def _skill_search_ready(skill_dir: Path) -> bool:
+    """True when skill is a real in-workspace tree (not an external symlink)."""
+    search = skill_dir / "scripts" / "search.py"
+    if not search.is_file():
+        return False
+    if skill_dir.is_symlink() or (skill_dir / "scripts").is_symlink():
+        return False
+    if (skill_dir / "data").is_symlink():
+        return False
+    return True
+
+
+def _uupm_git_settings(cfg: BatchConfig) -> tuple[str, str]:
+    """Return (git_url, git_ref). Empty ref → clone default branch."""
+    url = (getattr(cfg, "uupm_skill_git_url", "") or "").strip()
+    ref = (getattr(cfg, "uupm_skill_git_ref", "") or "").strip()
+    env_url = (os.environ.get("UUPM_SKILL_GIT_URL") or "").strip()
+    env_ref = (os.environ.get("UUPM_SKILL_GIT_REF") or "").strip()
+    if env_url:
+        url = env_url
+    if env_ref:
+        ref = env_ref
+    yaml_path = cfg.config_dir / "config.yaml"
+    if yaml_path.is_file() and (not url or not ref):
         try:
-            if link.resolve() == resolved:
-                return
-        except OSError:
+            import yaml
+
+            data = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+            uupm = data.get("uupm") if isinstance(data, dict) else None
+            if isinstance(uupm, dict):
+                if not url:
+                    url = str(uupm.get("skill_git_url") or "").strip()
+                if not ref:
+                    ref = str(uupm.get("skill_git_ref") or "").strip()
+        except Exception:
             pass
-        link.unlink()
-    elif link.exists():
-        if link.is_dir():
-            shutil.rmtree(link)
-        else:
-            link.unlink()
-    link.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        link.symlink_to(resolved, target_is_directory=resolved.is_dir())
-    except OSError:
-        if resolved.is_dir():
-            shutil.copytree(resolved, link)
-        else:
-            shutil.copy2(resolved, link)
+    if not url:
+        url = DEFAULT_UUPM_SKILL_GIT_URL
+    return url, ref
 
 
-def _cursor_uupm_skill_md(repo_root: Path | None) -> str:
+def _git_clone_skill_repo(url: str, ref: str, dest: Path) -> bool:
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    cmd = ["git", "clone", "--depth", "1"]
+    if ref:
+        cmd.extend(["--branch", ref])
+    cmd.extend([url, str(dest)])
+    proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    if proc.returncode == 0 and dest.is_dir():
+        return True
+    # Retry without --branch when ref is a commit SHA or missing remote branch.
+    if ref:
+        _rm_path(dest)
+        proc2 = subprocess.run(
+            ["git", "clone", url, str(dest)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc2.returncode != 0:
+            print(f"  >>> git clone 失败: {proc.stderr or proc.stdout or proc2.stderr}")
+            return False
+        chk = subprocess.run(
+            ["git", "-C", str(dest), "checkout", ref],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if chk.returncode != 0:
+            print(f"  >>> git checkout {ref} 失败: {chk.stderr or chk.stdout}")
+            return False
+        return True
+    print(f"  >>> git clone 失败: {proc.stderr or proc.stdout}")
+    return False
+
+
+def _skill_bundle_from_repo(repo_root: Path) -> Path | None:
+    """Prefer Claude skill bundle; fall back to src/ui-ux-pro-max package."""
+    claude = repo_root / ".claude" / "skills" / "ui-ux-pro-max"
+    if (claude / "scripts" / "search.py").is_file():
+        return claude
+    nested = repo_root / "src" / "ui-ux-pro-max"
+    if (nested / "scripts" / "search.py").is_file():
+        return nested
+    if (repo_root / "scripts" / "search.py").is_file():
+        return repo_root
+    return None
+
+
+def _cursor_uupm_skill_md(skill_dir: Path, repo_root: Path | None) -> str:
     """Render SKILL.md with workspace-relative script paths."""
-    source = (
-        (repo_root / ".claude/skills/ui-ux-pro-max/SKILL.md")
-        if repo_root is not None
-        else None
-    )
-    if source is not None and source.is_file():
+    source = skill_dir / "SKILL.md"
+    if not source.is_file() and repo_root is not None:
+        alt = repo_root / ".claude" / "skills" / "ui-ux-pro-max" / "SKILL.md"
+        if alt.is_file():
+            source = alt
+    if source.is_file():
         text = source.read_text(encoding="utf-8")
     else:
         text = (
             "---\n"
             "name: ui-ux-pro-max\n"
-            "description: UI/UX design intelligence (batch workspace symlink).\n"
+            "description: UI/UX design intelligence (vendored into app workspace).\n"
             "---\n\n"
             "# UI/UX Pro Max\n\n"
-            "Run search from this Flutter workspace root:\n\n"
+            "Run search from this app workspace root:\n\n"
         )
-    return text.replace(
+    for old in (
         "python3 skills/ui-ux-pro-max/scripts/",
+        "python3 .claude/skills/ui-ux-pro-max/scripts/",
+        "python .claude/skills/ui-ux-pro-max/scripts/",
+    ):
+        text = text.replace(old, f"python {CURSOR_UUPM_SCRIPT_PREFIX}")
+    text = text.replace(
         f"python3 {CURSOR_UUPM_SCRIPT_PREFIX}",
+        f"python {CURSOR_UUPM_SCRIPT_PREFIX}",
     )
+    return text
+
+
+def _materialize_uupm_from_bundle(
+    workspace: Path, bundle: Path, repo_root: Path | None
+) -> bool:
+    skill_dir = workspace / CURSOR_UUPM_SKILL_REL
+    _copytree_replace(bundle, skill_dir)
+    # If bundle was src/ui-ux-pro-max without SKILL.md, still write one.
+    (skill_dir / "SKILL.md").write_text(
+        _cursor_uupm_skill_md(skill_dir, repo_root),
+        encoding="utf-8",
+    )
+    return _skill_search_ready(skill_dir)
+
+
+def _copy_sibling_skills(workspace: Path, repo_root: Path) -> int:
+    skills_root = workspace / ".cursor" / "skills"
+    skills_root.mkdir(parents=True, exist_ok=True)
+    copied = 0
+    for name in SIBLING_SKILL_NAMES:
+        src = repo_root / ".claude" / "skills" / name
+        if not src.is_dir():
+            continue
+        _copytree_replace(src, skills_root / name)
+        copied += 1
+    return copied
 
 
 def ensure_workspace_skills(cfg: BatchConfig, workspace: Path) -> bool:
-    """Symlink ui-ux-pro-max + sibling skills into ``.cursor/skills/``."""
-    from batch.skill_resolve import integration_enabled, resolve_subskill_dir
+    """Vendor ui-ux-pro-max (+ optional siblings) as real files under ``.cursor/skills/``."""
+    from batch.skill_resolve import integration_enabled
 
     ok = ensure_cursor_uupm_skill(cfg, workspace)
+    if not ok:
+        return False
     if not integration_enabled(cfg, "sibling_skills_link"):
-        return ok
-
+        return True
+    # Siblings are copied during the same clone/copy pass inside ensure_cursor_uupm_skill
+    # when a repo root is available; if skill was already ready, try local repo once.
+    skill_dir = workspace / CURSOR_UUPM_SKILL_REL
+    if any((workspace / ".cursor" / "skills" / n).is_dir() for n in SIBLING_SKILL_NAMES):
+        return True
     try:
-        repo_root = None
-        from batch.uupm_design_system import resolve_uupm_skill_repo_root
+        from batch.skill_resolve import resolve_skill_repo_root
 
-        repo_root = resolve_uupm_skill_repo_root(cfg)
-    except Exception:
-        repo_root = None
-
-    skills_root = workspace / ".cursor" / "skills"
-    skills_root.mkdir(parents=True, exist_ok=True)
-    for name in ("brand", "design-system", "design", "ui-styling"):
-        src = resolve_subskill_dir(cfg, name)
-        if src is None:
-            continue
-        dest = skills_root / name
-        dest.mkdir(parents=True, exist_ok=True)
-        skill_md = src / "SKILL.md"
-        if skill_md.is_file():
-            _ensure_symlink(dest / "SKILL.md", skill_md)
-        for sub in ("scripts", "references"):
-            sub_src = src / sub
-            if sub_src.is_dir():
-                _ensure_symlink(dest / sub, sub_src)
-    _ = repo_root
-    print(">>> 已链接兄弟 skills → .cursor/skills/{brand,design-system,design,ui-styling}")
-    return ok
+        repo_root = resolve_skill_repo_root(cfg)
+    except RuntimeError:
+        return True
+    if repo_root is None:
+        return True
+    n = _copy_sibling_skills(workspace, repo_root)
+    if n:
+        print(
+            ">>> 已复制兄弟 skills → "
+            ".cursor/skills/{brand,design-system,design,ui-styling}"
+        )
+    _ = skill_dir
+    return True
 
 
 def ensure_cursor_uupm_skill(cfg: BatchConfig, workspace: Path) -> bool:
-    """Symlink central ui-ux-pro-max into ``.cursor/skills/`` for manual Cursor use."""
-    try:
-        from batch.uupm_design_system import (
-            resolve_uupm_package_dir,
-            resolve_uupm_skill_repo_root,
-        )
-    except ImportError:
-        return False
-
-    try:
-        package = resolve_uupm_package_dir(cfg)
-        repo_root = resolve_uupm_skill_repo_root(cfg)
-    except RuntimeError as exc:
-        print(f"  >>> 跳过 Cursor skill 链接: {exc}")
-        return False
+    """Clone/copy ui-ux-pro-max into the app workspace (real files, web-Agent safe)."""
+    from batch.skill_resolve import integration_enabled
 
     skill_dir = workspace / CURSOR_UUPM_SKILL_REL
-    skill_dir.parent.mkdir(parents=True, exist_ok=True)
+    if _skill_search_ready(skill_dir):
+        print(f">>> Cursor skill 已就绪（包内）: {CURSOR_UUPM_SKILL_REL}")
+        return True
 
-    for name in ("scripts", "data"):
-        src = package / name
-        if src.is_dir():
-            _ensure_symlink(skill_dir / name, src)
+    url, ref = _uupm_git_settings(cfg)
+    print(f">>> 克隆 ui-ux-pro-max-skill → 包内 {CURSOR_UUPM_SKILL_REL}")
+    print(f"    url={url}" + (f" ref={ref}" if ref else ""))
 
-    skill_md = skill_dir / "SKILL.md"
-    rendered = _cursor_uupm_skill_md(repo_root)
-    if skill_md.is_file():
-        try:
-            if skill_md.read_text(encoding="utf-8") == rendered:
-                print(f">>> Cursor skill 已就绪: {CURSOR_UUPM_SKILL_REL}")
+    with tempfile.TemporaryDirectory(prefix="uupm-skill-") as td:
+        clone_dest = Path(td) / "ui-ux-pro-max-skill"
+        if _git_clone_skill_repo(url, ref, clone_dest):
+            bundle = _skill_bundle_from_repo(clone_dest)
+            if bundle is not None and _materialize_uupm_from_bundle(
+                workspace, bundle, clone_dest
+            ):
+                if integration_enabled(cfg, "sibling_skills_link"):
+                    n = _copy_sibling_skills(workspace, clone_dest)
+                    if n:
+                        print(
+                            ">>> 已克隆兄弟 skills → "
+                            ".cursor/skills/{brand,design-system,design,ui-styling}"
+                        )
+                print(f">>> 已克隆 Cursor skill → {CURSOR_UUPM_SKILL_REL}")
                 return True
-        except OSError:
-            pass
-    skill_md.write_text(rendered, encoding="utf-8")
 
-    print(f">>> 已链接 Cursor skill → {CURSOR_UUPM_SKILL_REL}")
+    # Offline bootstrap: copy from local skill_dir / sibling checkout (vendoring only).
+    try:
+        from batch.skill_resolve import resolve_skill_repo_root, resolve_uupm_package_dir
+
+        repo_root = resolve_skill_repo_root(cfg)
+        package = resolve_uupm_package_dir(cfg)
+    except RuntimeError as exc:
+        print(f"  >>> 跳过 Cursor skill 克隆/复制: {exc}")
+        return False
+
+    bundle = None
+    if repo_root is not None:
+        bundle = _skill_bundle_from_repo(repo_root)
+    if (
+        bundle is None
+        and package is not None
+        and (package / "scripts" / "search.py").is_file()
+    ):
+        bundle = package
+    if bundle is None:
+        print("  >>> 找不到可复制的 ui-ux-pro-max skill bundle")
+        return False
+    if not _materialize_uupm_from_bundle(workspace, bundle, repo_root):
+        return False
+    if repo_root is not None and integration_enabled(cfg, "sibling_skills_link"):
+        n = _copy_sibling_skills(workspace, repo_root)
+        if n:
+            print(
+                ">>> 已复制兄弟 skills → "
+                ".cursor/skills/{brand,design-system,design,ui-styling}"
+            )
+    print(f">>> 已复制 Cursor skill（本地源）→ {CURSOR_UUPM_SKILL_REL}")
     return True
 
 

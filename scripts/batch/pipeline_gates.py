@@ -680,20 +680,23 @@ def verify_pm_ui_plan_outputs(
 
     master = find_design_system_master(workspace, app_name)
     if master is None or master.stat().st_size < 200:
-        _hard("缺少 design-system MASTER.md（design.system 步骤产物）")
+        _hard("缺少 design-system MASTER.md（agent.design 产物）")
+    design_audit = workspace / "skill-adapt" / "design-audit.md"
+    if not design_audit.is_file() or design_audit.stat().st_size < 40:
+        _hard("缺少 skill-adapt/design-audit.md（agent.design 必交）")
     pointer = workspace / "设计系统建议.md"
     if not pointer.is_file():
-        _soft("缺少 设计系统建议.md（skill.design 指针文件）")
+        _soft("缺少 设计系统建议.md（可选指针）")
     adapt_brief = workspace / "skill-adapt" / "design-brief.md"
     if not adapt_brief.is_file():
-        _soft("缺少 skill-adapt/design-brief.md（skill.adapt 产物）")
+        _soft("缺少 skill-adapt/design-brief.md（agent.design 产物）")
 
     ux_checklist = None
     for path in workspace.glob("design-system/*/ux-checklist.md"):
         ux_checklist = path
         break
     if ux_checklist is None or ux_checklist.stat().st_size < 80:
-        _soft("缺少 design-system/*/ux-checklist.md（skill.enrich 产物）")
+        _soft("缺少 design-system/*/ux-checklist.md（agent.design 域检索产物）")
 
     if h5_shell:
         from batch.screen_inventory import page_slugs_from_spec

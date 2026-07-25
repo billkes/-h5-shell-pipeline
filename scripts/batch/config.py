@@ -89,6 +89,8 @@ _YAML_ENV_MAP: dict[tuple[str, ...], str] = {
     ("git", "default_branch"): "GIT_DEFAULT_BRANCH",
     ("evolution", "cooldown_days"): "COOLDOWN_DAYS",
     ("uupm", "skill_dir"): "UUPM_SKILL_DIR",
+    ("uupm", "skill_git_url"): "UUPM_SKILL_GIT_URL",
+    ("uupm", "skill_git_ref"): "UUPM_SKILL_GIT_REF",
     ("agent_distilled", "enabled"): "AGENT_DISTILLED_ENABLED",
     ("agent_distilled", "source_dir"): "AGENT_DISTILLED_SOURCE",
     ("agent_distilled", "source_dir_win"): "AGENT_DISTILLED_SOURCE_WIN",
@@ -229,6 +231,8 @@ class BatchConfig:
     free_tier_default: int = 3
     free_publish_default: int = 2
     uupm_skill_dir: str = ""
+    uupm_skill_git_url: str = ""
+    uupm_skill_git_ref: str = ""
     uupm_integrations: dict[str, object] = field(default_factory=dict)
     design_gemini_api_key: str = ""
     xcode_bundle_id: str = "test.duckegg.ios"
@@ -428,6 +432,8 @@ class BatchConfig:
                 1, int(os.environ.get("FREE_PUBLISH_DEFAULT", "2"))
             ),
             uupm_skill_dir=os.environ.get("UUPM_SKILL_DIR", ""),
+            uupm_skill_git_url=os.environ.get("UUPM_SKILL_GIT_URL", ""),
+            uupm_skill_git_ref=os.environ.get("UUPM_SKILL_GIT_REF", ""),
             design_gemini_api_key=os.environ.get("DESIGN_GEMINI_API_KEY", ""),
             xcode_bundle_id=os.environ.get("XCODE_BUNDLE_ID", "test.duckegg.ios"),
             xcode_development_team=os.environ.get(

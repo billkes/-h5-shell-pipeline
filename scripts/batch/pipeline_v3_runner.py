@@ -288,7 +288,7 @@ class V3StepRunner:
             role_slug="build-agent-design",
             role_focus=_DESIGN_AGENT_BRAIN_FOCUS,
             prompt_builder="build_agent_design_phase",
-            log_title="Agent · Design (ui-ux-pro-max audit)",
+            log_title="Agent · Design (ui-ux-pro-max produce)",
             resume=resume,
         )
 

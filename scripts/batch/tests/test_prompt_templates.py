@@ -63,6 +63,9 @@ def test_v3_design_prompt_owns_uiux_audit() -> None:
     assert "H5壳ui-ux-pro-max使用规范.md" in text
     assert "SaaS" in text
     assert "Do **not** write `功能文档.md`" in text
+    assert ".cursor/skills/ui-ux-pro-max/scripts/search.py" in text
+    assert "--design-system --persist" in text
+    assert "design owner" in text.lower() or "Design owner" in text
 
 
 def test_v3_plan_pack_prompt_no_visual_blueprint() -> None:

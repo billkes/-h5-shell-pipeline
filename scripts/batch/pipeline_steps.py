@@ -49,8 +49,18 @@ ANALYZE = "dev.analyze"
 GIT_DEV = "git.dev"
 
 # Removed from V3_STEPS — kept only so migration can drop them from .build-state.json
+# skill.* draft chain retired: design is owned by agent.design (in-workspace skill).
 _REMOVED_STEP_IDS: frozenset[str] = frozenset(
-    {"dev.h5.gate", "native.check", AGENT_PLAN_DOCS}
+    {
+        "dev.h5.gate",
+        "native.check",
+        AGENT_PLAN_DOCS,
+        SKILL_DESIGN,
+        SKILL_ENRICH,
+        SKILL_ADAPT,
+        SKILL_PAGES,
+        SKILL_TOKENS,
+    }
 )
 
 # Legacy ids (migration / tests only)
@@ -67,11 +77,6 @@ DEV_GIT = GIT_DEV
 
 V3_STEPS: tuple[str, ...] = (
     PREPARE_CONTEXT,
-    SKILL_DESIGN,
-    SKILL_ENRICH,
-    SKILL_ADAPT,
-    SKILL_PAGES,
-    SKILL_TOKENS,
     LOCK_DIMENSIONS,
     SYNC_DISTILLED,
     AGENT_DESIGN,
@@ -94,17 +99,17 @@ _LEGACY_AGENT_STEP_IDS: frozenset[str] = frozenset(
 )
 
 STEP_LABELS: dict[str, str] = {
-    PREPARE_CONTEXT: "skill-input · 事实与防撞上下文",
-    SKILL_DESIGN: "ui-ux-pro-max · 设计系统生成",
-    SKILL_ENRICH: "skill.enrich · 多域 UX/图标/H5 brief",
-    SKILL_ADAPT: "skill-adapt · 候选选型与转换",
-    SKILL_PAGES: "skill.pages · 逐屏 override",
-    SKILL_TOKENS: "skill.tokens · 设计 Token 同步",
-    LOCK_DIMENSIONS: "锁维度 + 工程准备",
+    PREPARE_CONTEXT: "skill-input · 事实上下文 + 克隆包内 ui-ux-pro-max",
+    SKILL_DESIGN: "ui-ux-pro-max · 设计系统生成（legacy，已移除）",
+    SKILL_ENRICH: "skill.enrich · 多域 UX/图标/H5 brief（legacy，已移除）",
+    SKILL_ADAPT: "skill-adapt · 候选选型与转换（legacy，已移除）",
+    SKILL_PAGES: "skill.pages · 逐屏 override（legacy，已移除）",
+    SKILL_TOKENS: "skill.tokens · 设计 Token 同步（legacy，已移除）",
+    LOCK_DIMENSIONS: "锁维度 + 工程准备 + 预填 Agent prompts",
     SYNC_DISTILLED: "投影 agent-distilled → skill-input/distilled",
     PREVIEW_TABS: "Tab 明暗预览 · 静态 HTML",
     BUILD_AGENT: "Build Agent · 蓝图 + 实现（legacy 单次调用）",
-    AGENT_DESIGN: "Agent · ui-ux-pro-max 设计审核/修复",
+    AGENT_DESIGN: "Agent · ui-ux-pro-max 设计主产（包内 skill）",
     AGENT_PLAN_SPEC: "Agent · 功能/产品文档 + Legal",
     AGENT_PLAN_PACK: "Agent · 登记信息 + 视觉锁",
     AGENT_PLAN: "Agent · 蓝图与计划文档（legacy）",
@@ -148,11 +153,6 @@ STEP_TO_PHASE: dict[str, str] = {
 PHASE_STEPS: dict[str, tuple[str, ...]] = {
     PM_UI_PLAN_PHASE: (
         PREPARE_CONTEXT,
-        SKILL_DESIGN,
-        SKILL_ENRICH,
-        SKILL_ADAPT,
-        SKILL_PAGES,
-        SKILL_TOKENS,
         LOCK_DIMENSIONS,
         SYNC_DISTILLED,
         AGENT_DESIGN,

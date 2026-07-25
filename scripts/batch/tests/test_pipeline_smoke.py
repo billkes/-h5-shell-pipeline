@@ -54,13 +54,16 @@ def test_pipeline_steps_h5_swift() -> None:
     assert "agent.h5" in steps
     assert "build.agent" not in steps
     assert "preview.tabs" not in steps
+    assert steps.index("prepare.context") < steps.index("lock.dimensions")
+    assert steps.index("lock.dimensions") < steps.index("sync.distilled")
     assert steps.index("sync.distilled") < steps.index("agent.design")
     assert steps.index("agent.design") < steps.index("agent.plan.spec")
     assert steps.index("agent.plan.spec") < steps.index("agent.plan.pack")
     assert steps.index("agent.plan.pack") < steps.index("agent.shell")
     assert steps.index("agent.shell") < steps.index("agent.h5")
-    assert "skill.pages" in steps
-    assert "skill.tokens" in steps
+    assert "skill.design" not in steps
+    assert "skill.pages" not in steps
+    assert "skill.tokens" not in steps
     assert "dev.h5.build" in steps
     assert "dev.h5.gate" not in steps
     assert "native.check" not in steps

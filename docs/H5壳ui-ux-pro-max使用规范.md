@@ -7,12 +7,13 @@
 
 | 角色 | 职责 |
 |------|------|
-| **流水线脚本** `skill.design`～`skill.tokens` | 产出**草稿**设计系统（MASTER / candidates / stack / pages / tokens） |
-| **`agent.design`** | 读本规范 + CSV 主题，**审核并在不合格时重跑技能**；写出 `skill-adapt/design-audit.md` |
+| **流水线** `prepare.context` | 把技能**克隆/复制进本包** `.cursor/skills/ui-ux-pro-max/`（真实文件）；写 context / 规范语料 |
+| **`agent.design`** | **设计主产**：用包内 skill 选型并 `--persist`；写 briefs/tokens + `skill-adapt/design-audit.md` |
 | **后续 Agent** | 默认信任 design-audit；Pack 只锁视觉；H5 做两阶段实现 |
-| **薄 gate（脚本）** | 仅挡明显违规（如 style 名含 SaaS 仍落盘）——不替代 Agent 行业判断 |
+| **薄 gate（脚本）** | 仅挡明显违规（如缺 MASTER / 仍落成 SaaS 名）——不替代 Agent 行业判断 |
 
-**原则：** 行业匹配、Mobile 气质、是否 SaaS——由 **`agent.design`** 按主题判断；脚本不得假装覆盖所有赛道。
+**原则：** 第一枪由读过本规范的 **`agent.design`** 打出；流水线**不再**在 Agent 前跑 `skill.design`～`skill.tokens` 草稿链。  
+**原则：** Agent **只认包内** `.cursor/skills/ui-ux-pro-max/`，不依赖本机 `UUPM_SKILL_DIR` / 兄弟仓路径（兼容网页 Agent）。
 
 ## 2. 本包栈（禁止误用）
 
@@ -61,12 +62,12 @@
 - 把中文 CSV 原文塞进 BM25 query
 - 为「防撞」往 query 里加 `saas` / `dashboard productivity`（与本规范冲突）
 
-### 3.3 命令（Agent 重跑时）
+### 3.3 命令（`agent.design` 主产时）
 
-在本包工作区、技能已链到 `.cursor/skills/ui-ux-pro-max`（或流水线注入的 scripts）时：
+技能须已在本包根下（`prepare.context` 克隆/复制，**非**宿主机 symlink）：
 
 ```bash
-# 设计系统（行业 query + 项目名）
+# 设计系统（行业 query + 项目名）— 第一枪由 Agent 打出
 python .cursor/skills/ui-ux-pro-max/scripts/search.py "<行业 query>" --design-system --persist -p "<AppName>"
 
 # Mobile UX 补强
@@ -77,9 +78,9 @@ python .cursor/skills/ui-ux-pro-max/scripts/search.py "touch 44px mobile-first s
 python .cursor/skills/ui-ux-pro-max/scripts/search.py "composition script setup router" --stack vue -n 8
 ```
 
-Windows 可用 `python` 代替 `python3`。路径以本包内实际 skill 位置为准。
+Windows 用 `python`；路径固定为包内相对路径，网页 Agent 同此命令。
 
-## 4. 选型硬规则（Agent 审核清单）
+## 4. 选型硬规则（Agent 自检清单）
 
 对 `design-system/*/MASTER.md` 与 `candidates.json` 逐条核对：
 
@@ -106,29 +107,30 @@ Windows 可用 `python` 代替 `python3`。路径以本包内实际 skill 位置
 
 ## 5. 何时必须重跑技能
 
-出现任一则 **`agent.design` 必须修复**（写出 `skill-adapt/design-audit.md` 的 `REPAIRED`）后再进入后续步骤：
+出现任一则 **`agent.design` 不得交付**（须换 query 重跑技能，`design-audit` 记 `REPAIRED`）：
 
 - MASTER Style / Category 命中 §4.1  
 - 色板 + 字体 + pattern 与同批兄弟包明显同构（通用灰蓝 Inter + App Store landing）  
 - 主题是美妆/健康/亲子等，MASTER 却是企业/Productivity/SaaS 气质  
-- `stack-html-tailwind.md` 只有桌面 container/max-width 指引、完全无 touch / mobile-first 条目，且实现已偏桌面布局  
+- `stack-html-tailwind.md` 只有桌面 container/max-width 指引、完全无 touch / mobile-first 条目  
 
-重跑后同步：
+交付前必须齐：
 
-- `design-system/<slug>/MASTER.md`（及需要时的 `candidates.json`）  
-- 必要时请流水线或本地再跑 `skill.adapt` / `skill.tokens` 相关产物；至少更新 `skill-adapt/design-brief.md` 与色板叙述，使与新 MASTER 一致  
-- 写出 `skill-adapt/design-audit.md`（`PASS` / `REPAIRED`）  
+- `design-system/<slug>/MASTER.md`（及 `candidates.json` / 双栈文件）  
+- `skill-adapt/design-brief.md` + tokens，与 MASTER 一致  
+- `skill-adapt/design-audit.md`（`PASS` / `REPAIRED`）  
 - 之后由 `agent.plan.pack` 写 `本包视觉锁.json`
 
 ## 6. 与后续 Agent 步骤的关系
 
 | 步骤 | 与本规范 |
 |------|----------|
-| `agent.design` | **主责**：审核 skill 草稿；不合格则按 §3–§5 修复；写出 `skill-adapt/design-audit.md` |
-| `agent.plan.spec` | 功能文档 UX 描述对齐**已审核** MASTER，不发明第二套皮肤 |
-| `agent.plan.pack` | **只锁**视觉：按 design-audit + MASTER 写 `本包视觉锁.json`（不再重跑技能） |
+| `prepare.context` | 克隆技能进 `.cursor/skills/ui-ux-pro-max/`（真实文件） |
+| `agent.design` | **主产**设计系统 + design-audit（打第一枪） |
+| `agent.plan.spec` | 功能文档 UX 对齐本包 MASTER，不发明第二套皮肤 |
+| `agent.plan.pack` | **只锁**视觉：按 design-audit + MASTER 写 `本包视觉锁.json` |
 | `agent.shell` | 原生栈指南可分读；H5 皮肤仍以本包 design-system 为准 |
-| `agent.h5` | **两阶段**：先 `_preview/pages/*.html`（HTML+Tailwind），再固定栈移植进 `h5/`（见 §8）；默认信任 design-audit |
+| `agent.h5` | **两阶段**：先 `_preview/pages/*.html`（HTML+Tailwind），再固定栈移植进 `h5/`（见 §8） |
 
 ## 7. 交付前自检（设计）
 
@@ -211,4 +213,4 @@ _preview/
 ## 导航
 
 - 上级：`H5壳Vite工程规范.md` · `H5壳Pack约束.md` · `H5壳H5实现检查清单.md`  
-- 技能说明：工作区内 `.cursor/skills/ui-ux-pro-max`（若已链接）
+- 技能说明：工作区内 `.cursor/skills/ui-ux-pro-max/`（`prepare.context` 克隆的真实文件）

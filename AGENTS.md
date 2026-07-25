@@ -37,14 +37,14 @@
 ## Pipeline V3 Steps（H5）
 
 ```
-prepare.context → skill.design → skill.enrich → skill.adapt → skill.pages → skill.tokens
-→ lock.dimensions → sync.distilled → agent.design → agent.plan.spec → agent.plan.pack → agent.shell → agent.h5
+prepare.context → lock.dimensions → sync.distilled
+→ agent.design → agent.plan.spec → agent.plan.pack → agent.shell → agent.h5
 → plan.gate → dev.h5.build → git.plan → git.dev
 ```
 
 Flutter 壳额外：`dev.pubget` → `dev.analyze`
 
-技能仓库产物见 `docs/rules/H5壳包开发规则.md` §技能仓库产物清单；`config.yaml` → `uupm.integrations` 可逐项关闭。
+`prepare.context` 将 ui-ux-pro-max **克隆进包内** `.cursor/skills/ui-ux-pro-max/`；设计由 **`agent.design`** 主产（无脚本草稿链）。详见 `docs/H5壳ui-ux-pro-max使用规范.md`、`docs/rules/H5壳包开发规则.md`。
 
 ## 目录结构
 
