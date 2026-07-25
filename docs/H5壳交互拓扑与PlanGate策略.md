@@ -121,15 +121,15 @@ flowchart LR
 ./run.sh task-ready
 
 # 默认软 gate 续跑
-./run.sh --name Buildioo
+./run.sh --name {AppName}
 
 # 严格模式（调试规格）
-STRICT_PLAN_GATE=1 ./run.sh --name Buildioo
+STRICT_PLAN_GATE=1 ./run.sh --name {AppName}
 ```
 
 ---
 
-## 7. Buildioo 预期
+## 7. L2 验收预期
 
 - topology：**T6_checklist_session** 或 **T8_reminder_ring**（按 seed 批内去重）
 - productFlow：会话清单 / 提醒环句式，**非** chip browse 模板

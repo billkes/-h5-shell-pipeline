@@ -3552,6 +3552,48 @@
           "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Lensoo-Swift\\Lensoo"
         }
       ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-25_15-52-40-62920",
+      "startedAt": "2026-07-25 15:52:40",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Lensoo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Lensoo",
+          "packType": "h5_swift_shell",
+          "container": "Lensoo-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Lensoo-Swift\\Lensoo"
+        }
+      ]
+    },
+    {
+      "batchId": "TEST-0717",
+      "stamp": "2026-07-25_16-11-14-55112",
+      "startedAt": "2026-07-25 16:11:14",
+      "hostname": "DESKTOP-KS4SGU9",
+      "taskCsv": "E:\\projects\\h5-shell-pipeline\\task.csv",
+      "outputDir": "E:\\projects\\h5-shell-pipeline\\output",
+      "reportsDir": "E:\\projects\\h5-shell-pipeline\\output\\_reports",
+      "apps": [
+        "Lensoo"
+      ],
+      "runner": "batch-python",
+      "appWorkspaces": [
+        {
+          "name": "Lensoo",
+          "packType": "h5_swift_shell",
+          "container": "Lensoo-Swift",
+          "workspace": "E:\\projects\\h5-shell-pipeline\\output\\Lensoo-Swift\\Lensoo"
+        }
+      ]
     }
   ]
 }

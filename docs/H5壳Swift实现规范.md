@@ -2,7 +2,7 @@
 
 > 本文面向 `h5_swift_shell` 的 Swift Programmer。在 `h5_flutter_shell` 文档已覆盖的通用约定基础上，补充 iOS Swift WKWebView 壳的锁定实现细节。
 > 
-> 本规范基于 `Prepoo-Swift`（标准英文命名、集中式 `Bridge/`、`WKScriptMessageHandler`）与 `Mockoo-Swift`（德国 persona 混淆前缀、`nested_role_leaf`、iframe URL scheme 拦截）两个工程抽象。
+> 本规范基于 `examples/standard/`（标准英文命名、集中式 `Bridge/`、`WKScriptMessageHandler`）与 `examples/german_persona/`（德国 persona 混淆前缀、`nested_role_leaf`、iframe URL scheme 拦截）两个工程抽象。
 
 ---
 
@@ -58,7 +58,7 @@
 - File Vault / Permission Manager / IAP Manager
 - 模块目录（如 `Bridge/`、`Modules/` 或 `{prefix}_module_a/{prefix}_module_a_bay/` 等）
 
-参考实现见 `data/static/templates/swift_shell/examples/standard/`（Prepoo 风格）与 `examples/german_persona/`（Mockoo 风格文档）。
+参考实现见 `data/static/templates/swift_shell/examples/standard/`（标准风格）与 `examples/german_persona/`（德国 persona 风格文档）。
 
 ---
 
@@ -120,12 +120,12 @@ webView = WKWebView(frame: .zero, configuration: config)
 | `custom URL scheme intercept (app-bridge://)` | `decidePolicyFor navigationAction` 拦截 `app-bridge://` query；取消导航；解析 `callbackId/action/data` |
 | `postMessage + CustomEvent bridgeReady` | WKScriptMessageHandler 为主路径；注入脚本在 bootstrap 末尾 `dispatchEvent(new CustomEvent('bridgeReady'))` |
 
-### 4.2 方式 A 示例：WKScriptMessageHandler（Prepoo 风格）
+### 4.2 方式 A 示例：WKScriptMessageHandler（standard 风格）
 
 H5 → Native：
 
 ```javascript
-window.webkit.messageHandlers.prepBridge.postMessage({
+window.webkit.messageHandlers.appBridge.postMessage({
     id: 'cb_1',
     action: 'pickImage',
     payload: { source: 'camera' }
@@ -149,12 +149,12 @@ Native → H5：
 
 ```swift
 func sendSuccess(id: String, data: [String: Any]) {
-    let script = "window.prepBridgeCallback('\(id)', { data: \(json(data)) })"
+    let script = "window.appBridgeCallback('\(id)', { data: \(json(data)) })"
     webView.evaluateJavaScript(script, completionHandler: nil)
 }
 ```
 
-### 4.2 方式 B：iframe URL Scheme 拦截（Mockoo 风格）
+### 4.2 方式 B：iframe URL Scheme 拦截（german_persona 风格）
 
 H5 → Native：
 
@@ -246,7 +246,7 @@ Native → H5 同样走 `evaluateJavaScript("window.__xucKitReply(callbackId, en
 { "error": { "code": "PERMISSION_DENIED", "message": "No camera permission" } }
 ```
 
-> 注意：Mockoo 实际使用 `{ data, error }` 顶层字段；Prepoo 使用 `{ id, data }` / `{ id, error }`。新包须与 `bridgeEnvelope` 维度及 H5 `bridge.ts` 对齐。
+> 注意：german_persona 模板实际使用 `{ data, error }` 顶层字段；standard 模板使用 `{ id, data }` / `{ id, error }`。新包须与 `bridgeEnvelope` 维度及 H5 `bridge.ts` 对齐。
 
 ---
 
@@ -265,14 +265,14 @@ Native → H5 同样走 `evaluateJavaScript("window.__xucKitReply(callbackId, en
 ### 5.2 注册（WKURLSchemeHandler 卡面）
 
 ```swift
-config.setURLSchemeHandler(assetHandler, forURLScheme: "prepoo-asset")
+config.setURLSchemeHandler(assetHandler, forURLScheme: "{appslug}-asset")
 ```
 
 ### 5.3 H5 使用
 
 ```html
-<img src="prepoo-asset://local/selfies/week_1.jpg">
-<audio src="prepoo-asset://local/voice/note_1.m4a">
+<img src="{appslug}-asset://local/selfies/week_1.jpg">
+<audio src="{appslug}-asset://local/voice/note_1.m4a">
 ```
 
 ### 5.4 Native 解析
@@ -357,7 +357,7 @@ Swift 侧负责**容器级**去浏览器味，H5 侧负责**交互级**去风味
 | 链接长按菜单 | H5 侧 `oncontextmenu="return false"` |
 | 输入框拼写红线 | H5 侧 `spellcheck="false" autocorrect="off"` |
 
-> 警告：Mockoo 使用 method swizzle 修改 `WKWebView.init` 与 `UIView.addGestureRecognizer`，具有侵入性，可能影响全部 WKWebView 实例。新包若使用 swizzle，须评估范围。
+> 警告：german_persona 模板使用 method swizzle 修改 `WKWebView.init` 与 `UIView.addGestureRecognizer`，具有侵入性，可能影响全部 WKWebView 实例。新包若使用 swizzle，须评估范围。
 
 ---
 
@@ -389,7 +389,7 @@ private var fulfilledTransactions: Set<String> {
 }
 ```
 
-> 当前 Prepoo / Mockoo 均**未做服务端 receipt 验证**，仅本地去重。若业务需要服务端验单，须额外实现。
+> 当前厂包模板均**未做服务端 receipt 验证**，仅本地去重。若业务需要服务端验单，须额外实现。
 
 ---
 
@@ -427,19 +427,19 @@ rg 'pickImage|takePhoto|startRecord|playAudio' <工作区>/h5/src --glob '*.{ts,
 
 ```json
 {
-  "appName": "Prepoo",
+  "appName": "{AppName}",
   "bundleId": "test.duckegg.ios",
-  "appSlug": "prepoo",
+  "appSlug": "{appslug}",
   "packType": "h5_swift_shell",
   "shellRuntime": "swift",
-  "dartCodePrefix": "erbpv",
-  "bundleEntryPath": "h5_site/prepoo/index.html",
-  "h5SiteRoot": "h5_site/prepoo/",
+  "dartCodePrefix": "xxxxx",
+  "bundleEntryPath": "h5_site/{appslug}/index.html",
+  "h5SiteRoot": "h5_site/{appslug}/",
   "h5SiteEntry": "index.html",
-  "h5EntryUrl": "https://test.darin.beauty/prepoo/",
+  "h5EntryUrl": "https://example.com/{appslug}/",
   "h5EntryUrlDev": "http://127.0.0.1:5174/",
-  "h5EntryUrlProd": "https://test.darin.beauty/prepoo/",
-  "assetScheme": "prepoo-asset",
+  "h5EntryUrlProd": "https://example.com/{appslug}/",
+  "assetScheme": "{appslug}-asset",
   "bridgeScheme": "app-bridge",
   "bridgeDeckSelections": { ... },
   "bridgeCapabilities": ["shellReady", "pickImage", "purchase", ...]
@@ -453,7 +453,7 @@ rg 'pickImage|takePhoto|startRecord|playAudio' <工作区>/h5/src --glob '*.{ts,
 ### 11.1 标准风格（美国人 / 英国人 / 中国人）
 
 - 目录语义化：`Bridge/`、`Modules/WebContent/`、`Modules/WebView/`
-- 文件/类名 PascalCase：`WebBridgeHandler.swift`、`PrepooWebViewDeflavor.swift`
+- 文件/类名 PascalCase：`WebBridgeHandler.swift`、`{AppName}WebViewDeflavor.swift`
 
 ### 11.2 德国 persona 风格
 

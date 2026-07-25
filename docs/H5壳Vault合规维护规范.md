@@ -14,7 +14,7 @@
 | 弹层规范 | 《H5壳Legal弹层规范.md》 |
 | 去风味规范 | 《H5去风味规范.md》 |
 
-**禁止**只改单个 output 包（如 Pawioo）而不更新 gate / `cursor_rules.py`。
+**禁止**只改单个 output 包而不更新 gate / `cursor_rules.py`。
 
 **去风味**：Legal 滚动 **禁止** web 滚动条（`display: block`）；仅 mask 渐变。美化不得突破《H5去风味规范.md》§4。
 
@@ -22,7 +22,7 @@
 
 ## Seed / 品牌图必须在 iOS 工程内（20260721）
 
-> Palioy / Somaoo：图只在对话目录或 workspace 外 → 工程内「看不见」/ 运行蓝底问号。
+> 踩坑：图只在对话目录或 workspace 外 → 工程内「看不见」/ 运行蓝底问号。
 
 | 必须 | 禁止 |
 |------|------|

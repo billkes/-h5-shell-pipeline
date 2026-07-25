@@ -1,6 +1,6 @@
 # H5 壳 Objective-C 实现规范
 
-> 面向 `h5_oc_shell` 的 OC Programmer。参考实现：**Hathoo-OC**（已抽取为 `data/static/templates/oc_shell/`）。
+> 面向 `h5_oc_shell` 的 OC Programmer。参考实现：`data/static/templates/oc_shell/`。
 
 ---
 

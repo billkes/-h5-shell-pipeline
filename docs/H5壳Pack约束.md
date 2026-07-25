@@ -52,7 +52,7 @@ Screen Inventory：**4–5 个 H5 tab-root**（bottom TabBar）；wizard、`#/le
 
 ---
 
-## 产包后共性（Palioy / Somaoo · 20260721）
+## 产包后共性（20260721）
 
 > 产包兜底只保证能跑；**加工收尾**须过下列共性。细则落对应规范 + 加工 checklist 编组，禁止旁路另开一轮。
 

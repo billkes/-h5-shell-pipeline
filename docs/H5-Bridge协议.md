@@ -99,7 +99,7 @@ PM 在 `功能文档.md` 勾选本包启用子集；未启用能力 **不得** �
 | `bridgeCallStyle` | `WKScriptMessageHandler.postMessage(JSON)`（默认）或 `iframe URL scheme` 拦截 |
 | `bridgeCallbackStyle` | `evaluateJavaScript(callbackId(data))` |
 | `bridgeEnvelope` | 与 H5 约定一致（minimal 或版本化） |
-| `mediaServe` | `WKURLSchemeHandler local vault`（自定义 scheme，如 `prepoo-asset://`） |
+| `mediaServe` | `WKURLSchemeHandler local vault`（自定义 scheme，如 `{appslug}-asset://`） |
 | `bridgeErrorCode` | 与 H5 约定一致（string enum 或 gRPC 风格） |
 | `bridgeInjectTiming` | `WKUserScript atDocumentStart` |
 

@@ -46,4 +46,4 @@ hash-router 包中 **Legal / Filter / Bottom Sheet / Dialog** 等带 scrim 的�
 
 ## 参考实现
 
-Pawioo：`paaow_core.js` `OVERLAY_PATHS` / `router.dispatch` · `paaow_render.js` `renderLegal` / `renderFilter`
+hash-router 包：core 模块中 `OVERLAY_PATHS` / `router.dispatch`；render 模块中 `renderLegal` / `renderFilter`（路径与命名随本包 prefix，禁止照抄他包文件名）。
