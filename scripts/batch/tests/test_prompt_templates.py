@@ -10,6 +10,7 @@ PROMPTS = ROOT / "prompts" / "h5_shell"
 REQUIRED_H5_SHELL_PROMPTS = [
     "phase_h5_shell_programmer.txt",
     "phase_h5_implementer.txt",
+    "phase_agent_design.txt",
     "phase_agent_plan_spec.txt",
     "phase_agent_plan_pack.txt",
     "phase_plan_gate_repair.txt",
@@ -56,14 +57,23 @@ def test_product_doc_format_excludes_removed_sections() -> None:
     assert "演示路线" not in template
 
 
+def test_v3_design_prompt_owns_uiux_audit() -> None:
+    text = (PROMPTS / "phase_agent_design.txt").read_text(encoding="utf-8")
+    assert "design-audit.md" in text
+    assert "H5壳ui-ux-pro-max使用规范.md" in text
+    assert "SaaS" in text
+    assert "Do **not** write `功能文档.md`" in text
+
+
 def test_v3_plan_pack_prompt_no_visual_blueprint() -> None:
     text = (PROMPTS / "phase_agent_plan_pack.txt").read_text(encoding="utf-8")
     assert "本包登记信息.json" in text
     assert "本包视觉锁.json" in text
     assert "Do **not** write `视觉蓝图.md`" in text
     assert "Deliverables (write both JSON" in text
-    assert "H5壳ui-ux-pro-max使用规范.md" in text
-    assert "audit" in text.lower() or "SaaS" in text
+    assert "design-audit.md" in text
+    assert "agent.design" in text
+    assert "re-run ui-ux-pro-max" in text or "do **not** re-run" in text.lower()
 
 
 def test_v3_shell_prompt_is_runtime_unified() -> None:

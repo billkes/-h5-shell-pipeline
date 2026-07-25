@@ -38,7 +38,7 @@
 
 ```
 prepare.context → skill.design → skill.enrich → skill.adapt → skill.pages → skill.tokens
-→ lock.dimensions → sync.distilled → agent.plan.spec → agent.plan.pack → agent.shell → agent.h5
+→ lock.dimensions → sync.distilled → agent.design → agent.plan.spec → agent.plan.pack → agent.shell → agent.h5
 → plan.gate → dev.h5.build → git.plan → git.dev
 ```
 

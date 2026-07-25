@@ -2,6 +2,7 @@
 
 V3 plan agent steps:
 
+* ``phase_agent_design.txt`` — agent.design（ui-ux-pro-max 审核/修复）
 * ``phase_agent_plan_spec.txt`` — agent.plan.spec（功能/产品文档 + Legal）
 * ``phase_agent_plan_pack.txt`` — agent.plan.pack (JSON ledgers only; no 视觉蓝图)
 * ``phase_h5_shell_programmer.txt`` — agent.shell
@@ -33,11 +34,18 @@ _PROGRAMMER_BRAIN_FOCUS = """   - `H5壳Pack约束.md`
    - `skill-input/distilled/shared/`
    - `skill-input/distilled/shell/` · `skill-input/distilled/h5/`"""
 
+_DESIGN_AGENT_BRAIN_FOCUS = """   - `H5壳ui-ux-pro-max使用规范.md`
+   - `design-system/*/MASTER.md` · `candidates.json`
+   - `skill-adapt/design-brief.md` · `design-tokens.css`
+   - `skill-input/context.json`
+   - `skill-input/distilled/shared/`
+   - `.cursor/skills/ui-ux-pro-max/`（若已链接）"""
+
 _PM_UI_PLAN_BRAIN_FOCUS = """   - `H5壳Plan交付规范.md`
    - `H5壳功能文档深度标准.md`
    - `H5壳交互拓扑与PlanGate策略.md`
    - `H5壳产品文档格式.md`
-   - `H5壳ui-ux-pro-max使用规范.md`
+   - `H5壳ui-ux-pro-max使用规范.md`（设计已由 agent.design 审核）
    - `法律协议规范.md`
    - `H5壳Flutter产品要求.md`
    - `H5壳Pack约束.md` · `H5壳Micro-UI Kit约束.md`
@@ -71,6 +79,25 @@ class PromptBuilder:
         return (
             f"**RESUME:** 上次 {focus} 超时/失败 — "
             "仅补全缺失或过短文件，勿重写已完整的产物。"
+        )
+
+    def _build_agent_design_body(
+        self,
+        *,
+        name: str,
+        desc: str,
+        resume: bool = False,
+        **_: object,
+    ) -> str:
+        return self._fmt(
+            self._load("phase_agent_design.txt"),
+            {
+                "name": name,
+                "desc": desc,
+                "RESUME_BLOCK": self._resume_block_plan(
+                    resume=resume, focus="agent.design"
+                ),
+            },
         )
 
     def _build_agent_plan_spec_body(
@@ -178,6 +205,9 @@ class PromptBuilder:
                 "BRIDGE_CALLBACK": f"{app_lower}BridgeCallback",
             },
         )
+
+    def build_agent_design_phase(self, *, resume: bool = False, **kwargs: object) -> str:
+        return self._build_agent_design_body(resume=resume, **kwargs)  # type: ignore[arg-type]
 
     def build_agent_plan_spec_phase(self, *, resume: bool = False, **kwargs: object) -> str:
         return self._build_agent_plan_spec_body(resume=resume, **kwargs)  # type: ignore[arg-type]

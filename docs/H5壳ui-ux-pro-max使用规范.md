@@ -8,10 +8,11 @@
 | 角色 | 职责 |
 |------|------|
 | **流水线脚本** `skill.design`～`skill.tokens` | 产出**草稿**设计系统（MASTER / candidates / stack / pages / tokens） |
-| **Agent** | 读本规范 + CSV 主题，**审核并在不合格时重跑技能**，再写登记/实现 |
+| **`agent.design`** | 读本规范 + CSV 主题，**审核并在不合格时重跑技能**；写出 `skill-adapt/design-audit.md` |
+| **后续 Agent** | 默认信任 design-audit；Pack 只锁视觉；H5 做两阶段实现 |
 | **薄 gate（脚本）** | 仅挡明显违规（如 style 名含 SaaS 仍落盘）——不替代 Agent 行业判断 |
 
-**原则：** 行业匹配、Mobile 气质、是否 SaaS——由 Agent 按主题判断；脚本不得假装覆盖所有赛道。
+**原则：** 行业匹配、Mobile 气质、是否 SaaS——由 **`agent.design`** 按主题判断；脚本不得假装覆盖所有赛道。
 
 ## 2. 本包栈（禁止误用）
 
@@ -105,7 +106,7 @@ Windows 可用 `python` 代替 `python3`。路径以本包内实际 skill 位置
 
 ## 5. 何时必须重跑技能
 
-出现任一则 Agent **先修设计再继续**（Plan Pack 写视觉锁之前；H5 实现之前再确认一次）：
+出现任一则 **`agent.design` 必须修复**（写出 `skill-adapt/design-audit.md` 的 `REPAIRED`）后再进入后续步骤：
 
 - MASTER Style / Category 命中 §4.1  
 - 色板 + 字体 + pattern 与同批兄弟包明显同构（通用灰蓝 Inter + App Store landing）  
@@ -116,24 +117,27 @@ Windows 可用 `python` 代替 `python3`。路径以本包内实际 skill 位置
 
 - `design-system/<slug>/MASTER.md`（及需要时的 `candidates.json`）  
 - 必要时请流水线或本地再跑 `skill.adapt` / `skill.tokens` 相关产物；至少更新 `skill-adapt/design-brief.md` 与色板叙述，使与新 MASTER 一致  
-- 再写 `本包视觉锁.json`
+- 写出 `skill-adapt/design-audit.md`（`PASS` / `REPAIRED`）  
+- 之后由 `agent.plan.pack` 写 `本包视觉锁.json`
 
 ## 6. 与后续 Agent 步骤的关系
 
 | 步骤 | 与本规范 |
 |------|----------|
-| `agent.plan.spec` | 功能文档 UX 描述对齐本包 MASTER，不发明第二套皮肤 |
-| `agent.plan.pack` | **审核** skill 草稿；不合格则按 §3–§5 修复；再写 `本包视觉锁.json` |
+| `agent.design` | **主责**：审核 skill 草稿；不合格则按 §3–§5 修复；写出 `skill-adapt/design-audit.md` |
+| `agent.plan.spec` | 功能文档 UX 描述对齐**已审核** MASTER，不发明第二套皮肤 |
+| `agent.plan.pack` | **只锁**视觉：按 design-audit + MASTER 写 `本包视觉锁.json`（不再重跑技能） |
 | `agent.shell` | 原生栈指南可分读；H5 皮肤仍以本包 design-system 为准 |
-| `agent.h5` | **两阶段**：先 `_preview/pages/*.html`（HTML+Tailwind），再固定栈移植进 `h5/`（见 §8） |
+| `agent.h5` | **两阶段**：先 `_preview/pages/*.html`（HTML+Tailwind），再固定栈移植进 `h5/`（见 §8）；默认信任 design-audit |
 
 ## 7. 交付前自检（设计）
 
+- [ ] `skill-adapt/design-audit.md` 已写（`PASS` / `REPAIRED`）  
 - [ ] Query / Category / Style 符合本包主题，非默认 SaaS  
 - [ ] Style 偏 Mobile 或明确触控友好  
 - [ ] 仅使用 vue + html-tailwind 作为 H5 实现栈  
 - [ ] 未引用其他包 design-system / h5 皮肤  
-- [ ] `本包视觉锁.json` 色板与 MASTER 一致  
+- [ ] `本包视觉锁.json` 色板与 MASTER 一致（由 Pack 落锁）  
 
 ## 8. H5 两阶段实现（HTML 预览 → Vue 移植）
 

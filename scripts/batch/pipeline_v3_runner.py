@@ -20,6 +20,7 @@ from batch.pack_type import h5_shell_runtime, is_flutter_runtime, is_h5_shell, i
 from batch.pipeline_gates import verify_pm_ui_plan_outputs, write_plan_gate_report
 from batch.pipeline_steps import (
     ANALYZE,
+    AGENT_DESIGN,
     AGENT_H5,
     AGENT_PLAN_PACK,
     AGENT_PLAN_SPEC,
@@ -276,6 +277,19 @@ class V3StepRunner:
             ctx.workspace,
             prompt,
             log_section_title=f"{ctx.name} · {log_title}",
+        )
+
+    def _step_agent_design(self, ctx: AppContext, *, resume: bool = False) -> bool:
+        from batch.prompts import _DESIGN_AGENT_BRAIN_FOCUS
+
+        return self._run_plan_agent_step(
+            ctx,
+            phase="design",
+            role_slug="build-agent-design",
+            role_focus=_DESIGN_AGENT_BRAIN_FOCUS,
+            prompt_builder="build_agent_design_phase",
+            log_title="Agent · Design (ui-ux-pro-max audit)",
+            resume=resume,
         )
 
     def _step_agent_plan_spec(self, ctx: AppContext, *, resume: bool = False) -> bool:
@@ -879,6 +893,7 @@ _STEP_HANDLERS = {
     SKILL_TOKENS: V3StepRunner._step_skill_tokens,
     LOCK_DIMENSIONS: V3StepRunner._step_lock_dimensions,
     SYNC_DISTILLED: V3StepRunner._step_sync_distilled,
+    AGENT_DESIGN: V3StepRunner._step_agent_design,
     AGENT_PLAN_SPEC: V3StepRunner._step_agent_plan_spec,
     AGENT_PLAN_PACK: V3StepRunner._step_agent_plan_pack,
     AGENT_SHELL: V3StepRunner._step_agent_shell,

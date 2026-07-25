@@ -20,6 +20,7 @@ PREVIEW_TABS = "preview.tabs"
 
 BUILD_AGENT = "build.agent"
 
+AGENT_DESIGN = "agent.design"
 AGENT_PLAN_SPEC = "agent.plan.spec"
 AGENT_PLAN_PACK = "agent.plan.pack"
 
@@ -30,7 +31,11 @@ AGENT_IMPL = "agent.impl"
 AGENT_SHELL = "agent.shell"
 AGENT_H5 = "agent.h5"
 
-PLAN_AGENT_STEPS: tuple[str, ...] = (AGENT_PLAN_SPEC, AGENT_PLAN_PACK)
+PLAN_AGENT_STEPS: tuple[str, ...] = (
+    AGENT_DESIGN,
+    AGENT_PLAN_SPEC,
+    AGENT_PLAN_PACK,
+)
 
 # Legacy aliases
 PREPARE = PREPARE_CONTEXT
@@ -69,6 +74,7 @@ V3_STEPS: tuple[str, ...] = (
     SKILL_TOKENS,
     LOCK_DIMENSIONS,
     SYNC_DISTILLED,
+    AGENT_DESIGN,
     AGENT_PLAN_SPEC,
     AGENT_PLAN_PACK,
     AGENT_SHELL,
@@ -98,6 +104,7 @@ STEP_LABELS: dict[str, str] = {
     SYNC_DISTILLED: "投影 agent-distilled → skill-input/distilled",
     PREVIEW_TABS: "Tab 明暗预览 · 静态 HTML",
     BUILD_AGENT: "Build Agent · 蓝图 + 实现（legacy 单次调用）",
+    AGENT_DESIGN: "Agent · ui-ux-pro-max 设计审核/修复",
     AGENT_PLAN_SPEC: "Agent · 功能/产品文档 + Legal",
     AGENT_PLAN_PACK: "Agent · 登记信息 + 视觉锁",
     AGENT_PLAN: "Agent · 蓝图与计划文档（legacy）",
@@ -124,6 +131,7 @@ STEP_TO_PHASE: dict[str, str] = {
     SYNC_DISTILLED: PM_UI_PLAN_PHASE,
     PREVIEW_TABS: PM_UI_PLAN_PHASE,
     BUILD_AGENT: PM_UI_PLAN_PHASE,
+    AGENT_DESIGN: PM_UI_PLAN_PHASE,
     AGENT_PLAN_SPEC: PM_UI_PLAN_PHASE,
     AGENT_PLAN_PACK: PM_UI_PLAN_PHASE,
     AGENT_PLAN: PM_UI_PLAN_PHASE,
@@ -147,6 +155,7 @@ PHASE_STEPS: dict[str, tuple[str, ...]] = {
         SKILL_TOKENS,
         LOCK_DIMENSIONS,
         SYNC_DISTILLED,
+        AGENT_DESIGN,
         AGENT_PLAN_SPEC,
         AGENT_PLAN_PACK,
         AGENT_SHELL,
@@ -232,9 +241,10 @@ def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
         "sync.distilled": SYNC_DISTILLED,
         "agent.distilled": SYNC_DISTILLED,
         "preview.tabs": PREVIEW_TABS,
-        "build.agent": AGENT_PLAN_SPEC,
+        "build.agent": AGENT_DESIGN,
         "plan.agent": AGENT_PLAN_SPEC,
         "dev.agent": AGENT_PLAN_SPEC,
+        "agent.design": AGENT_DESIGN,
         "agent.plan": AGENT_PLAN_SPEC,
         "agent.plan.spec": AGENT_PLAN_SPEC,
         "agent.plan.docs": AGENT_PLAN_SPEC,

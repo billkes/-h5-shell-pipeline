@@ -8,14 +8,18 @@ ${RESUME_BLOCK}
 - CSV 全称: ${CSV_FULL_NAME}
 - Description: ${desc}
 
+### Prerequisite
+- `agent.design` done: `skill-adapt/design-audit.md` exists (`PASS` / `REPAIRED`). Align UX copy to that MASTER — do not invent a second skin.
+
 ### Required Reading (read FIRST)
 1. `skill-input/agent-spec-index.md`
 2. `skill-input/agent-workspace-focus.md`
-3. `H5壳Plan交付规范.md` — Deliverable 1) `功能文档.md`（含中文产品概述）
-4. `H5壳功能文档深度标准.md` · `H5壳交互拓扑与PlanGate策略.md` · `H5壳产品文档格式.md`
-5. `法律协议规范.md`
-6. 《${PRODUCT_REQ_DOC}》
-7. Required reading and tools may only use paths under this workspace root. Paths outside the app root are out of scope.
+3. `skill-adapt/design-audit.md` · indexed `design-system/*/MASTER.md`
+4. `H5壳Plan交付规范.md` — Deliverable 1) `功能文档.md`（含中文产品概述）
+5. `H5壳功能文档深度标准.md` · `H5壳交互拓扑与PlanGate策略.md` · `H5壳产品文档格式.md`
+6. `法律协议规范.md`
+7. 《${PRODUCT_REQ_DOC}》
+8. Required reading and tools may only use paths under this workspace root. Paths outside the app root are out of scope.
 
 ### Deliverable 1) `功能文档.md` — **single merged spec** (English + 中文产品概述)
 

@@ -1,6 +1,6 @@
-"""Pre-fill the four main Agent prompts after lock.dimensions.
+"""Pre-fill the main Agent prompts after lock.dimensions.
 
-Writes exactly four filled prompt files under ``skill-input/agent-prompts/``
+Writes filled prompt files under ``skill-input/agent-prompts/``
 plus a runbook (outside that folder) that marks execution order.
 Runtime Agent steps still re-fill prompts.
 """
@@ -15,6 +15,7 @@ from typing import Any, Callable
 
 from batch.agent_spec_index import prepare_agent_prompt_files
 from batch.pipeline_steps import (
+    AGENT_DESIGN,
     AGENT_H5,
     AGENT_PLAN_PACK,
     AGENT_PLAN_SPEC,
@@ -23,6 +24,7 @@ from batch.pipeline_steps import (
 )
 from batch.prompts import (
     PromptBuilder,
+    _DESIGN_AGENT_BRAIN_FOCUS,
     _PM_UI_PLAN_BRAIN_FOCUS,
     _PROGRAMMER_BRAIN_FOCUS,
 )
@@ -48,12 +50,25 @@ class AgentPromptSlot:
 MAIN_AGENT_SLOTS: tuple[AgentPromptSlot, ...] = (
     AgentPromptSlot(
         seq=1,
+        step_id=AGENT_DESIGN,
+        phase="design",
+        role_slug="build-agent-design",
+        role_focus=_DESIGN_AGENT_BRAIN_FOCUS,
+        builder_name="build_agent_design_phase",
+        prerequisites=("lock.dimensions done", "sync.distilled done"),
+        deliverables=(
+            "design-system/*/MASTER.md (audited/repaired)",
+            "skill-adapt/design-audit.md",
+        ),
+    ),
+    AgentPromptSlot(
+        seq=2,
         step_id=AGENT_PLAN_SPEC,
         phase="plan_spec",
         role_slug="build-agent-plan-spec",
         role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
         builder_name="build_agent_plan_spec_phase",
-        prerequisites=("lock.dimensions done", "sync.distilled done"),
+        prerequisites=(f"{AGENT_DESIGN} done", "skill-adapt/design-audit.md"),
         deliverables=(
             "功能文档.md",
             "{name} Privacy Agreement.md",
@@ -61,7 +76,7 @@ MAIN_AGENT_SLOTS: tuple[AgentPromptSlot, ...] = (
         ),
     ),
     AgentPromptSlot(
-        seq=2,
+        seq=3,
         step_id=AGENT_PLAN_PACK,
         phase="plan_pack",
         role_slug="build-agent-plan-pack",
@@ -71,7 +86,7 @@ MAIN_AGENT_SLOTS: tuple[AgentPromptSlot, ...] = (
         deliverables=("本包登记信息.json", "本包视觉锁.json"),
     ),
     AgentPromptSlot(
-        seq=3,
+        seq=4,
         step_id=AGENT_SHELL,
         phase="shell",
         role_slug="build-agent-shell",
@@ -85,7 +100,7 @@ MAIN_AGENT_SLOTS: tuple[AgentPromptSlot, ...] = (
         deliverables=("native / Flutter shell + Bridge",),
     ),
     AgentPromptSlot(
-        seq=4,
+        seq=5,
         step_id=AGENT_H5,
         phase="h5",
         role_slug="build-agent-h5",
@@ -109,7 +124,7 @@ def _header(*, seq: int, step_id: str, app_name: str, pack_type: str) -> str:
 
 
 def _clear_agent_prompts_dir(out_dir: Path) -> None:
-    """Keep agent-prompts/ containing only the four filled prompts."""
+    """Keep agent-prompts/ containing only the filled main Agent prompts."""
     if not out_dir.is_dir():
         return
     for path in out_dir.iterdir():
@@ -126,7 +141,7 @@ def write_agent_prompt_pack(
     pack_type: str,
     resume: bool = False,
 ) -> dict[str, Any]:
-    """Fill and write the four main Agent prompts + runbook. Returns runbook dict."""
+    """Fill and write the main Agent prompts + runbook. Returns runbook dict."""
     workspace = workspace.expanduser().resolve()
     out_dir = workspace / AGENT_PROMPTS_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -227,7 +242,8 @@ def _format_runbook_md(runbook: dict[str, Any]) -> str:
             "## Files",
             "",
             f"- `{RUNBOOK_JSON_REL}` — machine-readable order",
-            f"- `{AGENT_PROMPTS_DIR}/0N-<step>.md` — filled prompts (exactly 4)",
+            f"- `{AGENT_PROMPTS_DIR}/0N-<step>.md` — filled prompts "
+            f"(exactly {len(MAIN_AGENT_SLOTS)})",
             f"- `{WEB_AGENT_RESUME_MD_REL}` — web Agent resume (written at sync.distilled)",
             "",
         ]
@@ -300,7 +316,8 @@ def _format_web_agent_resume_md(
         f"- Prefix（代码前缀，≠ Bridge 名）: `{prefix_display}`",
         f"- Generated: `{generated_at}`",
         "- 流水线 1–8 已完成（`prepare.context` → `sync.distilled`）——skill 设计产物为**草稿**",
-        "- 从下方步骤 1 起串行执行四个 Agent；总表见 `skill-input/agent-runbook.md`",
+        f"- 从下方步骤 1 起串行执行 **{len(MAIN_AGENT_SLOTS)} 个 Agent**；"
+        "总表见 `skill-input/agent-runbook.md`",
         "",
         "## 工作区",
         "",
@@ -308,7 +325,7 @@ def _format_web_agent_resume_md(
         "- 只读/写本根下文件；禁止出包",
         "- Preferred index: `skill-input/agent-spec-index.md` · "
         "`skill-input/agent-workspace-focus.md`",
-        "- 技能用法：`H5壳ui-ux-pro-max使用规范.md`（Plan Pack / H5 必读；禁 SaaS、偏 Mobile）",
+        "- 技能用法：`H5壳ui-ux-pro-max使用规范.md`（**步骤 1 `agent.design` 主责**）",
         "",
         "## 执行顺序（严格串行）",
         "",
@@ -329,17 +346,18 @@ def _format_web_agent_resume_md(
         f"- Bridge 锁定（按 App 名，**禁止**用 prefix 派生）: "
         f"`{bridge}` / `{bridge_cb}`",
         "- Shell 无业务 UI；业务只在 `h5/`",
-        "- `design-system/` / `skill-adapt/`：默认不改；**Plan Pack / H5 按 "
-        "`H5壳ui-ux-pro-max使用规范.md` 审核后可修复**（禁消费向 SaaS 落锁）",
+        "- **`agent.design`**：审核/修复 MASTER（禁消费向 SaaS）；写出 "
+        "`skill-adapt/design-audit.md`",
+        "- 后续步骤默认信任 design-audit；Pack 只锁视觉，H5 做两阶段实现",
         "- H5 两阶段：先 `_preview/pages` HTML（FREEZE）→ 再移植 `h5/`；gate 只验 `h5/`",
         "- 禁止对照其他包 `output/` / `h5/` / `_preview/` / MASTER 当模板",
         "- 不编辑 `h5_site/`（部署产物由流水线 `dev.h5.build` 生成）",
         "- 若缺少 `产包计划.md`：跳过该文件，以 `功能文档.md` + 登记 JSON 为准",
         "- H5 用户可见文案：English；浏览器 DEV 须接 `browserMock`",
         "",
-        "## 四步之后",
+        "## Agent 全部完成后",
         "",
-        "- **默认**：四个 Agent 做完即停，交回原流水线续跑 "
+        f"- **默认**：{len(MAIN_AGENT_SLOTS)} 个 Agent 做完即停，交回原流水线续跑 "
         "`plan.gate` → `dev.h5.build` → `git.plan` / `git.dev`",
         "- 仅当用户明确说「继续到可 build」时：在 `h5/` 内修到可 "
         "`npm run build:deploy`；仍不改流水线代码与步骤",
@@ -348,7 +366,8 @@ def _format_web_agent_resume_md(
         "",
         "```text",
         f"请打开并严格遵循 @{WEB_AGENT_RESUME_MD_REL}。",
-        "从「执行顺序」步骤 1 串行做到步骤 4；每步验收后再继续。",
+        f"从「执行顺序」步骤 1 串行做到步骤 {len(MAIN_AGENT_SLOTS)}；每步验收后再继续。",
+        "先做 agent.design（设计审核），再 plan/shell/h5。",
         "工作区仅限本包根目录；Bridge 名勿用代码前缀派生。",
         "```",
         "",

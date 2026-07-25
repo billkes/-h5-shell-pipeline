@@ -100,7 +100,7 @@ Do **not** invent Legal / Plaza polish blocks here — follow checklist + dedica
 ### Required Reading (after Surface Depth)
 1. `skill-input/agent-spec-index.md` — includes **front-loaded Welcome/Tab1 Scene Brief excerpts**
 2. `skill-input/agent-workspace-focus.md`
-3. `H5壳ui-ux-pro-max使用规范.md` — if MASTER is SaaS / non-Mobile for this theme, **stop and repair design** before writing `h5/`
+3. `H5壳ui-ux-pro-max使用规范.md` §8 — two-phase HTML→Vue; design already audited by `agent.design` (`skill-adapt/design-audit.md`). Only if MASTER is **catastrophically** still SaaS / non-Mobile vs theme: **stop and report** (do not silent-rewrite design mid-H5).
 4. `H5壳H5实现检查清单.md` · `H5壳Vite工程规范.md` · 《H5-Bridge协议.md》(§5 通道命名 LOCKED)
 5. Skill UI sources (do **not** invent a parallel kit; do **not** clone other packs' `h5/`):
    - `design-system/*/stack-vue.md`

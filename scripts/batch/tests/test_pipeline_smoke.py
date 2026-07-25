@@ -46,6 +46,7 @@ def test_pipeline_steps_h5_swift() -> None:
     from batch.pipeline_steps import steps_for_run
 
     steps = steps_for_run(pack_type="h5_swift_shell")
+    assert "agent.design" in steps
     assert "agent.plan.spec" in steps
     assert "agent.plan.docs" not in steps
     assert "agent.plan.pack" in steps
@@ -53,6 +54,8 @@ def test_pipeline_steps_h5_swift() -> None:
     assert "agent.h5" in steps
     assert "build.agent" not in steps
     assert "preview.tabs" not in steps
+    assert steps.index("sync.distilled") < steps.index("agent.design")
+    assert steps.index("agent.design") < steps.index("agent.plan.spec")
     assert steps.index("agent.plan.spec") < steps.index("agent.plan.pack")
     assert steps.index("agent.plan.pack") < steps.index("agent.shell")
     assert steps.index("agent.shell") < steps.index("agent.h5")

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Literal
 
 AgentPhase = Literal[
+    "design",
     "plan",
     "plan_spec",
     "plan_docs",
@@ -29,6 +30,11 @@ H5_BUILD_REPAIR_BRIEF_REL = "skill-input/h5-build-repair-brief.md"
 WORKSPACE_SCOPE_LINE = (
     "Required reading and tools may only use paths under this workspace root. "
     "Paths outside the app root are out of scope."
+)
+
+_DESIGN_NORM_DOCS: tuple[str, ...] = (
+    "H5壳ui-ux-pro-max使用规范.md",
+    "H5壳Pack约束.md",
 )
 
 _PLAN_NORM_DOCS: tuple[str, ...] = (
@@ -120,6 +126,7 @@ def _collect_skill_adapt_paths(workspace: Path) -> list[str]:
     out: list[str] = []
     for rel in (
         "skill-adapt/design-brief.md",
+        "skill-adapt/design-audit.md",
         "skill-adapt/ambient-canvas-brief.md",
         "skill-adapt/selected-designer.json",
         "skill-adapt/selected-candidate.json",
@@ -279,6 +286,7 @@ def _collect_html_page_preview_paths(workspace: Path) -> list[str]:
 
 def _norm_docs_for_phase(phase: AgentPhase) -> list[str]:
     mapping = {
+        "design": _DESIGN_NORM_DOCS,
         "plan": _PLAN_NORM_DOCS,
         "plan_spec": (
             *_PLAN_NORM_DOCS,
@@ -421,24 +429,35 @@ def write_agent_spec_index(
     lines.extend(_section("Norm docs", norm_hits))
     lines.extend(_section("Pack locks (JSON / generated)", _collect_pack_json_paths(workspace)))
 
-    if phase in ("plan", "plan_spec", "plan_docs", "plan_pack", "preview", "repair"):
+    if phase in (
+        "design",
+        "plan",
+        "plan_spec",
+        "plan_docs",
+        "plan_pack",
+        "preview",
+        "repair",
+    ):
         lines.extend(_section("skill.adapt", _collect_skill_adapt_paths(workspace)))
         lines.extend(
             _section("design-system", _collect_design_system_paths(workspace, app_name))
         )
-        lines.extend(_section("skill.enrich", _collect_enrich_paths(workspace, app_name)))
-        lines.extend(
-            _section(
-                "skill.pages / per-route specs",
-                _collect_page_paths(workspace, app_name),
+        if phase != "design":
+            lines.extend(
+                _section("skill.enrich", _collect_enrich_paths(workspace, app_name))
             )
-        )
-        kit_ids = _collect_required_kit_ids(workspace, pack_type)
-        if kit_ids:
-            lines.extend(["## Required component kit ids", ""])
-            for cid in kit_ids:
-                lines.append(f"- `{cid}`")
-            lines.append("")
+            lines.extend(
+                _section(
+                    "skill.pages / per-route specs",
+                    _collect_page_paths(workspace, app_name),
+                )
+            )
+            kit_ids = _collect_required_kit_ids(workspace, pack_type)
+            if kit_ids:
+                lines.extend(["## Required component kit ids", ""])
+                for cid in kit_ids:
+                    lines.append(f"- `{cid}`")
+                lines.append("")
 
     if phase in ("plan", "plan_spec", "plan_pack", "h5", "preview"):
         lines.extend(
