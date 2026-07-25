@@ -358,6 +358,8 @@ class V3StepRunner:
     def _step_sync_distilled(self, ctx: AppContext) -> bool:
         """Project global-brain agent-distilled → skill-input/distilled/."""
         from batch.agent_distilled import DISTILLED_REL, copy_agent_distilled
+        from batch.agent_spec_index import write_agent_workspace_focus
+        from batch.prompts import _PM_UI_PLAN_BRAIN_FOCUS
 
         if not is_h5_shell(ctx.pack_type):
             return True
@@ -371,6 +373,12 @@ class V3StepRunner:
         else:
             get_run_log().detail(
                 f"sync.distilled → {n} files under {DISTILLED_REL}/"
+            )
+            # Refresh focus so review snapshots list projected files.
+            write_agent_workspace_focus(
+                ctx.workspace,
+                role_slug="build-agent-plan-spec",
+                role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
             )
         return True
 

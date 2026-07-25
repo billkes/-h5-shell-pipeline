@@ -284,9 +284,15 @@ def write_agent_workspace_focus(
     role_focus: str,
 ) -> Path:
     """Write in-workspace role reading list (no external brain / recall roots)."""
+    from batch.agent_distilled import distilled_focus_file_lines
+
     workspace = workspace.expanduser().resolve()
     out_path = workspace / WORKSPACE_FOCUS_REL
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    prefer = role_focus.strip()
+    projected = distilled_focus_file_lines(workspace, role_slug=role_slug)
+    if projected:
+        prefer = prefer + "\n" + "\n".join(projected)
     body = "\n".join(
         [
             "# Workspace reading scope",
@@ -296,7 +302,7 @@ def write_agent_workspace_focus(
             WORKSPACE_SCOPE_LINE,
             "",
             "Prefer these workspace docs for this role:",
-            role_focus.strip(),
+            prefer,
             "",
             "Also available: package `.cursor/rules/*.mdc` (written into this workspace).",
             "",

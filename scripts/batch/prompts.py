@@ -17,6 +17,7 @@ from pathlib import Path
 from batch.config import BatchConfig
 
 # Written to skill-input/agent-workspace-focus.md (in-package reading list).
+# Distilled paths are under skill-input/distilled/ after sync.distilled.
 _PROGRAMMER_BRAIN_FOCUS = """   - `H5壳Pack约束.md`
    - `H5-Bridge协议.md`
    - `H5壳启动闪屏规范.md`
@@ -27,7 +28,9 @@ _PROGRAMMER_BRAIN_FOCUS = """   - `H5壳Pack约束.md`
    - `H5壳Legal弹层规范.md` · `H5壳广场页规范.md` · `H5去风味规范.md`
    - `命名混淆规则.md` · `编程人设风格.md`
    - `data/static/h5_snippets/bridge/` (browser mock)
-   - `data/static/h5_snippets/legal/legalLinks.ts` (openLegal runtime branch)"""
+   - `data/static/h5_snippets/legal/legalLinks.ts` (openLegal runtime branch)
+   - `skill-input/distilled/shared/`
+   - `skill-input/distilled/shell/` · `skill-input/distilled/h5/`"""
 
 _PM_UI_PLAN_BRAIN_FOCUS = """   - `H5壳Plan交付规范.md`
    - `H5壳功能文档深度标准.md`
@@ -35,8 +38,9 @@ _PM_UI_PLAN_BRAIN_FOCUS = """   - `H5壳Plan交付规范.md`
    - `H5壳产品文档格式.md`
    - `法律协议规范.md`
    - `H5壳Flutter产品要求.md`
-   - `H5壳Pack约束.md` · `H5壳Micro-UI Kit约束.md`"""
-
+   - `H5壳Pack约束.md` · `H5壳Micro-UI Kit约束.md`
+   - `skill-input/distilled/shared/`
+   - `skill-input/distilled/plan/`"""
 
 class PromptBuilder:
     """Load and fill V3 prompt templates (path-index style; no prose injection)."""

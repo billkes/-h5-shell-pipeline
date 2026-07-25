@@ -122,3 +122,33 @@ def test_copy_missing_source_writes_skipped_manifest(tmp_path: Path) -> None:
     assert result["skipped"] is True
     assert (workspace / DISTILLED_MANIFEST_REL).is_file()
     assert not (workspace / DISTILLED_REL).exists()
+
+
+def test_distilled_focus_file_lines_by_role(tmp_path: Path) -> None:
+    from batch.agent_distilled import distilled_focus_file_lines
+
+    root = tmp_path / DISTILLED_REL
+    (root / "shared").mkdir(parents=True)
+    (root / "plan").mkdir()
+    (root / "shell").mkdir()
+    (root / "h5").mkdir()
+    (root / "shared" / "a.md").write_text("# a\n", encoding="utf-8")
+    (root / "plan" / "b.md").write_text("# b\n", encoding="utf-8")
+    (root / "shell" / "c.md").write_text("# c\n", encoding="utf-8")
+    (root / "h5" / "d.md").write_text("# d\n", encoding="utf-8")
+
+    plan_lines = distilled_focus_file_lines(
+        tmp_path, role_slug="build-agent-plan-spec"
+    )
+    assert any("shared/a.md" in x for x in plan_lines)
+    assert any("plan/b.md" in x for x in plan_lines)
+    assert not any("shell/c.md" in x for x in plan_lines)
+
+    shell_lines = distilled_focus_file_lines(
+        tmp_path, role_slug="build-agent-shell"
+    )
+    assert any("shell/c.md" in x for x in shell_lines)
+    assert not any("plan/b.md" in x for x in shell_lines)
+
+    h5_lines = distilled_focus_file_lines(tmp_path, role_slug="build-agent-h5")
+    assert any("h5/d.md" in x for x in h5_lines)

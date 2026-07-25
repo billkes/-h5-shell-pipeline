@@ -80,12 +80,19 @@ def test_workspace_focus_lists_are_in_package_only() -> None:
     assert "docs/rules" not in _PM_UI_PLAN_BRAIN_FOCUS
     assert "global-brain" not in _PM_UI_PLAN_BRAIN_FOCUS
     assert "法律协议规范.md" in _PM_UI_PLAN_BRAIN_FOCUS
+    assert "skill-input/distilled/shared/" in _PM_UI_PLAN_BRAIN_FOCUS
+    assert "skill-input/distilled/plan/" in _PM_UI_PLAN_BRAIN_FOCUS
     assert "01_tech_common" not in _PROGRAMMER_BRAIN_FOCUS
     assert "H5-Bridge协议.md" in _PROGRAMMER_BRAIN_FOCUS
     assert "global-brain" not in _PROGRAMMER_BRAIN_FOCUS
+    assert "skill-input/distilled/shell/" in _PROGRAMMER_BRAIN_FOCUS
+    assert "skill-input/distilled/h5/" in _PROGRAMMER_BRAIN_FOCUS
 
 
 def test_write_agent_workspace_focus_is_workspace_scoped(tmp_path: Path) -> None:
+    distilled = tmp_path / "skill-input" / "distilled" / "shared"
+    distilled.mkdir(parents=True)
+    (distilled / "splash-handoff.md").write_text("# splash\n", encoding="utf-8")
     path = write_agent_workspace_focus(
         tmp_path,
         role_slug="build-agent-plan-spec",
@@ -98,6 +105,7 @@ def test_write_agent_workspace_focus_is_workspace_scoped(tmp_path: Path) -> None
     assert "global-brain" not in text
     assert "Agent brain focus" not in text
     assert "whitelisted" not in text
+    assert "skill-input/distilled/shared/splash-handoff.md" in text
     legacy = (tmp_path / "skill-input" / "agent-brain-focus.md").read_text(encoding="utf-8")
     assert "agent-workspace-focus.md" in legacy
 

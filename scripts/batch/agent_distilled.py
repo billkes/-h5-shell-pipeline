@@ -32,6 +32,42 @@ DISTILLED_MANIFEST_REL = "skill-input/distilled-manifest.json"
 # Role trees only — skip human-only README / MANIFEST (may mention brain paths).
 _COPY_SUBDIRS: tuple[str, ...] = ("shared", "plan", "shell", "h5")
 
+# role_slug → distilled subdirs (always include shared when present).
+_ROLE_DISTILLED_SUBDIRS: dict[str, tuple[str, ...]] = {
+    "build-agent-plan-spec": ("shared", "plan"),
+    "build-agent-plan-pack": ("shared", "plan"),
+    "build-agent-plan": ("shared", "plan"),
+    "build-agent-shell": ("shared", "shell"),
+    "build-agent-h5": ("shared", "h5"),
+}
+
+
+def distilled_focus_file_lines(
+    workspace: Path,
+    *,
+    role_slug: str,
+) -> list[str]:
+    """Bullet lines for projected ``.md`` files under skill-input/distilled/.
+
+    Empty when sync.distilled has not run or source was skipped.
+    """
+    root = workspace.expanduser().resolve() / DISTILLED_REL
+    if not root.is_dir():
+        return []
+    subdirs = _ROLE_DISTILLED_SUBDIRS.get(
+        role_slug.strip(),
+        ("shared", "plan", "shell", "h5"),
+    )
+    lines: list[str] = []
+    for sub in subdirs:
+        folder = root / sub
+        if not folder.is_dir():
+            continue
+        for path in sorted(folder.glob("*.md")):
+            rel = f"{DISTILLED_REL}/{sub}/{path.name}".replace("\\", "/")
+            lines.append(f"   - `{rel}`")
+    return lines
+
 
 def platform_source_dir(cfg: BatchConfig, *, platform: str | None = None) -> str:
     """Pick win/mac absolute path for the current (or given) platform."""
