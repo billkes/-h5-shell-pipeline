@@ -125,7 +125,7 @@ Windows 可用 `python` 代替 `python3`。路径以本包内实际 skill 位置
 | `agent.plan.spec` | 功能文档 UX 描述对齐本包 MASTER，不发明第二套皮肤 |
 | `agent.plan.pack` | **审核** skill 草稿；不合格则按 §3–§5 修复；再写 `本包视觉锁.json` |
 | `agent.shell` | 原生栈指南可分读；H5 皮肤仍以本包 design-system 为准 |
-| `agent.h5` | 严格按本包 MASTER + pages + stack-vue/html-tailwind 实现；发现 SaaS/跨包皮则停写并先修设计 |
+| `agent.h5` | **两阶段**：先 `_preview/pages/*.html`（HTML+Tailwind），再固定栈移植进 `h5/`（见 §8） |
 
 ## 7. 交付前自检（设计）
 
@@ -135,7 +135,76 @@ Windows 可用 `python` 代替 `python3`。路径以本包内实际 skill 位置
 - [ ] 未引用其他包 design-system / h5 皮肤  
 - [ ] `本包视觉锁.json` 色板与 MASTER 一致  
 
+## 8. H5 两阶段实现（HTML 预览 → Vue 移植）
+
+技能默认 **Web (HTML) + Tailwind**。H5 Agent 用单页 HTML 把视觉细节钉死，再用固定 Vue 栈「抄」进完整工程——**扩展现有 `_preview/`**，不开第三套预览目录。
+
+### 8.1 目录（扩展 `_preview/`，勿另起体系）
+
+与流水线 `preview.tabs`（`{slug}-tabs-preview.html` · `preview-canonical.md`）并存：
+
+```text
+_preview/
+├── preview-canonical.md          # 已有：Tab / 色 / 字（流水线）
+├── {slug}-tabs-preview.html      # 已有：Tab 明暗总览（流水线）
+└── pages/                        # Agent 新增：逐屏 HTML 视觉契约
+    ├── INDEX.md                  # 路由 → 文件映射 + 必做/选做标记
+    ├── FREEZE.md                 # 冻结声明（移植开始后生效）
+    ├── welcome.html
+    ├── hub.html                  # Tab1 / 主区
+    ├── export.html               # 若 Inventory 有导出/主工作流面
+    └── ….html                    # 其他已列路由
+```
+
+文件名：hash 路由去 `#/`，`/` → `-`（如 `#/day/detail` → `day-detail.html`）。
+
+### 8.2 阶段 A — 逐页 HTML 快速预览
+
+1. 以 **功能文档 Screen Inventory** 为页面清单（禁止加 Inventory 外路由）。  
+2. 每页一个独立 HTML：mobile-first（建议 viewport 宽 ~390）、Tailwind（CDN 或与 MASTER token 一致的内联 CSS 变量）、Phosphor 可用简易 SVG/CDN **仅预览**。  
+3. 视觉对齐：`MASTER.md` · `pages/<screen>.md` · `design-tokens` / 本包视觉锁色板。  
+4. **写** `_preview/pages/INDEX.md`（路由、文件、必做/选做、对应 `pages/*.md`）。  
+5. **必做（MUST）**：Welcome、Tab1/Hub、Primary Workflow / Export 面（Inventory 有则做）。  
+6. **应做（SHOULD）**：其余 bottom tab-root。  
+7. **可做（MAY）**：stack/overlay（day、capture、store…）；Legal / Plaza **不要求**精美 HTML——专项规范 + Vue 落地即可（可极简壳或跳过）。  
+8. HTML **只钉视觉与信息架构**：可示意空态/主态；**不**实现真 Bridge、真 IAP、真 router、真持久化。
+
+阶段 A 结束、开始写 `h5/` **之前**：写 `_preview/pages/FREEZE.md`（冻结时间、Inventory 版本摘要、MUST 文件列表）。冻结后 **禁止**为「好看一点」改 HTML 却不改 Vue；若必须改视觉：先改 HTML → 更新 FREEZE → 再同步 Vue。
+
+### 8.3 阶段 B — 固定栈移植进 `h5/`
+
+1. 自建完整 Vite 工程（《H5壳Vite工程规范.md》）。  
+2. **逐路由对照** `_preview/pages/<file>.html`：结构与 Tailwind class **优先原样迁移**进 SFC；再补 Composition / router / store。  
+3. 交互与 Bridge **必须**按功能文档 + Bridge 协议补全——禁止「只有静态皮、按钮无业务」。  
+4. 图标改为 `@phosphor-icons/vue`（与 `icon-manifest.json` 对齐）；去掉预览用的临时 CDN 图标方案。  
+5. **可构建交付物只有 `h5/` → `h5_site/`**；gate / `dev.h5.build` **不**把 `_preview/pages` 当部署产物。
+
+### 8.4 风险处理（必须遵守）
+
+| 风险 | 处理 |
+|------|------|
+| **双真源** | 冻结前：HTML = 视觉契约；冻结后至交付：以 **Vue `h5/` 为唯一实现真源**。禁止 HTML/Vue 长期分叉。 |
+| **抄成死页面** | 每条 Primary / Secondary Workflow、Export、权限与 IAP 路径须在 Vue 内可点通（browserMock 或真机）；HTML 有的 CTA 在 Vue 须有对应 handler。 |
+| **成本爆炸** | 严格执行 MUST / SHOULD / MAY（§8.2）；Legal/Plaza 不强制精美 HTML。 |
+| **与 tabs 预览冲突** | `preview-canonical` / tabs HTML 管 **Tab 信息架构与色板**；`pages/*.html` 管 **单屏视觉密度**。色板冲突时以 MASTER + `preview-approved-colors` / canonical 为准，改单页 HTML 对齐，不另起色板。 |
+| **跨包抄袭** | 预览与 Vue 均禁止对照其他包 `_preview/` / `h5/`。 |
+| **RESUME 半成品** | 若已有部分 `h5/`：先补齐缺失的 MUST HTML + FREEZE，再按页补移植；勿在无预览契约时大面积重写皮肤。 |
+
+### 8.5 阶段自检
+
+**阶段 A**
+
+- [ ] INDEX 覆盖 Inventory 中全部 MUST 路由  
+- [ ] FREEZE.md 已写且 MUST 文件存在、非空壳（有主标题 + 主区结构）  
+- [ ] 色板与 MASTER / canonical 一致，非 SaaS 灰蓝默认皮  
+
+**阶段 B**
+
+- [ ] 每个 MUST HTML 有对应 Vue 路由/视图，class/层级可追溯  
+- [ ] Workflow / Bridge / Legal 分支按规范可走通  
+- [ ] 未手改 `h5_site/`；未把 `_preview/pages` 当部署入口  
+
 ## 导航
 
-- 上级：`H5壳Vite工程规范.md` · `H5壳Pack约束.md`  
+- 上级：`H5壳Vite工程规范.md` · `H5壳Pack约束.md` · `H5壳H5实现检查清单.md`  
 - 技能说明：工作区内 `.cursor/skills/ui-ux-pro-max`（若已链接）

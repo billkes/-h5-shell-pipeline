@@ -89,8 +89,15 @@ def test_v3_h5_prompt_has_no_block_injection() -> None:
     assert "@phosphor-icons/vue" in text
     assert "tailwindcss" in text
     assert "H5壳ui-ux-pro-max使用规范.md" in text
-    # Surface depth hard rules must appear BEFORE Required Reading (front-loaded).
+    assert "Two-phase" in text
+    assert "_preview/pages" in text
+    assert "FREEZE.md" in text
+    # Two-phase workflow + Surface depth before Required Reading.
+    assert "### Two-phase workflow" in text
     assert "### Surface Depth — must-have surfaces" in text
+    assert text.index("### Two-phase workflow") < text.index(
+        "### Surface Depth — must-have surfaces"
+    )
     assert text.index("### Surface Depth — must-have surfaces") < text.index(
         "### Required Reading"
     )

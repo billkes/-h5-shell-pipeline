@@ -1,7 +1,8 @@
 # H5 壳 Vite 工程规范
 
 > **无仓库代码模板。** 流水线不拷贝 `data/static/templates/h5_vite`。  
-> Agent 按本文 + **ui-ux-pro-max skill 产物** + `功能文档.md` **从零创建** `h5/`。
+> Agent 按本文 + **ui-ux-pro-max skill 产物** + `功能文档.md` **从零创建** `h5/`。  
+> **两阶段**：先 `_preview/pages/*.html`（HTML+Tailwind 视觉契约）→ 再移植进本工程；细则见《H5壳ui-ux-pro-max使用规范.md》§8。
 
 ## 技能统一栈（唯一 UI 标准）
 
@@ -13,6 +14,7 @@
 | 图标 | `icon-brief.md` · `skill-adapt/icon-manifest.json` | `@phosphor-icons/vue` |
 | Token | `skill-adapt/design-tokens.css` | Tailwind theme / `:root` |
 | 部署 | `h5-runtime.md`（流水线） | vite-plugin-singlefile → `h5_site/` |
+| 视觉预览契约 | Agent 写 `_preview/pages/*.html` | **不**部署；供移植对照 |
 
 **禁止**另起手写 CSS 体系或 inline SVG sprite kit 与 skill 双轨并行。
 
@@ -21,9 +23,10 @@
 | 谁 | 做什么 |
 |----|--------|
 | skill.design / enrich / adapt / tokens | UI 标准（栈、色、字、图标、token） |
-| Agent | 创建完整 `h5/`（工具链 + `src/` + 业务 UI） |
-| 流水线 | `sync_h5_legal_bundled`、theme/layout contract、`dev.h5.build` |
-| Gate | Bridge / Legal / 审核红线；**不**禁止 Phosphor / Tailwind |
+| Agent 阶段 A | Screen Inventory → `_preview/pages/*.html` + INDEX + FREEZE |
+| Agent 阶段 B | 创建完整 `h5/`，按冻结 HTML 移植 + 补 Bridge/业务 |
+| 流水线 | `sync_h5_legal_bundled`、theme/layout contract、`dev.h5.build`、`preview.tabs` |
+| Gate | Bridge / Legal / 审核红线；验 `h5/` / `h5_site`；**不**把 `_preview/pages` 当部署入口 |
 
 ## 工程骨架（Agent 自建）
 
@@ -62,12 +65,31 @@ h5/
 
 ## 实现原则
 
-1. **无页面模板**：业务 Vue/Tailwind 由 Agent 按 `pages/*.md` 自写。
+1. **无仓库页面模板**：不从仓内拷贝业务 Vue；视觉先落 `_preview/pages`，再移植。
 2. **规范真相源**：
    - 栈：`stack-vue.md` · `stack-html-tailwind.md`
-   - 每页：`design-system/{app}/pages/*.md`
+   - 每页文案/IA：`design-system/{app}/pages/*.md`
+   - 每页视觉契约（冻结后）：`_preview/pages/*.html`
    - Legal / Plaza / Overlay：《H5壳Legal弹层规范.md》· 《H5壳广场页规范.md》· 《H5壳Overlay路由规范.md》
-3. **合规靠 gate**：Welcome / Legal / Plaza / layout contract 等运行时约束。
+3. **双阶段真源**：冻结前 HTML 钉视觉；冻结后至交付以 `h5/` 为唯一实现真源（见使用规范 §8.4）。
+4. **合规靠 gate**：Welcome / Legal / Plaza / layout contract 等运行时约束。
+
+## 两阶段目录约定
+
+```text
+_preview/pages/
+├── INDEX.md       # 路由 ↔ html ↔ MUST/SHOULD/MAY
+├── FREEZE.md      # 开始写 h5/ 前必写
+├── welcome.html
+├── hub.html
+└── …
+h5/                # 阶段 B：唯一可 build 工程
+```
+
+- MUST：Welcome、Tab1/Hub、Primary Export/工作流面（Inventory 有则做）  
+- SHOULD：其他 tab-root  
+- MAY：stack 子页；Legal/Plaza 不强制精美 HTML  
+- 与 `{slug}-tabs-preview.html` / `preview-canonical.md` **共存**：后者管 Tab 总览与色板；前者管单屏密度  
 
 ## Browser Bridge mock（Vite DEV · 必做）
 
@@ -98,5 +120,5 @@ h5/
 
 ## 导航
 
-- 相关（产包工作区内）：《H5壳Legal弹层规范.md》· 《H5壳广场页规范.md》· 《H5壳Overlay路由规范.md》· 《H5壳Pack约束.md》
+- 相关（产包工作区内）：《H5壳ui-ux-pro-max使用规范.md》· 《H5壳H5实现检查清单.md》· 《H5壳Legal弹层规范.md》· 《H5壳广场页规范.md》· 《H5壳Overlay路由规范.md》· 《H5壳Pack约束.md》
 - 流水线仓规则（`docs/rules/`）**勿**作为产包 Agent 必读路径。

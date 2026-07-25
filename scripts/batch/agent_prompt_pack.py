@@ -331,7 +331,8 @@ def _format_web_agent_resume_md(
         "- Shell 无业务 UI；业务只在 `h5/`",
         "- `design-system/` / `skill-adapt/`：默认不改；**Plan Pack / H5 按 "
         "`H5壳ui-ux-pro-max使用规范.md` 审核后可修复**（禁消费向 SaaS 落锁）",
-        "- 禁止对照其他包 `output/` / `h5/` / MASTER 当模板",
+        "- H5 两阶段：先 `_preview/pages` HTML（FREEZE）→ 再移植 `h5/`；gate 只验 `h5/`",
+        "- 禁止对照其他包 `output/` / `h5/` / `_preview/` / MASTER 当模板",
         "- 不编辑 `h5_site/`（部署产物由流水线 `dev.h5.build` 生成）",
         "- 若缺少 `产包计划.md`：跳过该文件，以 `功能文档.md` + 登记 JSON 为准",
         "- H5 用户可见文案：English；浏览器 DEV 须接 `browserMock`",

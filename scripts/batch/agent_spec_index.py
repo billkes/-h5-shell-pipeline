@@ -258,6 +258,25 @@ def _collect_preview_paths(workspace: Path, app_name: str) -> list[str]:
     return out
 
 
+def _collect_html_page_preview_paths(workspace: Path) -> list[str]:
+    """Agent Phase-A HTML visual contracts under ``_preview/pages/``."""
+    root = workspace / "_preview" / "pages"
+    if not root.is_dir():
+        return []
+    out: list[str] = []
+    for name in ("INDEX.md", "FREEZE.md"):
+        hit = _existing(workspace, f"_preview/pages/{name}")
+        if hit:
+            out.append(hit)
+    htmls = sorted(root.glob("*.html"))
+    # Cap listing so the index stays readable; Agent still globs the folder.
+    for path in htmls[:24]:
+        out.append(_rel(workspace, path))
+    if len(htmls) > 24:
+        out.append(f"_preview/pages/… (+{len(htmls) - 24} more .html)")
+    return out
+
+
 def _norm_docs_for_phase(phase: AgentPhase) -> list[str]:
     mapping = {
         "plan": _PLAN_NORM_DOCS,
@@ -425,6 +444,23 @@ def write_agent_spec_index(
         lines.extend(
             _section("Tab preview (when present)", _collect_preview_paths(workspace, app_name))
         )
+
+    if phase in ("h5", "h5_build_repair", "preview"):
+        page_html = _collect_html_page_preview_paths(workspace)
+        if page_html:
+            lines.extend(
+                _section("HTML page previews (_preview/pages — Phase A)", page_html)
+            )
+        else:
+            lines.extend(
+                [
+                    "## HTML page previews (_preview/pages — Phase A)",
+                    "",
+                    "- *(not written yet — H5 Agent MUST create INDEX.md / FREEZE.md / MUST `*.html` "
+                    "per `H5壳ui-ux-pro-max使用规范.md` §8 before mass-editing `h5/` views)*",
+                    "",
+                ]
+            )
 
     if phase in ("h5", "h5_build_repair"):
         lines.extend(_section("skill.adapt (H5)", _collect_skill_adapt_paths(workspace)))

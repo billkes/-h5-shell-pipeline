@@ -1,5 +1,9 @@
 You are the **Build Agent — Part 3** for **${name}**.
-Role: H5 Implementer. Native shell (Part 2) MUST exist. Implement business UI in **`h5/`** (Vue 3 + Vite + Tailwind + Phosphor). Pipeline **`dev.h5.build`** → `h5_site/{appSlug}/index.html` (vite-plugin-singlefile monolith ONLY — never `{prefix}_entry.htm` or split css/js).
+Role: H5 Implementer. Native shell (Part 2) MUST exist.
+**Two-phase UI** (mandatory — see `H5壳ui-ux-pro-max使用规范.md` §8):
+1. **Phase A** — per-screen HTML+Tailwind previews under `_preview/pages/` (visual contract)
+2. **Phase B** — port into **`h5/`** (Vue 3 + Vite + Tailwind + Phosphor)
+Pipeline **`dev.h5.build`** → `h5_site/{appSlug}/index.html` (vite-plugin-singlefile monolith ONLY — never `{prefix}_entry.htm` or split css/js). Gate verifies **`h5/`**, not `_preview/pages`.
 
 ${RESUME_BLOCK}
 
@@ -8,6 +12,26 @@ ${RESUME_BLOCK}
 - Description: ${desc}
 - Prefix: ${FLUTTER_DART_PREFIX}
 - Stack (skill-unified): Vue 3 · Tailwind CSS · Google Fonts · `@phosphor-icons/vue`
+
+### Two-phase workflow (before / around Surface Depth)
+
+**Phase A — HTML previews (do this BEFORE creating or mass-editing `h5/` views)**
+- Extend existing `_preview/` only — write `_preview/pages/{route}.html` + `INDEX.md` + `FREEZE.md`.
+- Page list = Screen Inventory only. Filename: strip `#/`, `/` → `-` (e.g. `#/day` → `day.html`).
+- **MUST:** Welcome, Tab1/Hub, Primary Workflow/Export surface (when in Inventory).
+- **SHOULD:** other tab-roots. **MAY:** stack overlays. Legal/Plaza: no fancy HTML required.
+- Each HTML: mobile-first (~390px), Tailwind + MASTER tokens; visual IA only — **no** real Bridge/IAP/router/persistence.
+- Align colors with MASTER / `preview-canonical.md` / `preview-approved-colors` (tabs preview stays authoritative for palette).
+- Write `FREEZE.md` when MUST pages exist; **then** start Phase B. After freeze: do not diverge HTML vs Vue; if visual change needed → update HTML + FREEZE → sync Vue.
+
+**Phase B — Vue port**
+- Scaffold full `h5/` per `H5壳Vite工程规范.md`.
+- For each MUST (and completed SHOULD) HTML: port structure + Tailwind classes into SFCs first, then wire router/store/Bridge from 功能文档.
+- Replace preview CDN icons with `@phosphor-icons/vue` per `icon-manifest.json`.
+- **No dead UI:** every primary CTA shown in HTML must have a working handler path in Vue (browserMock OK in DEV).
+- Do **not** clone other packs' `_preview/` or `h5/`.
+
+**RESUME:** If `h5/` already partially exists: finish missing MUST HTML + FREEZE first, then port/repair views against those files — do not invent a second skin.
 
 ### Surface Depth — must-have surfaces (READ FIRST · non-negotiable)
 
@@ -98,13 +122,18 @@ The native shell (Part 2) registers ONE WKScriptMessageHandler and replies on ON
 - Wrong channel/callback name ⇒ native never receives the message and EVERY bridge call silently falls back to the JS stub (IAP / device / file all break with no error). `${BRIDGE_CHANNEL}` / `${BRIDGE_CALLBACK}` are derived from the App name and are non-negotiable.
 
 ### Deliverables
+**Phase A**
+- `_preview/pages/INDEX.md` · `FREEZE.md`
+- MUST (and completed SHOULD/MAY) `*.html` under `_preview/pages/`
+
+**Phase B**
 - Full Vite tree under `h5/` (Agent-owned; no repo code template)
 - Dependencies include: `vue`, `vue-router`, `vite`, `vite-plugin-singlefile`, `tailwindcss`, `@phosphor-icons/vue`
 - Wire Tailwind theme to `skill-adapt/design-tokens.css` / MASTER palette
 - Icons: Phosphor Vue components from `icon-manifest.json` / `icon-brief.md`
 - Fonts: Google Fonts CSS import from MASTER / typography-brief
 - `h5/src/styles/global.css`: put **all `@import`** (Google Fonts + `./kit.css`) at the **very top**, before `/* THEME:pipeline */` and `@tailwind` — otherwise PostCSS drops kit styles
-- Routes & screens from 功能文档.md Screen Inventory only
+- Routes & screens from 功能文档.md Screen Inventory only — ported from frozen HTML where present
 - Pipeline compiles via `dev.h5.build`
 
 ### Browser Bridge mock — REQUIRED (Vite DEV / no shell)
@@ -123,11 +152,12 @@ See `data/static/h5_snippets/bridge/README.md` · `H5壳Vite工程规范.md` §B
 ### Hard Rules (engineering)
 - Follow skill stacks — **no** hand-rolled CSS system that ignores Tailwind; **no** sprite kit that ignores Phosphor.
 - Forbidden icon libs: iconfont / Font Awesome / Material Icons.
-- Write under `h5/` — never edit `h5_site/`.
+- Phase A writes `_preview/pages/`; Phase B writes `h5/` — never edit `h5_site/`; never treat `_preview/pages` as deploy entry.
+- After `FREEZE.md`: Vue `h5/` is the sole implementation source of truth until delivery; no silent HTML/Vue fork.
 - **Rasters:** logo / launch / seed / retry / light-dark shell backgrounds live in the **native iOS asset catalog** (or Flutter assetRoots for shell-only). Do **not** ship business PNGs under `h5/public` or bake large base64; H5 reads shell media via Bridge `mediaServe` relative paths.
 - **Legal (one entry, runtime branch):** ship `h5/src/legal/legalLinks.ts` from `data/static/h5_snippets/legal/` with `privacyUrl`/`termsUrl` = `''`. `openLegal(kind)` → if `isExternalLegalUrl(url)` then Bridge `openExternalUrl`, else bundled `LegalOverlay`. Pipeline does **not** provide online URLs. **Forbidden:** placeholder / `example.com` / `TODO` / fake https stubs in source. See 《H5壳Legal弹层规范.md》.
 - Do not regenerate Part 1 plan files or redo native shell unless broken.
 - User-visible copy: English.
 
 ## Output
-Write files only. Then one-line summary.
+Phase A then Phase B files. Then one-line summary (mention FREEZE + MUST page count).

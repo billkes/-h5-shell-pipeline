@@ -149,3 +149,36 @@ def test_prepare_agent_prompt_files_indexes_workspace_norms(tmp_path: Path) -> N
     assert WORKSPACE_SCOPE_LINE in focus_text
     assert "global-brain" not in focus_text
     assert focus.name == "agent-workspace-focus.md"
+
+
+def test_h5_spec_index_mentions_html_page_preview_phase(tmp_path: Path) -> None:
+    cfg = BatchConfig.from_env()
+    copy_workspace_docs(cfg, tmp_path, "Lensoo", "h5_swift_shell")
+    index, _focus = prepare_agent_prompt_files(
+        tmp_path,
+        phase="h5",
+        app_name="Lensoo",
+        pack_type="h5_swift_shell",
+        role_slug="build-agent-h5",
+        role_focus=_PROGRAMMER_BRAIN_FOCUS,
+    )
+    body = index.read_text(encoding="utf-8")
+    assert "H5壳ui-ux-pro-max使用规范.md" in body
+    assert "_preview/pages" in body
+    assert "Phase A" in body
+    pages = tmp_path / "_preview" / "pages"
+    pages.mkdir(parents=True)
+    (pages / "INDEX.md").write_text("# index\n", encoding="utf-8")
+    (pages / "FREEZE.md").write_text("# freeze\n", encoding="utf-8")
+    (pages / "welcome.html").write_text("<html></html>\n", encoding="utf-8")
+    index2, _ = prepare_agent_prompt_files(
+        tmp_path,
+        phase="h5",
+        app_name="Lensoo",
+        pack_type="h5_swift_shell",
+        role_slug="build-agent-h5",
+        role_focus=_PROGRAMMER_BRAIN_FOCUS,
+    )
+    body2 = index2.read_text(encoding="utf-8")
+    assert "_preview/pages/INDEX.md" in body2
+    assert "_preview/pages/welcome.html" in body2
