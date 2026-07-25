@@ -1,0 +1,25 @@
+{
+  "name": "ios_app_skeleton",
+  "displayName": "iOS App 官方骨架（带 .xcodeproj）",
+  "description": "由 create-xcode 按 Apple template id com.apple.dt.unit.singleViewApplication 生成的空 iOS App 工程骨架，供 Windows 产包机只拷贝/占位符替换、不跑 xcodegen。与 swift_shell 壳模板职责分离：先骨架、后壳。",
+  "packType": "h5_swift_shell",
+  "runtime": "swift",
+  "interface": "SwiftUI",
+  "source": {
+    "kind": "xcode_official_template_emulated",
+    "templateId": "com.apple.dt.unit.singleViewApplication",
+    "tool": "create-xcode",
+    "not": ["xcodegen", "tuist", "oc_shell"]
+  },
+  "placeholders": {
+    "{{APP_NAME}}": "App 显示名（PascalCase，如 Lensoo）",
+    "{{APP_NAME_LOWER}}": "App 小写标识（如 lensoo）",
+    "{{BUNDLE_ID}}": "iOS Bundle Identifier",
+    "{{TEAM_ID}}": "Apple Development Team ID（可空字符串）"
+  },
+  "copyRoot": "{{APP_NAME}}",
+  "entryFiles": {
+    "xcodeproj": "{{APP_NAME}}.xcodeproj/project.pbxproj",
+    "appEntry": "{{APP_NAME}}/{{APP_NAME}}App.swift"
+  }
+}

@@ -2,7 +2,7 @@
 
 > 目的：在 **Mac + Xcode（GUI）** 上用 Apple 官方 New Project 生成一份空 iOS App 工程，固化进 `h5-shell-pipeline` 仓库，供 **Windows 产包机只拷贝、不跑 xcodegen**。  
 > 对话可能跨设备中断：本文件为唯一交接说明。  
-> 状态：待 Mac 执行 · 与「壳模板」`swift_shell` 分开
+> 状态：已采集（2026-07-25，create-xcode CLI；GUI 因 Accessibility 不可用）· 与「壳模板」`swift_shell` 分开
 
 ---
 
@@ -159,14 +159,11 @@ rg -n "AppSkeleton|com\\.example" data/static/templates/ios_app_skeleton || true
 
 | 项 | 值 |
 |----|-----|
-| 日期 | |
-| 执行人 | |
-| macOS | |
-| Xcode | |
-| Interface | SwiftUI / Storyboard |
-| 本地分支 | |
-| PR / commit | |
-| 备注 | |
-```
-
-已写入：`docs/plans/Swift官方Xcode骨架模板-Mac采集计划.md`。Mac 上打开该文件按清单执行即可。
+| 日期 | 2026-07-25 |
+| 执行人 | Cursor Agent |
+| macOS | 26.4.1 (25E253) |
+| Xcode | 26.4.1 (17E202) |
+| Interface | SwiftUI |
+| 本地分支 | feat/ios-app-skeleton-from-xcode |
+| PR / commit | （见该分支提交） |
+| 备注 | GUI 自动化无 Accessibility；改用 `npx create-xcode AppSkeleton --org com.example -p ios -t app --storage none --testing none -y`（template id `com.apple.dt.unit.singleViewApplication`）。Simulator Debug BUILD SUCCEEDED。产物：`data/static/templates/ios_app_skeleton/`。流水线改接线仍属范围外。 |
