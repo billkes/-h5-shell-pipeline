@@ -14,6 +14,8 @@ SKILL_ADAPT = "skill.adapt"
 SKILL_PAGES = "skill.pages"
 SKILL_TOKENS = "skill.tokens"
 LOCK_DIMENSIONS = "lock.dimensions"
+# Project global-brain agent-distilled → skill-input/distilled/ (no corpus in repo)
+SYNC_DISTILLED = "sync.distilled"
 PREVIEW_TABS = "preview.tabs"
 
 BUILD_AGENT = "build.agent"
@@ -66,6 +68,7 @@ V3_STEPS: tuple[str, ...] = (
     SKILL_PAGES,
     SKILL_TOKENS,
     LOCK_DIMENSIONS,
+    SYNC_DISTILLED,
     AGENT_PLAN_SPEC,
     AGENT_PLAN_PACK,
     AGENT_SHELL,
@@ -92,6 +95,7 @@ STEP_LABELS: dict[str, str] = {
     SKILL_PAGES: "skill.pages · 逐屏 override",
     SKILL_TOKENS: "skill.tokens · 设计 Token 同步",
     LOCK_DIMENSIONS: "锁维度 + 工程准备",
+    SYNC_DISTILLED: "投影 agent-distilled → skill-input/distilled",
     PREVIEW_TABS: "Tab 明暗预览 · 静态 HTML",
     BUILD_AGENT: "Build Agent · 蓝图 + 实现（legacy 单次调用）",
     AGENT_PLAN_SPEC: "Agent · 功能/产品文档 + Legal",
@@ -117,6 +121,7 @@ STEP_TO_PHASE: dict[str, str] = {
     SKILL_PAGES: PM_UI_PLAN_PHASE,
     SKILL_TOKENS: PM_UI_PLAN_PHASE,
     LOCK_DIMENSIONS: PM_UI_PLAN_PHASE,
+    SYNC_DISTILLED: PM_UI_PLAN_PHASE,
     PREVIEW_TABS: PM_UI_PLAN_PHASE,
     BUILD_AGENT: PM_UI_PLAN_PHASE,
     AGENT_PLAN_SPEC: PM_UI_PLAN_PHASE,
@@ -141,6 +146,7 @@ PHASE_STEPS: dict[str, tuple[str, ...]] = {
         SKILL_PAGES,
         SKILL_TOKENS,
         LOCK_DIMENSIONS,
+        SYNC_DISTILLED,
         AGENT_PLAN_SPEC,
         AGENT_PLAN_PACK,
         AGENT_SHELL,
@@ -169,6 +175,8 @@ def steps_for_run(*, pack_type: str) -> tuple[str, ...]:
     is_h5 = is_h5_shell(pack_type)
     for step in V3_STEPS:
         if step == DEV_H5_BUILD and not is_h5:
+            continue
+        if step == SYNC_DISTILLED and not is_h5:
             continue
         if step in (*PLAN_AGENT_STEPS, AGENT_SHELL, AGENT_H5) and not is_h5:
             continue
@@ -221,6 +229,8 @@ def parse_step_range(raw: str, steps: tuple[str, ...]) -> list[str]:
         "skill.pages": SKILL_PAGES,
         "skill.tokens": SKILL_TOKENS,
         "lock.dimensions": LOCK_DIMENSIONS,
+        "sync.distilled": SYNC_DISTILLED,
+        "agent.distilled": SYNC_DISTILLED,
         "preview.tabs": PREVIEW_TABS,
         "build.agent": AGENT_PLAN_SPEC,
         "plan.agent": AGENT_PLAN_SPEC,

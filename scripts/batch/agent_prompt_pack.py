@@ -52,7 +52,7 @@ MAIN_AGENT_SLOTS: tuple[AgentPromptSlot, ...] = (
         role_slug="build-agent-plan-spec",
         role_focus=_PM_UI_PLAN_BRAIN_FOCUS,
         builder_name="build_agent_plan_spec_phase",
-        prerequisites=("lock.dimensions done",),
+        prerequisites=("lock.dimensions done", "sync.distilled done"),
         deliverables=(
             "功能文档.md",
             "{name} Privacy Agreement.md",

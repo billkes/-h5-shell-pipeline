@@ -89,6 +89,10 @@ _YAML_ENV_MAP: dict[tuple[str, ...], str] = {
     ("git", "default_branch"): "GIT_DEFAULT_BRANCH",
     ("evolution", "cooldown_days"): "COOLDOWN_DAYS",
     ("uupm", "skill_dir"): "UUPM_SKILL_DIR",
+    ("agent_distilled", "enabled"): "AGENT_DISTILLED_ENABLED",
+    ("agent_distilled", "source_dir"): "AGENT_DISTILLED_SOURCE",
+    ("agent_distilled", "source_dir_win"): "AGENT_DISTILLED_SOURCE_WIN",
+    ("agent_distilled", "source_dir_mac"): "AGENT_DISTILLED_SOURCE_MAC",
 }
 
 
@@ -231,6 +235,16 @@ class BatchConfig:
     xcode_development_team: str = ""
     xcode_provisioning_profile: str = "duckeggkaifaProfile"
     iap_bundle_prefix: str = ""
+    # global-brain agent-distilled 投影源（绝对路径；按平台选 win/mac）
+    agent_distilled_enabled: bool = True
+    agent_distilled_source_dir: str = ""  # 可选：覆盖当前机绝对路径
+    agent_distilled_source_dir_win: str = (
+        r"E:\projects\global-brain\1_项目\h5-shell-pipeline\agent-distilled"
+    )
+    agent_distilled_source_dir_mac: str = (
+        "/Users/ios-dev/Desktop/projects/global-brain/"
+        "1_项目/h5-shell-pipeline/agent-distilled"
+    )
 
     @property
     def config_dir(self) -> Path:
@@ -425,6 +439,22 @@ class BatchConfig:
                 "duckeggkaifaProfile",
             ),
             iap_bundle_prefix=os.environ.get("IAP_BUNDLE_PREFIX", ""),
+            agent_distilled_enabled=os.environ.get(
+                "AGENT_DISTILLED_ENABLED", "1"
+            )
+            == "1",
+            agent_distilled_source_dir=os.environ.get(
+                "AGENT_DISTILLED_SOURCE", ""
+            ),
+            agent_distilled_source_dir_win=os.environ.get(
+                "AGENT_DISTILLED_SOURCE_WIN",
+                r"E:\projects\global-brain\1_项目\h5-shell-pipeline\agent-distilled",
+            ),
+            agent_distilled_source_dir_mac=os.environ.get(
+                "AGENT_DISTILLED_SOURCE_MAC",
+                "/Users/ios-dev/Desktop/projects/global-brain/"
+                "1_项目/h5-shell-pipeline/agent-distilled",
+            ),
         )
         for key, val in overrides.items():
             if hasattr(cfg, key):

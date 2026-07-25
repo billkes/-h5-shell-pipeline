@@ -34,6 +34,17 @@ uupm:
     motion_css: true
     sibling_skills_link: true
 
+# 产包 Agent 蒸馏语料（global-brain 白名单导出区）
+# 流水线仓不存正文；V3 步骤 sync.distilled（lock 后、Agent 前）投影到
+#   output/.../skill-input/distilled/
+# 路径用绝对路径；按本机 OS 选 win / mac。找不到目录 → WARN 跳过，不硬失败。
+# 单机覆盖：环境变量 AGENT_DISTILLED_SOURCE（任意 OS 优先于 win/mac）。
+agent_distilled:
+  enabled: true
+  source_dir: ""
+  source_dir_win: "E:/projects/global-brain/1_项目/h5-shell-pipeline/agent-distilled"
+  source_dir_mac: "/Users/ios-dev/Desktop/projects/global-brain/1_项目/h5-shell-pipeline/agent-distilled"
+
 # 可选：Logo/Icon AI 生成（design skill，无 key 时跳过）
 design:
   gemini_api_key: ""

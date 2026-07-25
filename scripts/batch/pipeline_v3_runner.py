@@ -27,6 +27,7 @@ from batch.pipeline_steps import (
     AGENT_STEPS,
     DEV_H5_BUILD,
     LOCK_DIMENSIONS,
+    SYNC_DISTILLED,
     PREPARE_CONTEXT,
     SKILL_ADAPT,
     SKILL_DESIGN,
@@ -352,6 +353,25 @@ class V3StepRunner:
                 get_run_log().detail(f"agent prompt pack 失败: {exc}")
                 print(f">>> lock.dimensions: agent prompt pack skipped: {exc}")
                 return False
+        return True
+
+    def _step_sync_distilled(self, ctx: AppContext) -> bool:
+        """Project global-brain agent-distilled → skill-input/distilled/."""
+        from batch.agent_distilled import DISTILLED_REL, copy_agent_distilled
+
+        if not is_h5_shell(ctx.pack_type):
+            return True
+        result = copy_agent_distilled(self.p.cfg, ctx.workspace)
+        n = int(result.get("file_count") or 0)
+        if result.get("skipped"):
+            get_run_log().detail(
+                f"sync.distilled skipped ({result.get('reason')}) — "
+                f"no projection under {DISTILLED_REL}/"
+            )
+        else:
+            get_run_log().detail(
+                f"sync.distilled → {n} files under {DISTILLED_REL}/"
+            )
         return True
 
     def _step_design_system(self, ctx: AppContext) -> bool:
@@ -822,6 +842,7 @@ _STEP_HANDLERS = {
     SKILL_PAGES: V3StepRunner._step_skill_pages,
     SKILL_TOKENS: V3StepRunner._step_skill_tokens,
     LOCK_DIMENSIONS: V3StepRunner._step_lock_dimensions,
+    SYNC_DISTILLED: V3StepRunner._step_sync_distilled,
     AGENT_PLAN_SPEC: V3StepRunner._step_agent_plan_spec,
     AGENT_PLAN_PACK: V3StepRunner._step_agent_plan_pack,
     AGENT_SHELL: V3StepRunner._step_agent_shell,
